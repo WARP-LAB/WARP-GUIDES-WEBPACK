@@ -105,7 +105,7 @@ NODE_ENV=development node_modules/.bin/webpack-dev-server --config=$(pwd)/webpac
 
 Visit [http://webpacktest-devserver.dev/](http://webpacktest-devserver.dev/) or [http://localhost:4000/](http://localhost:4000/), based on your setup.
 
-If you are using `localhost`, then replace `webpacktest-basic.dev` to `localhost` in config and webpack-dev-server run command and visit [http://localhost:4000/](http://localhost:4000/)
+If you are using `localhost`, then replace `webpacktest-devserver.dev` to `localhost` in config and webpack-dev-server run command and visit [http://localhost:4000/](http://localhost:4000/)
 
 ### If you are doing this under dev server
 
@@ -113,7 +113,7 @@ Ask
 
 ## Extended webpack-dev-server configuration and CORS
 
-As you might have caught, webfonts are not loaded, because we visit `http://webpacktest-basic.dev:80`, but fonts are served by webpack dev server from `http://webpacktest-basic.dev:4000`.
+As you might have caught, webfonts are not loaded, because we visit `http://webpacktest-devserver.dev:80`, but fonts are served by webpack dev server from `http://webpacktest-devserver.dev:4000`.
 
 Let us move webpack dev server configuration within `webpack.confg.js` and extend it.
 
@@ -122,7 +122,7 @@ Let us move webpack dev server configuration within `webpack.confg.js` and exten
 
 // ----------------
 // PUBLIC PATH based on env
-const publicPath = production ? '//webpacktest-basic.dev/assets/' : 'http://webpacktest-devserver.dev:4000/assets/';
+const publicPath = production ? '//webpacktest-devserver.dev/assets/' : 'http://webpacktest-devserver.dev:4000/assets/';
 
 // ...
 
@@ -139,7 +139,7 @@ config.devServer = {
     'Access-Control-Allow-Origin': '*'
   },
   historyApiFallback: true,
-  host: 'webpacktest-basic.dev', // CLI ONLY
+  host: 'webpacktest-devserver.dev', // CLI ONLY
   
   // either use cli --hot (and --inline) or this config flag
   // when using this config we need to manually also add webpack.HotModuleReplacementPlugin()
