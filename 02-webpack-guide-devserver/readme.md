@@ -6,6 +6,8 @@
 
 Use existing `webpacktest-basic` code base from previous guide stage. Either work on top of it or just make a copy. The directory now is called `webpacktest-devserver`.
 
+Make changes in `package.json` and `index.html` to reflect host change to `webpacktest-devserver.dev`.
+
 ---
 # Webpack dev server
 ---
