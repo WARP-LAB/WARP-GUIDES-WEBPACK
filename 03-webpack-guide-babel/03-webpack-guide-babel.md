@@ -12,7 +12,7 @@ Make changes in `package.json` and `index.html` to reflect host change to `webpa
 # Babel
 ---
 
-Until now `site.js` contained old javascript (except for Common.js `require()` that got handled by webpack loader). You will have to write ES2015(ES6), ES2016, ES2017 code with probaly even some stage-x features.
+Until now `site.js` contained old javascript (except for Common.js `require()` that got handled by webpack loader). You will have to write ES2015(ES6), ES2016, ES2017 code with probably even some stage-x features.
 
 
 ## Babel core
@@ -117,7 +117,7 @@ var myArrowFunction = function myArrowFunction() { /* ... */ }
 
 ## Tree shaking
 
-Webpack 2 finaly has [tree shaking](https://webpack.js.org/guides/tree-shaking/).
+Webpack 2 finally has [tree shaking](https://webpack.js.org/guides/tree-shaking/).
 
 Build project as is for production and look for `helperA` and `helperB` in compiled `assets/site.js`. Both are present.
 
@@ -207,8 +207,8 @@ Therefore some shims might be needed.
 
 ## Babel configuration
 
-Note `targets`. As of now it is still [PR](https://github.com/babel/babel-preset-env/pull/161) fror Babel to be able to read `browserslist` configs. When (if) this gets inplemented, we will be able to drop `targets` key here and both PostCSS as well as Babel can use shared config (via `package.json`/`browserslist`/`.browserslistrc`).  
-Also keep eye on [UglifyJS compatability](https://github.com/babel/babel-preset-env#targetsuglify).
+Note `targets`. As of now it is still [PR](https://github.com/babel/babel-preset-env/pull/161) for Babel to be able to read `browserslist` configs. When (if) this gets implemented, we will be able to drop `targets` key here and both PostCSS as well as Babel can use shared config (via `package.json`/`browserslist`/`.browserslistrc`).  
+Also keep eye on [UglifyJS compatibility](https://github.com/babel/babel-preset-env#targetsuglify).
 
 _.babelrc_
 

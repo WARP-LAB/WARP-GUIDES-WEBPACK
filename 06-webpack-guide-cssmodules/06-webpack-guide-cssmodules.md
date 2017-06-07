@@ -107,7 +107,7 @@ This filename based rule loading is *helper* and does the job most of the time, 
         ]
       })
     },
-    // all content for SCSS files that filenames do not conatain *.global.scss, will receive CSS modules namespace treatment
+    // all content for SCSS files that filenames do not contain *.global.scss, will receive CSS modules namespace treatment
     // you can still use :global{} within them
     {
       test: /^((?!\.global).)*\.(scss)$/i,

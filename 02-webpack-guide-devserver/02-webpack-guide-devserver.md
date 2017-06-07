@@ -28,7 +28,7 @@ npm install webpack-dev-server --save-dev
 ### manage-htaccess
 
 Skip this if not on Apache.  
-We will need port proxying. Instead of proxying within Apache2 vhost or NGINX proxy (ze best!), this will give us fast proxy on/off in on Apache managad via `.htaccess`  
+We will need port proxying. Instead of proxying within Apache2 vhost or NGINX proxy (ze best!), this will give us fast proxy on/off in on Apache managed via `.htaccess`  
 [manage-htaccess](https://github.com/WARP-LAB/manage-htaccess)
 
 ```sh

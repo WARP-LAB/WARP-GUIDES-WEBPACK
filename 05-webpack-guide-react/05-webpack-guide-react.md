@@ -396,11 +396,11 @@ if (module.hot) {
 
 Build it.
 Click on text to see counter go up.
-Change something in *App.js* render output and watch as app changes. However, counter is not resetted (state is kept).
+Change something in *App.js* render output and watch as app changes. However, counter is not reset (state is kept).
 
 ## Extension and loaders
 
-This might be the point where for React code you could start using `.jsx` ectension which hints both you as well as your editor about file contents. In this case remember to add rules to webpack config to parse those files as you want (`test: /\.jsx$/`).
+This might be the point where for React code you could start using `.jsx` extension which hints both you as well as your editor about file contents. In this case remember to add rules to webpack config to parse those files as you want (`test: /\.jsx$/`).
 
 ## Move on
 
