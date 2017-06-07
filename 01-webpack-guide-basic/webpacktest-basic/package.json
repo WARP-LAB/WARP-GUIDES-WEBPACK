@@ -1,0 +1,27 @@
+{
+  "name": "webpacktest-basic",
+  "version": "1.0.0",
+  "description": "webpack testing",
+  "main": "public/index.html",
+  "author": "kroko",
+  "license": "MIT",
+  "private": true,
+  "devDependencies": {
+    "autoprefixer": "^7.1.1",
+    "css-loader": "^0.28.4",
+    "css-mqpacker": "^6.0.1",
+    "cssnano": "^3.10.0",
+    "extract-text-webpack-plugin": "^2.1.0",
+    "file-loader": "^0.11.2",
+    "image-webpack-loader": "^3.3.1",
+    "node-sass": "^4.5.3",
+    "normalize.css": "^7.0.0",
+    "postcss-loader": "^2.0.5",
+    "resolve-url-loader": "^2.0.2",
+    "sass-loader": "^6.0.5",
+    "style-loader": "^0.18.2",
+    "url-loader": "^0.5.8",
+    "webpack": "^2.6.1",
+    "webpack-glsl-loader": "^1.0.1"
+  }
+}

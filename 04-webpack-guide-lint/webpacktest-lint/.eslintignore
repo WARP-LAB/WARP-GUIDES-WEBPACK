@@ -1,0 +1,5 @@
+# by default: node_modules/*
+# by default: bower_components/*
+!.eslintrc.js
+!.stylelintrc.js
+static/*
