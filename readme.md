@@ -39,3 +39,8 @@ _While doing edits I realised that notes should be made for some basic npm stuff
 ### Node.js / npm version
 
 Make sure you have `npm` version 3.x.
+
+### Todo
+
+* We have discussed how *webpack-dev-server* can be launched via CLI in Webpach 1 guide (and this still aplies to Webpack 2). In this gude we have used `devServer` key in webpack config to configure the server. Discuss how *webpack-dev-server* can be launched via API (that is some separate file to launch server - `server.dev.js` containing `new WebpackDevServer()`).
+* Extend on UglifyJS (and/or Babili alternative) and ecmascript versions. In this guide use webpack built in `webpack.optimize.UglifyJsPlugin` that can only work on ES5 which here is not an issue - our priginal ES2015(ES6), ES2016, ES2017, some stage-x features code is passed through Babel, which results in UglifyJS receiving ES5. However, minimification stage at when code is still ES2015(+) is beneficiary, especially if we were to write stuff for node targets. Current node 99% implements both ES215 as well as ES2016 [reference](http://node.green).
