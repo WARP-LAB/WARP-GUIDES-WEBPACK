@@ -14,6 +14,9 @@ Note that CSS modules is not React only thing, use it wherever, but we will use 
 # CSS Modules
 ---
 
+## Setup loaders
+
+
 Container and component split CSS.
 
 * Add rule for SCSS that does not use CSS Modules if file is something for global scope.
@@ -40,6 +43,35 @@ This filename based rule loading is *helper* and does the job most of the time, 
 
 // ...
 
+    // all CSS files considered to be in global namespace (i.e., normalize.css)
+    // you can still scope them by importing them within :local{} block
+    {
+      test: /\.(css)$/,
+      use: ExtractTextPlugin.extract({
+        fallback: 'style-loader',
+        use: [
+          {
+            loader: 'css-loader',
+            options: {
+              importLoaders: 2,
+              sourceMap: true
+            }
+          },
+          {
+            loader: 'postcss-loader',
+            options: {
+              sourceMap: true
+            }
+          },
+          {
+            loader: 'resolve-url-loader',
+            options: {
+              keepQuery: true
+            }
+          }
+        ]
+      })
+    },
     // all content for SCSS files that filenames contain *.global.scss are considered to in global namespace
     {
       test: /.\.global\.(scss)$/,
@@ -93,7 +125,10 @@ This filename based rule loading is *helper* and does the job most of the time, 
             }
           },
           {
-            loader: 'postcss-loader'
+            loader: 'postcss-loader',
+            options: {
+              sourceMap: true
+            }
           },
           {
             loader: 'resolve-url-loader',
@@ -111,35 +146,16 @@ This filename based rule loading is *helper* and does the job most of the time, 
         ]
       })
     },
-    // all CSS files considered to be in global namespace (i.e., normalize.css)
-    // you can still scope them by importing them within :local{} block
-    {
-      test: /\.(css)$/,
-      use: ExtractTextPlugin.extract({
-        fallback: 'style-loader',
-        use: [
-          {
-            loader: 'css-loader',
-            options: {
-              importLoaders: 1,
-              sourceMap: true
-            }
-          },
-          {
-            loader: 'postcss-loader'
-          }
-        ]
-      })
-    },
-    
+        
 // ...
 ```
 
+## Test code
 
-Create *App.scss*
+
+Create *Containers/App/AApp.scss*
 
 ```scss
-
 @mixin testmixin {
   color: yellow;
 }
@@ -160,12 +176,13 @@ Create *App.scss*
 
   .app {
     background-color: brown;
+    background-image: none;
   }
 }
 
 ```
 
-Import it in *App.js*
+Import it in *Containers/App/App.js*
 
 ```javascript
 // ...
@@ -187,9 +204,16 @@ import styles from './App.scss';
 
 Build it, observe.
 
+`.app` behaviour specified in `site.global.scss` is still there (as well as (S)CSS that is imported in it), because of the `*.global.scss` naming.  
+However `App.scss` has CSS modules magic applied to it. Meanwhile within App.scss via *:global* enclosure we could still change global class name behaviour.  
+This will get you started.
+
+
+## Stylelinting
+
+This is tricky, remember notes about stylelit caveats in *lint* phase of this guide.
 
 Configure *.stylelintrc.js*
-
 
 ```javascript
 // keep json compatible key naming and comma trailing!
@@ -206,7 +230,7 @@ module.exports = {
   "rules": {
 
     // --------------------------------------------
-    // RULES FOR SCSS
+    // STYLELINT RULES FOR SCSS
 
     "at-rule-empty-line-before": [
       "always",
@@ -223,14 +247,13 @@ module.exports = {
     ],
     "at-rule-name-space-after": "always",
     "rule-empty-line-before": "always",
-
     "scss/at-else-closing-brace-newline-after": "always-last-in-chain",
     "scss/at-else-closing-brace-space-after": "always-intermediate",
     "scss/at-if-closing-brace-newline-after": "always-last-in-chain",
     "scss/at-if-closing-brace-space-after": "always-intermediate",
 
     // --------------------------------------------
-    // RULES FOR CSS MODULES
+    // STYLELINT RULES FOR CSS MODULES
 
     "selector-pseudo-class-no-unknown": [
       true,
@@ -252,7 +275,7 @@ module.exports = {
         ]
       }
     ]
-    // this messes up ignoreAtRules for SCSS, so ignore
+    // this messes up ignoreAtRules for SCSS, thus ignore
     // "at-rule-no-unknown": [
     //   true,
     //   {
@@ -264,5 +287,4 @@ module.exports = {
   }
 };
 
-/* eslint-enable quotes */
 ```
