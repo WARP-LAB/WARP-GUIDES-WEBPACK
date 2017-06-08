@@ -42,9 +42,9 @@ Make sure you have `npm` version 3.x.
 
 ### Todo
 
-* code splitting in app and vendor [using entries](https://webpack.js.org/concepts/entry-points/#separate-app-and-vendor-entries) and *CommonsChunkPlugin* or [DllPlugin](https://webpack.js.org/plugins/dll-plugin/)
+* code splitting in app and vendor [using entries](https://webpack.js.org/concepts/entry-points/#separate-app-and-vendor-entries) and *CommonsChunkPlugin* or [DllPlugin](https://webpack.js.org/plugins/dll-plugin/), see also [inlining webpack manifest](https://github.com/jouni-kantola/inline-chunk-manifest-html-webpack-plugin)
+* [async preloading](https://github.com/GoogleChrome/preload-webpack-plugin) via *PreloadWebpackPlugin*
 * Extend on `index.html` building via [*HtmlWebpackPlugin*](https://www.npmjs.com/package/html-webpack-plugin) - talk about plugins.
 * [manifest.appcache](https://github.com/lettertwo/appcache-webpack-plugin) (HTML5 app cache) to make our app work offline (related to *HtmlWebpackPlugin*)
 * We have discussed how *webpack-dev-server* can be launched via CLI in Webpack 1.x guide (and this still applies to Webpack 2). In this guide we have used `devServer` key in webpack config to configure the server. Discuss how *webpack-dev-server* can be launched via API (that is some separate file to launch server - `server.dev.js` containing `new WebpackDevServer()`).
-* [async preloading](https://github.com/GoogleChrome/preload-webpack-plugin) via *PreloadWebpackPlugin*
 * Extend on *UglifyJS* (and/or *Babili* alternative) and ECMAScript versions. In this guide we use webpack built in `webpack.optimize.UglifyJsPlugin` that can only work on ES5 which here is not an issue - our original ES2015(ES6), ES2016, ES2017, some stage-x features code is passed through Babel, which results in *UglifyJS* receiving ES5. However, minification stage at when code is still ES2015(+) is beneficiary, especially if we were to write stuff for node targets. Current node 99% implements both ES215 as well as ES2016 [reference](http://node.green).
