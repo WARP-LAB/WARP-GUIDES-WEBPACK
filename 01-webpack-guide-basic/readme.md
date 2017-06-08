@@ -23,6 +23,7 @@ webpacktest-basic
 │   ├── assets
 │   └── index.html
 ├── src
+│   ├── index.template.ejs
 │   ├── preflight.js
 │   ├── site.global.scss
 │   ├── site.js
@@ -52,7 +53,7 @@ webpacktest-basic
 </html>
 ```
 
-Leave `webpack.front.config.js`, javascript and CSS/SCSS files empty for now. Either leave `package.json` out and generate it in the next step (`npm init`) or put our template `package.json` in place / [manually fill in](https://docs.npmjs.com/files/package.json) bare minimum yourself.
+Leave `webpack.front.config.js`, javascript, EJS and CSS/SCSS files empty for now. Either leave `package.json` out and generate it in the next step (`npm init`) or put our template `package.json` in place / [manually fill in](https://docs.npmjs.com/files/package.json) bare minimum yourself.
 
 _package.json_
 
