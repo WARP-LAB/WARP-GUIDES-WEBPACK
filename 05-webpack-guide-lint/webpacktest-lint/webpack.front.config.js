@@ -4,6 +4,8 @@ const webpack = require('webpack');
 const pkgConfig = require('./package.json');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
 const StyleLintPlugin = require('stylelint-webpack-plugin');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+const HtmlWebpackHarddiskPlugin = require('html-webpack-harddisk-plugin');
 
 // ----------------
 // ENV
@@ -303,6 +305,27 @@ if (production) {
     sourceMap: sourceMapType
   }));
 }
+
+// ----------------
+// HtmlWebpackPlugin
+
+config.plugins.push(new HtmlWebpackPlugin({
+  title: `WEBPACK GUIDE - ${pkgConfig.name}`,
+  filename: `${path.join(__dirname, 'public')}/index.html`,
+  template: 'src/index.template.ejs',
+  inject: false, // we specify manually where we want our entry outputs to be in the template
+  // favicon: ,
+  minify: false,
+  hash: false,
+  cache: true,
+  showErrors: true,
+  // chunks: ['site', 'preflight'],
+  chunksSortMode: 'auto',
+  excludeChunks: [],
+  xhtml: false,
+  alwaysWriteToDisk: true
+}));
+config.plugins.push(new HtmlWebpackHarddiskPlugin());
 
 // ----------------
 // Hot reloading

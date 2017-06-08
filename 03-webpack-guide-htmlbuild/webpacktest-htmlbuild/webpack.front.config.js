@@ -47,11 +47,7 @@ let config = {
   devtool: sourceMapType,
   context: __dirname,
   entry: {
-    site: [
-      'babel-polyfill',
-      'classlist-polyfill',
-      path.join(__dirname, 'src/site.js')
-    ],
+    site: './src/site.js',
     preflight: './src/preflight.js'
   },
   output: {
@@ -126,11 +122,6 @@ config.devServer = {
 
 config.module = {
   rules: [
-    {
-      test: /\.js$/,
-      exclude: [/node_modules/, /preflight\.js$/],
-      use: 'babel-loader'
-    },
     {
       test: /\.(css)$/,
       use: ExtractTextPlugin.extract({
@@ -231,6 +222,10 @@ config.module = {
       test: /.-webfont\.svg(\?v=\d+\.\d+\.\d+)?$/,
       use: 'url-loader?limit=100&mimetype=image/svg+xml'
     }
+    // {
+    //   test: /\.html$/,
+    //   use: 'html-loader'
+    // }
   ]
 };
 
@@ -243,7 +238,9 @@ config.plugins = [];
 // define environmental variables into scripts
 
 config.plugins.push(new webpack.DefinePlugin({
-  'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'production'),
+  'process.env': {
+    'NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development')
+  },
   __CLIENT__: true,
   __SERVER__: false,
   __DEVELOPMENT__: development,
@@ -333,10 +330,5 @@ config.plugins.push(new ExtractTextPlugin({
 // BROWSERLIST CONFIG
 
 // defined in .browserslistrc
-
-// ----------------
-// BABEL CONFIG
-
-// defined in .babelrc
 
 module.exports = config;
