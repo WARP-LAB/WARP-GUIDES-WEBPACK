@@ -6,7 +6,8 @@
 
 Use existing `webpacktest-devserver` code base from previous guide stage. Either work on top of it or just make a copy. The directory now is called `webpacktest-babel`.
 
-Make changes in `package.json` and `index.html` to reflect host change to `webpacktest-babel.dev`.
+Make changes in `package.json`.  
+Make changes in `index.html` (`index-manual-approach.html`) to reflect host change to `webpacktest-babel.dev` if you are not using HTML building as discussed in *htmlbuild* stage of this guide.
 
 ---
 # Babel
