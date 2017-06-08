@@ -751,6 +751,7 @@ Now let us add some images to source. Make `my-small-image.jpg` few tens of KB a
 │   ├── images
 │   │   ├── my-large-image.jpg
 │   │   └── my-small-image.jpg
+│   ├── index.template.ejs
 │   ├── preflight.js
 │   ├── site.global.scss
 │   ├── site.js
@@ -1013,6 +1014,7 @@ We need also extra files: `fonts/spacemono-definition.scss`, `src/typography.scs
 │   ├── images
 │   │   ├── my-large-image.jpg
 │   │   └── my-small-image.jpg
+│   ├── index.template.ejs
 │   ├── preflight.js
 │   ├── site.global.scss
 │   ├── site.js
