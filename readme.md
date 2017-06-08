@@ -42,7 +42,7 @@ Make sure you have `npm` version 3.x.
 
 ### Todo
 
-* code splitting in app and vendor [using entries](https://webpack.js.org/concepts/entry-points/#separate-app-and-vendor-entries) and *CommonsChunkPlugin* or [DllPlugin](https://webpack.js.org/plugins/dll-plugin/), see also [inlining webpack manifest](https://github.com/jouni-kantola/inline-chunk-manifest-html-webpack-plugin)
+* [code splitting](https://webpack.js.org/guides/code-splitting-libraries/) in app and vendor [using entries](https://webpack.js.org/concepts/entry-points/#separate-app-and-vendor-entries) and *CommonsChunkPlugin* or [DllPlugin](https://webpack.js.org/plugins/dll-plugin/), see also [inlining webpack manifest](https://github.com/jouni-kantola/inline-chunk-manifest-html-webpack-plugin)
 * [async preloading](https://github.com/GoogleChrome/preload-webpack-plugin) via *PreloadWebpackPlugin*
 * Extend on `index.html` building via [*HtmlWebpackPlugin*](https://www.npmjs.com/package/html-webpack-plugin) - talk about plugins.
 * [manifest.appcache](https://github.com/lettertwo/appcache-webpack-plugin) (HTML5 app cache) to make our app work offline (related to *HtmlWebpackPlugin*)
