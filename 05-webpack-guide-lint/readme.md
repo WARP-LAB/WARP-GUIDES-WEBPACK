@@ -43,7 +43,7 @@ npm install eslint-plugin-import --save-dev
 npm install eslint-plugin-standard --save-dev
 ```
 
-Install config we will be using as base
+Install config we will be using as base - it is [**Standard**](https://github.com/feross/standard#who-uses-javascript-standard-style) (yes, not using AirBNB) [ESLint sharable config](https://github.com/feross/eslint-config-standard)
 
 ```sh
 npm install eslint-config-standard --save-dev
