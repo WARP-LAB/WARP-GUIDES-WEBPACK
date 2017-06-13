@@ -1,7 +1,7 @@
 module.exports = (ctx) => ({
   plugins: [
     require('autoprefixer')({
-      browsers: ['> 0.0001%'],
+      browsers: ['> 0.0001%'], // will be defined in .browserslistrc in later guide steps, here just inline
       cascade: true,
       remove: true
     }),
