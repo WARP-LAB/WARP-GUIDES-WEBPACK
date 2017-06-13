@@ -47,8 +47,8 @@ Many template engines [are supported](https://github.com/jantimon/html-webpack-p
 
 Let us just use built in [EJS](http://www.embeddedjs.com) template markup.
 
-<small>
-To use for example [pug](https://pugjs.org/api/getting-started.html) we would set up this aomething like this
+<sub>
+To use for example [pug](https://pugjs.org/api/getting-started.html) we would set up this something like this
 
 ```sh
 npm install pug --save-dev
@@ -56,7 +56,7 @@ npm install pug-loader --save-dev
 ```
 
 and use some `src/index.template.pug` file as template and specify `template: '!!pug-loader!src/index.template.pug'`
-</small>
+</sub>
 
 ## Configure
 
