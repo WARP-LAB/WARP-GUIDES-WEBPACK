@@ -216,6 +216,7 @@ config.plugins.push(new ExtractTextPlugin({
 // ----------------
 // BROWSERLIST CONFIG
 
-// defined in .browserslistrc
+// currently defined "inline" in .postcssrc.js
+// will be defined in .browserslistrc in later guide steps
 
 module.exports = config;
