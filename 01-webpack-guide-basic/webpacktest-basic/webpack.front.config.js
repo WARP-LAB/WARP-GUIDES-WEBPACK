@@ -157,16 +157,16 @@ config.plugins = [];
 // define environmental variables into scripts
 
 config.plugins.push(new webpack.DefinePlugin({
-  'process.env': {
-    'NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development')
-  },
+  'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'production'),
+  'process.env.BROWSER': true,
   __CLIENT__: true,
   __SERVER__: false,
+  __DEV__: development,
   __DEVELOPMENT__: development,
+  __DEVTOOLS__: development,
   __TESTING__: testing,
   __STAGING__: staging,
-  __PRODUCTION__: production,
-  __DEVTOOLS__: development
+  __PRODUCTION__: production
 }));
 
 // ----------------
