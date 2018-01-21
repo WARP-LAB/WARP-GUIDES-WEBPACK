@@ -1,4 +1,4 @@
-# WEBPACK 2 BEGINNERS GUIDE <sup>+ npm side notes</sup>
+# WEBPACK BEGINNERS GUIDE <sup>+ npm side notes</sup>
 
 ---
 # PREFLIGHT
