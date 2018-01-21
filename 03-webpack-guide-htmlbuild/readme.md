@@ -1,4 +1,4 @@
-# WEBPACK 2 BEGINNERS GUIDE <sup>+ npm side notes</sup>
+# WEBPACK BEGINNERS GUIDE <sup>+ npm side notes</sup>
 
 ---
 # PREFLIGHT
@@ -117,5 +117,5 @@ config.plugins.push(new HtmlWebpackHarddiskPlugin());
 
 ## Build
 
-Build it. See how `index.html` is outputted into `public` directory and served to the browser.
+Build it for dev and prod. Observe how (if) `index.html` is outputted into `public` directory and served to the browser in both cases.
 
