@@ -1,6 +1,7 @@
 'use strict';
 const path = require('path');
 const webpack = require('webpack');
+const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
 
 // ----------------
@@ -106,15 +107,14 @@ config.module = {
         ]
       })
     },
-    // raster and vector images (we need to exclude possible svg webfont)
     {
-      test: /\.(png|jpg|jpeg|gif|svg)$/,
+      test: /\.(png|jpe?g|gif|svg)$/,
       exclude: /.-webfont\.svg$/,
       use: [
         {
           loader: 'url-loader',
           options: {
-            limit: 10000
+            limit: 100000
           }
         },
         (production)
@@ -124,25 +124,28 @@ config.module = {
           : null
       ].filter((e) => e !== null)
     },
-    // webfont files always have to be ended with *-webfont.ext
     {
-      test: /.-webfont\.eot(\?v=\d+\.\d+\.\d+)?$/,
-      use: 'url-loader?limit=100&mimetype=application/vnd.ms-fontobject'
-    },
-    {
-      test: /.-webfont\.woff2(\?v=\d+\.\d+\.\d+)?$/,
+      test: /\.woff2(\?v=\d+\.\d+\.\d+)?$/,
       use: 'url-loader?limit=100&mimetype=application/font-woff2'
     },
     {
-      test: /.-webfont\.woff(\?v=\d+\.\d+\.\d+)?$/,
+      test: /\.woff(\?v=\d+\.\d+\.\d+)?$/,
       use: 'url-loader?limit=100&mimetype=application/font-woff'
     },
     {
-      test: /.-webfont\.ttf(\?v=\d+\.\d+\.\d+)?$/,
+      test: /\.otf(\?v=\d+\.\d+\.\d+)?$/,
+      use: 'url-loader?limit=100&mimetype=application/x-font-opentype'
+    },
+    {
+      test: /\.ttf(\?v=\d+\.\d+\.\d+)?$/,
       use: 'url-loader?limit=100&mimetype=application/x-font-ttf'
     },
     {
-      test: /.-webfont\.svg(\?v=\d+\.\d+\.\d+)?$/,
+      test: /\.eot(\?v=\d+\.\d+\.\d+)?$/,
+      use: 'url-loader?limit=100&mimetype=application/vnd.ms-fontobject'
+    },
+    {
+      test: /\.svg(\?v=\d+\.\d+\.\d+)?$/,
       use: 'url-loader?limit=100&mimetype=image/svg+xml'
     }
   ]
@@ -150,57 +153,69 @@ config.module = {
 
 // ----------------
 // PLUGINS
+
 config.plugins = [];
 
 // ----------------
 // WEBPACK DEFINE PLUGIN
+// ALWAYS
 // define environmental variables into scripts
 
 config.plugins.push(new webpack.DefinePlugin({
-  'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'production'),
-  'process.env.BROWSER': true,
+  'process.env': {
+    'NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development')
+  },
   __CLIENT__: true,
   __SERVER__: false,
-  __DEV__: development,
   __DEVELOPMENT__: development,
-  __DEVTOOLS__: development,
   __TESTING__: testing,
   __STAGING__: staging,
-  __PRODUCTION__: production
+  __PRODUCTION__: production,
+  __DEVTOOLS__: development
 }));
 
 // ----------------
 // WEBPACK BUILT IN OPTIMIZATION
+// ALWAYS
+
+// ModuleConcatenationPlugin
+config.plugins.push(new webpack.optimize.ModuleConcatenationPlugin());
+
+// ----------------
+// WEBPACK BUILT IN OPTIMIZATION
+// IN PRODUCTION
 
 if (production) {
-  config.plugins.push(new webpack.optimize.OccurrenceOrderPlugin());
   config.plugins.push(new webpack.optimize.LimitChunkCountPlugin({maxChunks: 15}));
   config.plugins.push(new webpack.optimize.MinChunkSizePlugin({minChunkSize: 10000}));
-  config.plugins.push(new webpack.optimize.UglifyJsPlugin({
-    compress: {
-      sequences: true,
-      dead_code: true,
-      conditionals: true,
-      booleans: true,
-      unused: true,
-      if_return: true,
-      join_vars: true,
-      drop_console: true,
-      warnings: false
-    },
-    mangle: false,
-    beautify: false,
-    output: {
-      space_colon: false,
-      comments: false
+  config.plugins.push(new UglifyJsPlugin({
+    parallel: true,
+    uglifyOptions: {
+      compress: {
+        sequences: true,
+        dead_code: true,
+        conditionals: true,
+        booleans: true,
+        unused: true,
+        if_return: true,
+        join_vars: true,
+        drop_console: true,
+        warnings: false
+      },
+      mangle: false,
+      output: {
+        comments: false,
+        beautify: false
+      }
     },
     extractComments: false,
-    sourceMap: sourceMapType
+    sourceMap: sourceMapType // evaluates to bool
   }));
 }
 
 // ----------------
 // ExtractTextPlugin CONFIG
+// ALWAYS
 
 config.plugins.push(new ExtractTextPlugin({
   filename: '[name].css',
@@ -210,13 +225,14 @@ config.plugins.push(new ExtractTextPlugin({
 
 // ----------------
 // POSTCSS LOADER CONFIG
+// ALWAYS
 
 // defined in .postcssrc.js
 
 // ----------------
 // BROWSERLIST CONFIG
+// ALWAYS
 
-// currently defined "inline" in .postcssrc.js
-// will be defined in .browserslistrc in later guide steps
+// defined in .browserslistrc
 
 module.exports = config;

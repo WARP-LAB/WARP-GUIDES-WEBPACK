@@ -1,0 +1,7 @@
+[production]
+last 2 versions
+Explorer 10
+iOS > 7
+
+[development]
+> 0.0001%

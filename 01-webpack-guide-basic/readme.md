@@ -23,6 +23,7 @@ webpacktest-basic
 │   ├── assets
 │   └── index.html
 ├── src
+│   ├── images
 │   ├── index.template.ejs
 │   ├── preflight.js
 │   ├── site.global.scss
@@ -110,9 +111,7 @@ let config = {
   },
   resolve: {
     modules: [
-      // v1 it was "root"
       path.resolve('./src/'),
-      // v1 it was "modulesDirectories"
       'src',
       'node_modules',
       'bower_components'
@@ -216,7 +215,7 @@ NODE_ENV=production ./node_modules/webpack/bin/webpack.js --config=$(pwd)/webpac
 
 ## Webpack minimise JavaScript
 
-For JavaScript minimisation we can use webpack built in plugin which actually uses [UglifyJS2](https://github.com/mishoo/UglifyJS2) under the hood.
+For JavaScript minimisation we can use webpack built in plugin which actually uses [UglifyJS](https://github.com/mishoo/UglifyJS2) under the hood.
 
 For built in plugin documentation the standalone docs can be used - [uglifyjs-webpack-plugin](https://webpack.js.org/plugins/uglifyjs-webpack-plugin/)
 
@@ -225,7 +224,13 @@ Standalone plugin documentation [uglifyjs-webpack-plugin](https://webpack.js.org
 Options for `compress` key can be [found here](http://lisperator.net/uglifyjs/compress)  
 Other keys [here](https://github.com/webpack-contrib/uglifyjs-webpack-plugin#options)
 
-We will use built in `webpack.optimize.UglifyJsPlugin` for now. **Keep in mind that this plugin can only minimise ES5!**.
+Note that in Webpack 3 it is not aliased to `webpack.optimize.UglifyJsPlugin` (read docs).
+
+Install plugin
+
+```sh
+npm install uglifyjs-webpack-plugin --save-dev
+```
 
 _webpack.front.config.js_
 
@@ -233,6 +238,7 @@ _webpack.front.config.js_
 'use strict';
 const path = require('path');
 const webpack = require('webpack');
+const UglifyJsPlugin = require('uglifyjs-webpack-plugin'); // aliasing this back to webpack.optimize.UglifyJsPluginis is scheduled for webpack v4.0.0
 
 // ----------------
 // ENV
@@ -269,9 +275,12 @@ let config = {
 config.plugins = []; // add new key 'plugins' of type arrat to config object
 
 if (production) {
-  config.plugins.push(new webpack.optimize.UglifyJsPlugin({
-    compress: {
-      warnings: false
+  config.plugins.push(new UglifyJsPlugin({
+    parallel: true,
+    uglifyOptions: {
+      compress: {
+        warnings: false
+      }
     }
   }));
 }
@@ -303,9 +312,9 @@ npm install node-sass --save-dev
 So we need a bunch of webpack loaders for this to work and to get that `site.css` working that is ref'ed in the `<head>`.
 
 Loaders and their documentation  
-[https://github.com/webpack/style-loader](https://github.com/webpack/style-loader)  
-[https://github.com/webpack/css-loader](https://github.com/webpack/css-loader)  
-[https://github.com/jtangelder/sass-loader](https://github.com/jtangelder/sass-loader)  
+[https://github.com/webpack-contrib/style-loader](https://github.com/webpack-contrib/style-loader)  
+[https://github.com/webpack-contrib/css-loader](https://github.com/webpack-contrib/css-loader)  
+[https://github.com/webpack-contrib/sass-loader](https://github.com/webpack-contrib/sass-loader)  
 
 Plugin and its documentation  
 [https://webpack.js.org/plugins/extract-text-webpack-plugin/](https://webpack.js.org/plugins/extract-text-webpack-plugin/)  
@@ -325,6 +334,7 @@ _webpack.front.config.js_
 'use strict';
 const path = require('path');
 const webpack = require('webpack');
+const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
 
 // ----------------
@@ -397,9 +407,12 @@ config.plugins.push(new ExtractTextPlugin({
 }));
 
 if (production) {
-  config.plugins.push(new webpack.optimize.UglifyJsPlugin({
-    compress: {
-      warnings: false
+  config.plugins.push(new UglifyJsPlugin({
+    parallel: true,
+    uglifyOptions: {
+      compress: {
+        warnings: false
+      }
     }
   }));
 }
@@ -457,10 +470,6 @@ rm -rf public/assets/** && NODE_ENV=development ./node_modules/webpack/bin/webpa
 
 SCSS and CSS is compiled and spit out in a file under `public/assets` named the same as the entry point key of the JavaScript from which SCSS was included in the first place.
 
-## Note about loader names
-
-In v1.x guide it is mentioned that one can omit `-loader` part meanwhile stating one should not do it. webpack v2 has finally [dropped](https://webpack.js.org/guides/migrating/#automatic-loader-module-name-extension-removed) this.
-
 ## PostCSS plugins
 
 One does not simply... don't use PostCSS. [Use plugins!](https://cdn.meme.am/instances/500x/68322636.jpg)
@@ -487,8 +496,6 @@ npm install cssnano --save-dev
 It is [recommended](https://github.com/postcss/postcss-loader#plugins) to use seperate `postcssrc.js` file and it is way to go in v2. All possible filenames and formats (JSON, YAML, JS) are discussed [here](https://github.com/michael-ciniawsky/postcss-load-config)
 
 We could use `cssnano` via [css-loader](https://github.com/webpack-contrib/css-loader#minification), but let us do separate pass for minification via PostCSS ecosystem.
-
-`autoprefixer` (browserslist) rules actually [should](https://github.com/postcss/autoprefixer#browsers) be put into either `package.json` or `browserslist` config file ([see docs](https://github.com/ai/browserslist#packagejson)), but for simplicity we put it inline in PostCSS config file for now. **Remeber to move them to `package.json` or `browserslist`/`.browserslistrc` file later!**
 
 #### PostCSS configuration file
 
@@ -518,6 +525,25 @@ module.exports = (ctx) => ({
     })
   ].filter((e) => e !== null)
 });
+```
+
+#### Autoprefixer
+
+`autoprefixer` (browserslist) rules [should](https://github.com/postcss/autoprefixer#browsers) be put into either `package.json` or `browserslist` config file ([see docs](https://github.com/ai/browserslist#packagejson)). We are going to put them in `.browserslistrc`.
+
+Target super old browsers to see the result
+
+_.browserlistrc_
+
+```
+[production]
+last 2 versions
+Explorer 10
+iOS > 7
+
+[development]
+> 0.0001%
+
 ```
 
 Then also add `postcss-loader` in the loaders pipe.
@@ -592,6 +618,8 @@ Run webpack and inspect `public/assets/site.css`
 rm -rf public/assets/** && NODE_ENV=development ./node_modules/webpack/bin/webpack.js --config=$(pwd)/webpack.front.config.js --progress
 ```
 
+Prefixes everywhere!
+
 ## normalize.css
 
 Always use [Normalize.css](https://necolas.github.io/normalize.css/). Although our *cut the mustard* script does fallback page for anything below IE11 this fallback has to look O.K., so use Normalize.css that supports IE8+ (which is 7.x as of now.)
@@ -629,7 +657,7 @@ rm -rf public/assets/** && NODE_ENV=development ./node_modules/webpack/bin/webpa
 
 ## Webpack CSS source maps
 
-As you can see we pass `sourceMap` option to our loaders (currently we do not have any loaders for JavaScript). But where are the source maps? Use webpack [devtool](https://webpack.github.io/docs/configuration.html#devtool).
+As you can see we pass `sourceMap` option to our loaders (currently we do not have any loaders for JavaScript). But where are the source maps? Use webpack [devtool](https://webpack.js.org/configuration/devtool/).
 
 First try
 
@@ -653,9 +681,12 @@ let config = {
 // ...
 
 if (production) {
-  config.plugins.push(new webpack.optimize.UglifyJsPlugin({
-    compress: {
-      warnings: false
+  config.plugins.push(new UglifyJsPlugin({
+    parallel: true,
+    uglifyOptions: {
+      compress: {
+        warnings: false
+      }
     },
     sourceMap: sourceMapType // evaluates to bool
   }));
@@ -681,7 +712,7 @@ const sourceMapType = (!production) ? 'source-map' : false;
 
 Run webpack and inspect `public/assets/` directory (look for `map` files). There are also other source map trypes available, read the docs.
 
-Set it back to generate inline source maps!
+Set it back to generate inline source maps.
 
 ## Make SCSS build environment aware
 
@@ -742,6 +773,7 @@ Now let us add some images to source. Make `my-small-image.jpg` few tens of KB a
 `tree -a -I 'node_modules' .`
 
 ```
+├── .browserslistrc
 ├── .postcssrc.js
 ├── package.json
 ├── public
@@ -760,8 +792,8 @@ Now let us add some images to source. Make `my-small-image.jpg` few tens of KB a
 ```
 
 Loaders  
-[file-loader](https://github.com/webpack/file-loader)  
-[url-loader](https://github.com/webpack/url-loader)  
+[file-loader](https://github.com/webpack-contrib/file-loader)  
+[url-loader](https://github.com/webpack-contrib/url-loader)  
 [resolve-url-loader](https://github.com/bholloway/resolve-url-loader)  
 
 `url-loader` works like the file loader, but can return a *Data Url* if the file is smaller than a limit.  
@@ -769,7 +801,7 @@ Loaders
 
 ```sh
 npm install file-loader --save-dev
-npm install url-loader --save-dev 
+npm install url-loader --save-dev
 npm install resolve-url-loader --save-dev
 ```
 
@@ -873,14 +905,15 @@ config.module = {
           {
             loader: 'sass-loader',
             options: {
-              sourceMap: true
+              sourceMap: true,
+              data: `$env: ${JSON.stringify(process.env.NODE_ENV || 'development')};`
             }
           }
         ]
       })
     },
     {
-      test: /\.(png|jpg|jpeg|gif)$/,
+      test: /\.(png|jpe?g|gif)$/,
       use: [
         {
           loader: 'url-loader',
@@ -913,6 +946,8 @@ Loader
 [image-webpack-loader](https://github.com/tcoopman/image-webpack-loader)  
 
 ```sh
+brew install automake libtool libpng
+npm install image-webpack-loader@3.2.0 --save-dev
 npm install image-webpack-loader --save-dev
 ```
 
@@ -923,7 +958,7 @@ _webpack.front.config.js_
 ```javascript
 // ...
     {
-      test: /\.(png|jpg|jpeg|gif)$/,
+      test: /\.(png|jpe?g|gif)$/,
       use: [
         {
           loader: 'url-loader',
@@ -950,7 +985,7 @@ This process is expensive. In development we do not care about file size as we a
 ```javascript
 // ...
     {
-      test: /\.(png|jpg|jpeg|gif)$/,
+      test: /\.(png|jpe?g|gif)$/,
       use: [
         {
           loader: 'url-loader',
@@ -972,7 +1007,9 @@ This process is expensive. In development we do not care about file size as we a
 
 Convert TTF/OTF to all webwonts (WOFF, WOFF2, EOT, SVG) in building process.
 
-Font squirrel online generator is good enough [Font Squirrel Generator](https://www.fontsquirrel.com/tools/webfont-generator).
+All webfonts should end with `*-webfont.ext` in their filename.
+
+Font squirrel online generator is good enough [Font Squirrel Generator](https://www.fontsquirrel.com/tools/webfont-generator), or use [fontplop](https://github.com/matthewgonzalez/fontplop)
 
 ## Fonts - webfont packing & loading
 
@@ -982,6 +1019,7 @@ We need also extra files: `fonts/spacemono-definition.scss`, `src/typography.scs
 
 
 ```
+├── .browserslistrc
 ├── .postcssrc.js
 ├── package.json
 ├── public
@@ -1023,7 +1061,7 @@ We need also extra files: `fonts/spacemono-definition.scss`, `src/typography.scs
 └── webpack.front.config.js
 ```
 
-Define font family
+Define font family. This example uses bulletproof syntax, but actually [you can retire it](https://www.zachleat.com/web/retire-bulletproof-syntax/).
 
 _fonts/spacemono-definition.scss_
 
@@ -1138,10 +1176,6 @@ _webpack.front.config.js_
 ```javascript
 // ...
     {
-      test: /\.eot(\?v=\d+\.\d+\.\d+)?$/,
-      use: 'url-loader?limit=100&mimetype=application/vnd.ms-fontobject'
-    },
-    {
       test: /\.woff2(\?v=\d+\.\d+\.\d+)?$/,
       use: 'url-loader?limit=100&mimetype=application/font-woff2'
     },
@@ -1150,8 +1184,16 @@ _webpack.front.config.js_
       use: 'url-loader?limit=100&mimetype=application/font-woff'
     },
     {
+      test: /\.otf(\?v=\d+\.\d+\.\d+)?$/,
+      use: 'url-loader?limit=100&mimetype=application/x-font-opentype'
+    },
+    {
       test: /\.ttf(\?v=\d+\.\d+\.\d+)?$/,
       use: 'url-loader?limit=100&mimetype=application/x-font-ttf'
+    },
+    {
+      test: /\.eot(\?v=\d+\.\d+\.\d+)?$/,
+      use: 'url-loader?limit=100&mimetype=application/vnd.ms-fontobject'
     },
     {
       test: /\.svg(\?v=\d+\.\d+\.\d+)?$/,
@@ -1177,7 +1219,7 @@ _webpack.front.config.js_
 
     // raster and vector images (we need to exclude possible svg webfont)
     {
-      test: /\.(png|jpg|jpeg|gif|svg)$/,
+      test: /\.(png|jpe?g|gif|svg)$/,
       exclude: /.-webfont\.svg$/,
       use: [
         {
@@ -1193,28 +1235,7 @@ _webpack.front.config.js_
           : null
       ].filter((e) => e !== null)
     },
-    // webfont files always have to be ended with *-webfont.ext
-    {
-      test: /.-webfont\.eot(\?v=\d+\.\d+\.\d+)?$/,
-      use: 'url-loader?limit=100&mimetype=application/vnd.ms-fontobject'
-    },
-    {
-      test: /.-webfont\.woff2(\?v=\d+\.\d+\.\d+)?$/,
-      use: 'url-loader?limit=100&mimetype=application/font-woff2'
-    },
-    {
-      test: /.-webfont\.woff(\?v=\d+\.\d+\.\d+)?$/,
-      use: 'url-loader?limit=100&mimetype=application/font-woff'
-    },
-    {
-      test: /.-webfont\.ttf(\?v=\d+\.\d+\.\d+)?$/,
-      use: 'url-loader?limit=100&mimetype=application/x-font-ttf'
-    },
-    {
-      test: /.-webfont\.svg(\?v=\d+\.\d+\.\d+)?$/,
-      use: 'url-loader?limit=100&mimetype=image/svg+xml'
-    }
-    
+
 //...
 ```
 
@@ -1346,11 +1367,13 @@ Adds CSS to the DOM by injecting a `<style>` tag. Use with webpack-dev-server.
 
 #### Obligatory
 
+* [webpack.optimize.ModuleConcatenationPlugin](https://webpack.js.org/plugins/module-concatenation-plugin/)  
+Scope hoisting
+
 * [webpack.DefinePlugin](https://webpack.js.org/plugins/define-plugin/)  
 Define free variables. Useful for having development builds with debug logging or adding global constants. The values will be inlined into the code which allows a minification pass to remove the redundant conditional.
 
-* webpack.optimize.DedupePlugin  
-is [depreciated](https://webpack.js.org/guides/migrating/#dedupeplugin-has-been-removed)
+* webpack.optimize.DedupePlugin is [depreciated](https://webpack.js.org/guides/migrating/#dedupeplugin-has-been-removed)
 
 #### Optional
 
@@ -1388,7 +1411,6 @@ config.plugins.push(new webpack.DefinePlugin({
 // WEBPACK BUILT IN OPTIMIZATION
 
 if (production) {
-  config.plugins.push(new webpack.optimize.OccurrenceOrderPlugin());
   config.plugins.push(new webpack.optimize.LimitChunkCountPlugin({maxChunks: 15}));
   config.plugins.push(new webpack.optimize.MinChunkSizePlugin({minChunkSize: 10000}));
   config.plugins.push(new webpack.optimize.UglifyJsPlugin({
