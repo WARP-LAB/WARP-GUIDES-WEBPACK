@@ -6,7 +6,7 @@
 
 Use existing `webpacktest-devserver` code base from previous guide stage. Either work on top of it or just make a copy. The directory now is called `webpacktest-htmlbuild`.
 
-Make changes in `package.json` and `index.html` to reflect host change to `webpacktest-htmlbuild.dev`.
+Make changes in `package.json` and `index.html` to reflect host change to `webpacktest-htmlbuild.test`.
 
 ---
 # HTML building (`index.html`)
@@ -14,7 +14,7 @@ Make changes in `package.json` and `index.html` to reflect host change to `webpa
 
 Till now we were using prefilled `assets/index.html` to serve the webpage. It was done two ways
 
-* either via  `webpacktest-xxx.dev(:80)` where `public/index.html` in public dir was served by *nginx*
+* either via  `webpacktest-xxx.test(:80)` where `public/index.html` in public dir was served by *nginx*
 *  or `localhost:4000` where `public/index.html` was served by webpack dev server by specifying content base.
 
 That intriduced issues when building for development or production as we needed to go into the `public/index.html` and add or remove port number to the assets URIs. See notes in `webpacktest-devserver` guide stage.
