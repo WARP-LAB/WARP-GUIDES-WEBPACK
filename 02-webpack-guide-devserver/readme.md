@@ -1,4 +1,4 @@
-# WEBPACK 2 BEGINNERS GUIDE <sup>+ npm side notes</sup>
+# WEBPACK BEGINNERS GUIDE <sup>+ npm side notes</sup>
 
 ---
 # PREFLIGHT
@@ -6,7 +6,7 @@
 
 Use existing `webpacktest-basic` code base from previous guide stage. Either work on top of it or just make a copy. The directory now is called `webpacktest-devserver`.
 
-Make changes in `package.json` and `index.html` to reflect host change to `webpacktest-devserver.dev`.
+Make changes in `package.json` and `index.html` to reflect host change to `webpacktest-devserver.test` (or `localhost`).
 
 ---
 # Webpack dev server
@@ -29,7 +29,7 @@ npm install webpack-dev-server --save-dev
 
 ### manage-htaccess
 
-Skip this if not on Apache.  
+Skip this if not on Apache within our devserver.  
 We will need port proxying. Instead of proxying within Apache2 vhost or NGINX proxy (ze best!), this will give us fast proxy on/off in on Apache managed via `.htaccess`  
 [manage-htaccess](https://github.com/WARP-LAB/manage-htaccess)
 
@@ -40,17 +40,17 @@ npm install manage-htaccess --save-dev
 ## Basic setup
 
 
-### If you are testing this locally via `localhost` or named host (i.e., `webpacktest-devserver.dev` via Valet nginx service)
+### If you are testing this locally via `localhost` or named host (i.e., `test` TLD via Valet nginx service)
 
 
-Add `publicPath` to config and make css extraction conditional. Use `localhost` instead of `webpacktest-devserver.dev` if needed.
+Add `publicPath` to config and make css extraction conditional. 
 
 ```javascript
 // ...
   output: {
     path: path.join(__dirname, 'public/assets'),
     filename: '[name].js',
-    publicPath: production ? '//webpacktest-devserver.dev/assets/' : 'http://webpacktest-devserver.dev:4000/assets/'
+    publicPath: production ? '//webpacktest-devserver.test/assets/' : '//webpacktest-devserver.test:4000/assets/'
   },
   
 // ...
@@ -64,8 +64,16 @@ config.plugins.push(new ExtractTextPlugin({
 // ...  
 ```
 
-Manually change your html too for now. Use `localhost` instead of `webpacktest-devserver.dev` if needed.
+Use
 
+```javascript
+publicPath: production ? '//webpacktest-devserver.test/assets/' : '//localhost:4000/assets/'
+```
+
+if needed.
+
+
+Manually change your html too for now. Use `localhost` instead of `webpacktest-devserver.test` if needed.
 
 ```html
 <!DOCTYPE html>
@@ -74,55 +82,55 @@ Manually change your html too for now. Use `localhost` instead of `webpacktest-d
   <meta charset="utf-8">
   <title>My Title</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <script src="http://webpacktest-devserver.dev:4000/assets/preflight.js"></script>
-  <link rel="stylesheet" type="text/css" href="http://webpacktest-devserver.dev:4000/assets/site.css">
+  <script src="//webpacktest-devserver.test:4000/assets/preflight.js"></script>
+  <link rel="stylesheet" type="text/css" href="//webpacktest-devserver.test:4000/assets/site.css">
 </head>
 <body>
   <div class="app"></div>
   <script>
     var dataReact = {};
   </script>
-  <script async src="http://webpacktest-devserver.dev:4000/assets/site.js"></script>
+  <script async src="//webpacktest-devserver.test:4000/assets/site.js"></script>
 </body>
 </html>
 
 ```
 
-If using Valet then `index.html`is already served by nginx
+If using Valet then `index.html`is already served by nginx through named host
 
 ```sh
 rm -rf public/assets/** && \
-NODE_ENV=development node_modules/.bin/webpack-dev-server --config=$(pwd)/webpack.front.config.js --host=webpacktest-devserver.dev --port=4000 --history-api-fallback -d --inline
+NODE_ENV=development node_modules/.bin/webpack-dev-server --config=$(pwd)/webpack.front.config.js --host=webpacktest-devserver.test --port=4000 --history-api-fallback -d --inline
 ```
 
 
-If just using localhost then `index.html`is not served by webserver, and we need to attach `--content-base`
+If just using localhost then `index.html` is served by Webpack dev server thrugh localhost, and we need to attach `--content-base`
 
 ```sh
 rm -rf public/assets/** && \
 NODE_ENV=development node_modules/.bin/webpack-dev-server --config=$(pwd)/webpack.front.config.js --host=localhost --port=4000 --history-api-fallback -d --inline --content-base $(pwd)/public
 ```
 
-Visit [http://webpacktest-devserver.dev/](http://webpacktest-devserver.dev/) or [http://localhost:4000/](http://localhost:4000/), based on your setup.
+Visit [http://webpacktest-devserver.test/](http://webpacktest-devserver.test/) or [http://localhost:4000/](http://localhost:4000/), based on your setup.
 
-If you are using `localhost`, then replace `webpacktest-devserver.dev` to `localhost` in config and webpack-dev-server run command and visit [http://localhost:4000/](http://localhost:4000/)
+If you are using `localhost`, then replace `webpacktest-devserver.test` to `localhost` in config and webpack-dev-server run command and visit [http://localhost:4000/](http://localhost:4000/)
 
 ### If you are doing this under dev server
 
 Ask
 
-## Extended webpack-dev-server configuration and CORS
+## Extended webpack-dev-server configuration and CORS when using nginx
 
-As you might have caught, webfonts are not loaded, because we visit `http://webpacktest-devserver.dev:80`, but fonts are served by webpack dev server from `http://webpacktest-devserver.dev:4000`.
+As you might have caught, webfonts are not loaded, because we visit `http://webpacktest-devserver.test:80` which is served by nginx, but fonts are served by webpack dev server from `http://webpacktest-devserver.test:4000`.
 
-Let us move webpack dev server configuration within `webpack.confg.js` and extend it.
+Let us move webpack dev server configuration within `webpack.front.confg.js` and extend it.
 
 ```javascript
 // ...
 
 // ----------------
 // PUBLIC PATH based on env
-const publicPath = production ? '//webpacktest-devserver.dev/assets/' : 'http://webpacktest-devserver.dev:4000/assets/';
+const publicPath = production ? '//webpacktest-devserver.test/assets/' : '//webpacktest-devserver.test:4000/assets/';
 
 // ...
 
@@ -131,18 +139,24 @@ const publicPath = production ? '//webpacktest-devserver.dev/assets/' : 'http://
 // https://webpack.js.org/configuration/dev-server/#devserver
 
 config.devServer = {
+  // -d is shorthand for --debug --devtool source-map --output-pathinfo
+  allowedHosts: [
+    '.test',
+    'localhost'
+  ],
   clientLogLevel: 'info',
   compress: true,
-  contentBase: false, // path.join(__dirname, 'public'),
+  contentBase: false, // path.join(__dirname, 'public'), // pass content base if not using nginx
+  disableHostCheck: false,
   // filename: 'site.js', // used if lazy true
   headers: {
     'Access-Control-Allow-Origin': '*'
   },
   historyApiFallback: true,
-  host: 'webpacktest-devserver.dev', // CLI ONLY
-  
+  host: 'webpacktest-devserver.test',
+
   // either use cli --hot (and --inline) or this config flag
-  // when using this config we need to manually also add webpack.HotModuleReplacementPlugin()
+  // needs webpack.HotModuleReplacementPlugin() which is now enabled automatically
   // hot: true,
   // hotOnly: true
 
@@ -152,9 +166,12 @@ config.devServer = {
   //   cert: fs.readFileSync("/path/to/server.crt"),
   //   ca: fs.readFileSync("/path/to/ca.pem"),
   // }
-  inline: true, // CLI ONLY
+  index: 'index.htm',
+  inline: true,
   // lazy: true,
   noInfo: false,
+  open: false,
+  // openPage: '/different/page',
   overlay: {
     warnings: false,
     errors: true
@@ -163,18 +180,23 @@ config.devServer = {
   // proxy: {
   //   '/api': 'http://localhost:3000'
   // },
-  // progress: true, // CLI only
   // public: 'myapp.test:80',
   publicPath,
-  quiet: false
-  // setup: null,
+  quiet: false,
+  // socket: 'socket',
   // staticOptions: null,
   // stats: null,
+  useLocalIp: false,
   // watchContentBase: true,
   // watchOptions: {
   //   poll: true
   // },
-  // -d is shorthand for --debug --devtool source-map --output-pathinfo
+  before(app){
+    console.log('Webpack devserver middlewres before');
+  },
+  after(app){
+    console.log('Webpack devserver middlewres after');
+  }
 };
 
 // ...
@@ -189,11 +211,12 @@ NODE_ENV=development node_modules/.bin/webpack-dev-server \
 --config=$(pwd)/webpack.front.config.js -d
 ```
 
-Note that `contentBase` key should be set if using `localhost`.
+Note that some of the values should be set to `localhost` instead of named host, based on your setup.
 
 
 ## Hot reloading
 
+If you change something now in the source, say `site.global.scss` and save it, webpage is automatically refreshed. We can do better.
 
 Enable hot reloading in development
 
@@ -270,81 +293,6 @@ It is hard to remember all the commands that need to be executed to run stuff. T
 We 
 * add `scripts` key to `package.json`
 * add `config` key to `package.json` and use those values both in `scripts` as well as in `webpack.config.js`
-* add `browserslist` key to `package.json` (or `browserslist`/`.browserslistrc` file) and remove `browsers` key from `.postcssrc.js` 
-
-```json
-{
-  "config": {
-    "portFrontendMainHTTP": "80",
-    "portFrontendMainHTTPS": "443",
-    "portBackendMainHTTP": null,
-    "portBackendMainHTTPS": null,
-    "portFrontendAppHTTP1": 3000,
-    "portFrontendAppHTTP2": 3001,
-    "portBackendAppHTTP1": null,
-    "portBackendAppHTTP2": null,
-    "portFrontendWebpackDevServerHTTP": "4000",
-    "portFrontendWebpackDevServerHTTPS": null,
-    "portBackendWebpackDevServerHTTP": null,
-    "portBackendWebpackDevServerHTTPS": null,
-    "isWebpackDevServerFrontendHTTPS": false,
-    "isWebpackDevServerBackendHTTPS": false,
-    "isWebpackDevServerHot": true,
-    "hostDevelopment": "webpacktest-devserver.dev",
-    "pathAboveRootDevelopment": "",
-    "hostTesting": "webpacktest-devserver.dev",
-    "pathAboveRootTesting": "",
-    "hostStaging": "webpacktest-devserver.dev",
-    "pathAboveRootStaging": "",
-    "hostProduction": "webpacktest-devserver.dev",
-    "pathAboveRootProduction": ""
-  },
-  "browserslist": {
-    "development": [
-      "last 2 versions",
-      "Explorer 10",
-      "iOS > 7"
-    ],
-    "production": [
-      "last 2 versions",
-      "Explorer 10",
-      "iOS > 7"
-    ]
-  },
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "build:front:dev": "npm run build:front:clean && NODE_ENV=development webpack-dev-server --config=$(pwd)/webpack.front.config.js -d",
-    "build:front:test": "npm run build:front:clean && NODE_ENV=testing webpack --config=$(pwd)/webpack.front.config.js --progress",
-    "build:front:stage": "npm run build:front:clean && NODE_ENV=staging webpack --config=$(pwd)/webpack.front.config.js --progress",
-    "build:front:prod": "npm run build:front:clean && NODE_ENV=production webpack --config=$(pwd)/webpack.front.config.js --progress",
-    "build:front:clean": "rm -rf ./public/assets/*",
-    "screen:start": "npm run screen:stop && screen -S webpacktest-devserver -d -m npm run build:front:dev",
-    "screen:enter": "screen -r webpacktest-devserver",
-    "screen:stop": "screen -S webpacktest-devserver -X quit 2>/dev/null || :",
-    "fly:front:testing": "echo \"Flightpan is different topic\" && exit 0",
-    "fly:front:staging": "echo \"Flightpan is different topic\" && exit 0",
-    "fly:front:production": "echo \"Flightpan is different topic\" && exit 0"
-  }
-}
-```
-
-*.browserslistrc* or *browserslist* (instead of key in `package.json`)
-
-Inspect file.
-
-Note that rules can be specified in one place. If you specify them in both `package.json` and config file, you won't be able to build the project
-
-```
-Module build failed: BrowserslistError: /path/to/project contains both .browserslistrc and package.json with browsers
-```
-*webpack.front.config.js*
-
-```javascript
-const pkgConfig = require('./package.json');
-// use pkgConfig.config object now
-
-```
-Inspect file.
 
 
 * `npm run build:front:dev` to run development
@@ -352,8 +300,6 @@ Inspect file.
 * `npm run build:front:prod` to run production  
 remember that for this guide you would have to remove `:4000` from `index.html` manually to see production results, if running locally. our devserver does proxy automatically though.
 
-* `npm run build:front:dev` to run dev-server
-
-	* `npm run sreen:start` to start dev-server in a separate screen  
-	* `npm run screen:stop` to stop dev-server in that separate screen
-	* `npm run screen:enter` to attach to the running screen so you can inspect building errors.
+* `npm run sreen:start` to start dev-server in a separate screen  
+* `npm run screen:stop` to stop dev-server in that separate screen
+* `npm run screen:enter` to attach to the running screen so you can inspect building errors.

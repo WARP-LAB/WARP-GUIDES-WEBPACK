@@ -2,6 +2,7 @@
 const path = require('path');
 const webpack = require('webpack');
 const pkgConfig = require('./package.json');
+const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
 
 // ----------------
@@ -14,7 +15,6 @@ console.log('ENVIRONMENT \x1b[36m%s\x1b[0m', process.env.NODE_ENV);
 
 // ----------------
 // PUBLIC PATH based on env
-
 let publicPath;
 let targetHost;
 if (production) {
@@ -27,7 +27,8 @@ if (production) {
   publicPath = `//${pkgConfig.config.hostTesting}${pkgConfig.config.pathAboveRootTesting}/assets/`;
   targetHost = pkgConfig.config.hostTesting;
 } else {
-  publicPath = `http://${pkgConfig.config.hostDevelopment}:${pkgConfig.config.portFrontendWebpackDevServerHTTP}${pkgConfig.config.pathAboveRootDevelopment}/assets/`;
+  const protocol = pkgConfig.config.isWebpackDevServerHTTPS ? 'https:' : 'http:';
+  publicPath = `${protocol}//${pkgConfig.config.hostDevelopment}:${pkgConfig.config.portFrontendWebpackDevServerHTTP}${pkgConfig.config.pathAboveRootDevelopment}/assets/`;
   targetHost = pkgConfig.config.hostDevelopment;
 }
 
@@ -51,7 +52,7 @@ let config = {
   output: {
     path: path.join(__dirname, 'public/assets'),
     filename: '[name].js',
-    publicPath
+    publicPath: publicPath
   },
   resolve: {
     modules: [
@@ -68,51 +69,67 @@ let config = {
 // https://webpack.js.org/configuration/dev-server/#devserver
 
 config.devServer = {
+  // -d is shorthand for --debug --devtool source-map --output-pathinfo
+  allowedHosts: [
+    '.test',
+    'localhost'
+  ],
   clientLogLevel: 'info',
   compress: true,
-  contentBase: false, // path.join(__dirname, 'public'),
+  contentBase: false, // path.join(__dirname, 'public'), // pass content base if not using nginx
+  disableHostCheck: false,
   // filename: 'site.js', // used if lazy true
   headers: {
     'Access-Control-Allow-Origin': '*'
   },
   historyApiFallback: true,
-  host: targetHost, // CLI ONLY
+  host: 'webpacktest-devserver.test',
 
   // either use cli --hot (and --inline) or this config flag
-  // when using this config we need to manually also add webpack.HotModuleReplacementPlugin()
+  // needs webpack.HotModuleReplacementPlugin() which is now enabled automatically
   hot: pkgConfig.config.isWebpackDevServerHot,
   // hotOnly: true
 
-  https: pkgConfig.config.isWebpackDevServerFrontendHTTPS,
-  // https: {
-  //   key: fs.readFileSync("/path/to/server.key"),
-  //   cert: fs.readFileSync("/path/to/server.crt"),
-  //   ca: fs.readFileSync("/path/to/ca.pem"),
-  // }
-
-  inline: true, // CLI ONLY
+  https: pkgConfig.config.isWebpackDevServerHTTPS
+  ? {
+    key: fs.readFileSync("/path/to/server.key"),
+    cert: fs.readFileSync("/path/to/server.crt"),
+    ca: fs.readFileSync("/path/to/ca.pem"),
+  }
+  : false,
+  index: 'index.htm',
+  inline: true,
   // lazy: true,
   noInfo: false,
+  open: false,
+  // openPage: '/different/page',
   overlay: {
     warnings: false,
     errors: true
   },
-  port: pkgConfig.config.portFrontendWebpackDevServerHTTP,
+  port: pkgConfig.config.isWebpackDevServerHTTPS
+  ? pkgConfig.config.portFrontendWebpackDevServerHTTPS
+  : pkgConfig.config.portFrontendWebpackDevServerHTTP,
   // proxy: {
   //   '/api': 'http://localhost:3000'
   // },
-  // progress: true, // CLI only
   // public: 'myapp.test:80',
   publicPath,
-  quiet: false
-  // setup: null,
+  quiet: false,
+  // socket: 'socket',
   // staticOptions: null,
   // stats: null,
+  useLocalIp: false,
   // watchContentBase: true,
   // watchOptions: {
   //   poll: true
   // },
-  // -d is shorthand for --debug --devtool source-map --output-pathinfo
+  before(app){
+    console.log('Webpack devserver middlewres before');
+  },
+  after(app){
+    console.log('Webpack devserver middlewres after');
+  }
 };
 
 // ----------------
@@ -181,15 +198,14 @@ config.module = {
         ]
       })
     },
-    // raster and vector images (we need to exclude possible svg webfont)
     {
-      test: /\.(png|jpg|jpeg|gif|svg)$/,
+      test: /\.(png|jpe?g|gif|svg)$/,
       exclude: /.-webfont\.svg$/,
       use: [
         {
           loader: 'url-loader',
           options: {
-            limit: 10000
+            limit: 100000
           }
         },
         (production)
@@ -199,25 +215,28 @@ config.module = {
           : null
       ].filter((e) => e !== null)
     },
-    // webfont files always have to be ended with *-webfont.ext
     {
-      test: /.-webfont\.eot(\?v=\d+\.\d+\.\d+)?$/,
-      use: 'url-loader?limit=100&mimetype=application/vnd.ms-fontobject'
-    },
-    {
-      test: /.-webfont\.woff2(\?v=\d+\.\d+\.\d+)?$/,
+      test: /\.woff2(\?v=\d+\.\d+\.\d+)?$/,
       use: 'url-loader?limit=100&mimetype=application/font-woff2'
     },
     {
-      test: /.-webfont\.woff(\?v=\d+\.\d+\.\d+)?$/,
+      test: /\.woff(\?v=\d+\.\d+\.\d+)?$/,
       use: 'url-loader?limit=100&mimetype=application/font-woff'
     },
     {
-      test: /.-webfont\.ttf(\?v=\d+\.\d+\.\d+)?$/,
+      test: /\.otf(\?v=\d+\.\d+\.\d+)?$/,
+      use: 'url-loader?limit=100&mimetype=application/x-font-opentype'
+    },
+    {
+      test: /\.ttf(\?v=\d+\.\d+\.\d+)?$/,
       use: 'url-loader?limit=100&mimetype=application/x-font-ttf'
     },
     {
-      test: /.-webfont\.svg(\?v=\d+\.\d+\.\d+)?$/,
+      test: /\.eot(\?v=\d+\.\d+\.\d+)?$/,
+      use: 'url-loader?limit=100&mimetype=application/vnd.ms-fontobject'
+    },
+    {
+      test: /\.svg(\?v=\d+\.\d+\.\d+)?$/,
       use: 'url-loader?limit=100&mimetype=image/svg+xml'
     }
   ]
@@ -225,14 +244,16 @@ config.module = {
 
 // ----------------
 // PLUGINS
+
 config.plugins = [];
 
 // ----------------
 // WEBPACK DEFINE PLUGIN
+// ALWAYS
 // define environmental variables into scripts
 
 config.plugins.push(new webpack.DefinePlugin({
-  'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'production'),
+  'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development'),
   'process.env.BROWSER': true,
   __CLIENT__: true,
   __SERVER__: false,
@@ -243,37 +264,46 @@ config.plugins.push(new webpack.DefinePlugin({
   __STAGING__: staging,
   __PRODUCTION__: production,
   __HOST__: targetHost,
-  __PORT_FRONT_APP_HTTP1__: pkgConfig.config.portFrontendAppHTTP1, // JSON.stringify
-  __PORT_FRONT_APP_HTTP2__: pkgConfig.config.portFrontendAppHTTP2
+  __PORT_FRONT_APP_HTTP1__: pkgConfig.config.portFrontendAppHTTP, // JSON.stringify
+  __PORT_FRONT_APP_HTTP2__: pkgConfig.config.portFrontendAppHTTS
 }));
 
 // ----------------
 // WEBPACK BUILT IN OPTIMIZATION
+// ALWAYS
+
+// ModuleConcatenationPlugin
+config.plugins.push(new webpack.optimize.ModuleConcatenationPlugin());
+
+// ----------------
+// WEBPACK BUILT IN OPTIMIZATION
+// IN PRODUCTION
 
 if (production) {
-  config.plugins.push(new webpack.optimize.OccurrenceOrderPlugin());
   config.plugins.push(new webpack.optimize.LimitChunkCountPlugin({maxChunks: 15}));
   config.plugins.push(new webpack.optimize.MinChunkSizePlugin({minChunkSize: 10000}));
-  config.plugins.push(new webpack.optimize.UglifyJsPlugin({
-    compress: {
-      sequences: true,
-      dead_code: true,
-      conditionals: true,
-      booleans: true,
-      unused: true,
-      if_return: true,
-      join_vars: true,
-      drop_console: true,
-      warnings: false
-    },
-    mangle: false,
-    beautify: false,
-    output: {
-      space_colon: false,
-      comments: false
+  config.plugins.push(new UglifyJsPlugin({
+    parallel: true,
+    uglifyOptions: {
+      compress: {
+        sequences: true,
+        dead_code: true,
+        conditionals: true,
+        booleans: true,
+        unused: true,
+        if_return: true,
+        join_vars: true,
+        drop_console: true,
+        warnings: false
+      },
+      mangle: false,
+      output: {
+        comments: false,
+        beautify: false
+      }
     },
     extractComments: false,
-    sourceMap: sourceMapType
+    sourceMap: sourceMapType // evaluates to bool
   }));
 }
 
@@ -287,6 +317,7 @@ if (development && pkgConfig.config.isWebpackDevServerHot) {
 
 // ----------------
 // ExtractTextPlugin CONFIG
+// ALWAYS
 
 config.plugins.push(new ExtractTextPlugin({
   filename: '[name].css',
@@ -296,11 +327,13 @@ config.plugins.push(new ExtractTextPlugin({
 
 // ----------------
 // POSTCSS LOADER CONFIG
+// ALWAYS
 
 // defined in .postcssrc.js
 
 // ----------------
 // BROWSERLIST CONFIG
+// ALWAYS
 
 // defined in .browserslistrc
 
