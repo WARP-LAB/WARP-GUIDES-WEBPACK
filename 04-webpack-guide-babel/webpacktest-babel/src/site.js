@@ -1,9 +1,10 @@
+/* global __DEVELOPMENT__ */
 'use strict';
 
 import './site.global.scss';
 import {helperA} from './helpers.js';
 
-if(__DEVELOPMENT__) {
+if (__DEVELOPMENT__) {
   console.log('I\'m in development!');
 }
 
@@ -22,7 +23,7 @@ const myArrowFunction = () => {
 
   // Test Array.find polyfill
   const arr = [5, 12, 8, 130, 44];
-  let found = arr.find(function(element) {
+  let found = arr.find(function (element) {
     return element > 10;
   });
   console.log('Found elements', found);
