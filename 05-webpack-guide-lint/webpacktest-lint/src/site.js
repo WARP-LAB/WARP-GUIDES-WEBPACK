@@ -15,9 +15,11 @@ const greetings = {
 
 const myArrowFunction = () => {
   const div = document.querySelector('.app');
-  const {today} = greetings;
-  div.innerHTML = `<h1>${today}</h1><p>Lorem ipsum.</p>`;
-  div.classList.add('some-class');
+  if (div !== null) {
+    const {today} = greetings;
+    div.innerHTML = `<h1>${today}</h1><p>Lorem ipsum.</p>`;
+    div.classList.add('some-class');
+  }
   console.log('Hello JS!');
   helperA();
 

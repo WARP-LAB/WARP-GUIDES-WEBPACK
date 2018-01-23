@@ -9,6 +9,8 @@ if (__DEVELOPMENT__) {
 }
 
 var div = document.querySelector('.app');
-div.innerHTML = '<h1>Hello JS</h1><p>Lorem ipsum.</p>';
+if (div !== null) {
+  div.innerHTML = '<h1>Hello JS</h1><p>Lorem ipsum.</p>';
+}
 console.log('Hello JS!');
 helpers.helperA();
