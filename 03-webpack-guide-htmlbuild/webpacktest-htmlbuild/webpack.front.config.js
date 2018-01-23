@@ -318,7 +318,6 @@ config.plugins.push(new HtmlWebpackPlugin({
   template: `${path.join(__dirname, 'src')}/index.template.ejs`,
   inject: false, // we specify manually where we want our entry outputs to be in the template
   // favicon: ,
-  minify: false,
   hash: false,
   cache: true,
   showErrors: true,
@@ -326,7 +325,8 @@ config.plugins.push(new HtmlWebpackPlugin({
   chunksSortMode: 'auto',
   excludeChunks: [],
   xhtml: false,
-  alwaysWriteToDisk: true
+  alwaysWriteToDisk: true,
+  minify: false
 }));
 config.plugins.push(new HtmlWebpackHarddiskPlugin());
 
