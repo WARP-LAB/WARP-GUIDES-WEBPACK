@@ -7,7 +7,7 @@
 Use existing `webpacktest-babel` code base from previous guide stage. Either work on top of it or just make a copy. The directory now is called `webpacktest-lint`.
 
 Make changes in `package.json`.  
-Make changes in `index.html` (`index-manual-approach.html`) to reflect host change to `webpacktest-lint.test` if you are not using HTML building as discussed in *htmlbuild* stage of this guide.
+Note that `index.html` is build product. Manual approach will not work any more, as we are using hashes in output filenames. You can disable hashes and return to manual approach as in pre-`html-webpack-plugin` approach. See *htmlbuild* stage of this guide.
 
 ---
 # ESLint
