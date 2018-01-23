@@ -1373,11 +1373,14 @@ Scope hoisting
 * [webpack.DefinePlugin](https://webpack.js.org/plugins/define-plugin/)  
 Define free variables. Useful for having development builds with debug logging or adding global constants. The values will be inlined into the code which allows a minification pass to remove the redundant conditional.
 
-* webpack.optimize.DedupePlugin is [depreciated](https://webpack.js.org/guides/migrating/#dedupeplugin-has-been-removed)
+#### Obligatory later
+
+* [webpack.optimize.CommonsChunkPlugin](https://webpack.js.org/plugins/commons-chunk-plugin/)  
+Will be used in code splitting and duplication prevention
 
 #### Optional
 
-* [webpack.optimize.OccurrenceOrderPlugin](https://webpack.js.org/guides/migrating/#occurrenceorderplugin-is-now-on-by-default)
+* [webpack.optimize.OccurrenceOrderPlugin](https://webpack.js.org/guides/migrating/#occurrenceorderplugin-is-now-on-by-default) (now enabled by default)
 * [webpack.optimize.MinChunkSizePlugin](https://webpack.js.org/plugins/min-chunk-size-plugin/)
 * [webpack.optimize.LimitChunkCountPlugin](https://webpack.js.org/plugins/limit-chunk-count-plugin/)
 
