@@ -50,9 +50,9 @@ let config = {
   entry: {
     site: [
       'classlist-polyfill',
-      './src/site.js'
+      path.join(__dirname, 'src/site.js')
     ],
-    preflight: './src/preflight.js'
+    preflight: path.join(__dirname, 'src/preflight.js')
   },
   output: {
     path: path.join(__dirname, 'public/assets'),

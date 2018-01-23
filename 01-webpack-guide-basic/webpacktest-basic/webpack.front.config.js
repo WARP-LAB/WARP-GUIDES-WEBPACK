@@ -24,8 +24,8 @@ let config = {
   devtool: sourceMapType,
   context: __dirname,
   entry: {
-    site: './src/site.js',
-    preflight: './src/preflight.js'
+    site: path.join(__dirname, 'src/site.js'),
+    preflight: path.join(__dirname, 'src/preflight.js')
   },
   output: {
     path: path.join(__dirname, 'public/assets'),
