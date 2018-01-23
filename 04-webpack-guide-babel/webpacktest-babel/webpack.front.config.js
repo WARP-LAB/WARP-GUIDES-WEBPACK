@@ -374,4 +374,9 @@ config.plugins.push(new ExtractTextPlugin({
 
 // defined in .browserslistrc
 
+// ----------------
+// BABEL CONFIG
+
+// defined in .babelrc
+
 module.exports = config;
