@@ -53,7 +53,7 @@ let config = {
   },
   output: {
     path: path.join(__dirname, 'public/assets'),
-    filename: '[name].[chunkhash].js',
+    filename: (development) ? '[name].js' : '[name].[chunkhash].js',
     publicPath
   },
   resolve: {
@@ -343,7 +343,7 @@ if (development && pkgConfig.config.isWebpackDevServerHot) {
 // ALWAYS
 
 config.plugins.push(new ExtractTextPlugin({
-  filename: '[name].[chunkhash].css',
+  filename: (development) ? '[name].css' : '[name].[chunkhash].css',
   disable: development, // disable when development
   allChunks: true
 }));
