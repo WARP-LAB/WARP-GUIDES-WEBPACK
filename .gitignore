@@ -1,5 +1,9 @@
 # images and fonts
 
+# !!! although this is against best practice, exclude package-lock.json from this repo
+# !!! it makes me easier to go back and forth to edit things
+package-lock.json
+
 *.jpg
 *.png
 *.gif
