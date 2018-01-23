@@ -54,7 +54,7 @@ let config = {
   output: {
     path: path.join(__dirname, 'public/assets'),
     filename: '[name].[chunkhash].js',
-    publicPath: publicPath
+    publicPath
   },
   resolve: {
     modules: [
@@ -93,12 +93,12 @@ config.devServer = {
   // hotOnly: true
 
   https: pkgConfig.config.isWebpackDevServerHTTPS
-  ? {
-    key: fs.readFileSync("/path/to/server.key"),
-    cert: fs.readFileSync("/path/to/server.crt"),
-    ca: fs.readFileSync("/path/to/ca.pem"),
-  }
-  : false,
+    ? {
+      // key: fs.readFileSync('/path/to/server.key'),
+      // cert: fs.readFileSync('/path/to/server.crt'),
+      // ca: fs.readFileSync('/path/to/ca.pem')
+    }
+    : false,
   index: 'index.htm',
   inline: true,
   // lazy: true,
@@ -110,8 +110,8 @@ config.devServer = {
     errors: true
   },
   port: pkgConfig.config.isWebpackDevServerHTTPS
-  ? pkgConfig.config.portFrontendWebpackDevServerHTTPS
-  : pkgConfig.config.portFrontendWebpackDevServerHTTP,
+    ? pkgConfig.config.portFrontendWebpackDevServerHTTPS
+    : pkgConfig.config.portFrontendWebpackDevServerHTTP,
   // proxy: {
   //   '/api': 'http://localhost:3000'
   // },
@@ -126,10 +126,10 @@ config.devServer = {
   // watchOptions: {
   //   poll: true
   // },
-  before(app){
+  before (app) {
     console.log('Webpack devserver middlewres before');
   },
-  after(app){
+  after (app) {
     console.log('Webpack devserver middlewres after');
   }
 };
