@@ -138,6 +138,8 @@ Run webpack (before that clean assets directory)
 rm -rf public/assets/** && ./node_modules/webpack/bin/webpack.js --config=$(pwd)/webpack.front.config.js --progress
 ```
 
+Further below instead of accessing local node_modules bin manually, we will use [`npx`](https://github.com/zkat/npx)
+
 Notice, that entry point __key names__ dictate what will be the outputted __filename__ in `./public/assets`. That is, you can change key name and real file name to whatever, i.e.,
 
 ```javascript
@@ -196,7 +198,7 @@ module.exports = config;
 Run webpack
 
 ```sh
-rm -rf public/assets/** && ./node_modules/webpack/bin/webpack.js --config=$(pwd)/webpack.front.config.js --progress
+rm -rf public/assets/** && npx webpack --config=$(pwd)/webpack.front.config.js --progress
 ```
 
 Inspect. The file is in `public/assets` directory and it does its job in changin class name.
@@ -206,10 +208,10 @@ Inspect. The file is in `public/assets` directory and it does its job in changin
 When running webpack we should specify what environment we are building it for. Let us assume simple 4-tier. We will do this by specifying environment via `NODE_ENV`
 
 ```sh
-NODE_ENV=development ./node_modules/webpack/bin/webpack.js --config=$(pwd)/webpack.front.config.js --progress
-NODE_ENV=testing ./node_modules/webpack/bin/webpack.js --config=$(pwd)/webpack.front.config.js --progress
-NODE_ENV=staging ./node_modules/webpack/bin/webpack.js --config=$(pwd)/webpack.front.config.js --progress
-NODE_ENV=production ./node_modules/webpack/bin/webpack.js --config=$(pwd)/webpack.front.config.js --progress
+NODE_ENV=development npx webpack --config=$(pwd)/webpack.front.config.js --progress
+NODE_ENV=testing npx webpack --config=$(pwd)/webpack.front.config.js --progress
+NODE_ENV=staging npx webpack --config=$(pwd)/webpack.front.config.js --progress
+NODE_ENV=production npx webpack --config=$(pwd)/webpack.front.config.js --progress
 ```
 
 
@@ -291,7 +293,7 @@ module.exports = config;
 Run webpack, specify `NODE_ENV` value
 
 ```sh
-rm -rf public/assets/** && NODE_ENV=production ./node_modules/webpack/bin/webpack.js --config=$(pwd)/webpack.front.config.js --progress
+rm -rf public/assets/** && NODE_ENV=production npx webpack --config=$(pwd)/webpack.front.config.js --progress
 ```
 
 Inspect how `assets/site.js` changes based on whether `NODE_ENV` is set to `production` or `development`.
@@ -465,7 +467,7 @@ $mycolor: red;
 Run webpack and inspect `public/assets/site.css`
 
 ```sh
-rm -rf public/assets/** && NODE_ENV=development ./node_modules/webpack/bin/webpack.js --config=$(pwd)/webpack.front.config.js --progress
+rm -rf public/assets/** && NODE_ENV=development npx webpack --config=$(pwd)/webpack.front.config.js --progress
 ```
 
 SCSS and CSS is compiled and spit out in a file under `public/assets` named the same as the entry point key of the JavaScript from which SCSS was included in the first place.
@@ -615,7 +617,7 @@ config.module = {
 Run webpack and inspect `public/assets/site.css`
 
 ```sh
-rm -rf public/assets/** && NODE_ENV=development ./node_modules/webpack/bin/webpack.js --config=$(pwd)/webpack.front.config.js --progress
+rm -rf public/assets/** && NODE_ENV=development npx webpack --config=$(pwd)/webpack.front.config.js --progress
 ```
 
 Prefixes everywhere!
@@ -652,7 +654,7 @@ $mycolor: red;
 Run webpack and inspect `public/assets/site.css`
 
 ```sh
-rm -rf public/assets/** && NODE_ENV=development ./node_modules/webpack/bin/webpack.js --config=$(pwd)/webpack.front.config.js --progress
+rm -rf public/assets/** && NODE_ENV=development npx webpack --config=$(pwd)/webpack.front.config.js --progress
 ```
 
 ## Webpack CSS source maps
@@ -698,8 +700,8 @@ if (production) {
 Run webpack for development and production and inspect last lines of `public/assets/site.js` and `public/assets/site.css`
 
 ```sh
-rm -rf public/assets/** && NODE_ENV=development ./node_modules/webpack/bin/webpack.js --config=$(pwd)/webpack.front.config.js --progress
-rm -rf public/assets/** && NODE_ENV=production ./node_modules/webpack/bin/webpack.js --config=$(pwd)/webpack.front.config.js --progress
+rm -rf public/assets/** && NODE_ENV=development npx webpack --config=$(pwd)/webpack.front.config.js --progress
+rm -rf public/assets/** && NODE_ENV=production npx webpack --config=$(pwd)/webpack.front.config.js --progress
 ```
 
 Now try
@@ -932,7 +934,7 @@ config.module = {
 Run webpack and inspect `public/assets/` directory and `public/assets/site.css`
 
 ```sh
-rm -rf public/assets/** && NODE_ENV=development ./node_modules/webpack/bin/webpack.js --config=$(pwd)/webpack.front.config.js --progress
+rm -rf public/assets/** && NODE_ENV=development npx webpack --config=$(pwd)/webpack.front.config.js --progress
 ```
 
 Notice how larger image is outputted as file while smaller image is inlined `url(data:image/jpeg;base64,...);` in CSS. Just as we want it.
@@ -977,7 +979,7 @@ _webpack.front.config.js_
 Run webpack and inspect `public/assets/` directory, how outputted image size differs from source.
 
 ```sh
-rm -rf public/assets/** && NODE_ENV=development ./node_modules/webpack/bin/webpack.js --config=$(pwd)/webpack.front.config.js --progress
+rm -rf public/assets/** && NODE_ENV=development npx webpack --config=$(pwd)/webpack.front.config.js --progress
 ```
 
 This process is expensive. In development we do not care about file size as we are either developing locally or in intranet, so set it to 
@@ -1205,7 +1207,7 @@ _webpack.front.config.js_
 Run webpack and inspect `public/assets/` directory and `public/assets/site.css`.
 
 ```sh
-rm -rf public/assets/** && NODE_ENV=development ./node_modules/webpack/bin/webpack.js --config=$(pwd)/webpack.front.config.js --progress
+rm -rf public/assets/** && NODE_ENV=development npx webpack --config=$(pwd)/webpack.front.config.js --progress
 ```
 
 ## Webpack SVG images vs SVG fonts
@@ -1454,8 +1456,8 @@ config.plugins.push(new ExtractTextPlugin({
 Build both for development and production
 
 ```sh
-rm -rf public/assets/** && NODE_ENV=development ./node_modules/webpack/bin/webpack.js --config=$(pwd)/webpack.front.config.js --progress
-rm -rf public/assets/** && NODE_ENV=production ./node_modules/webpack/bin/webpack.js --config=$(pwd)/webpack.front.config.js --progress
+rm -rf public/assets/** && NODE_ENV=development npx webpack --config=$(pwd)/webpack.front.config.js --progress
+rm -rf public/assets/** && NODE_ENV=production npx webpack --config=$(pwd)/webpack.front.config.js --progress
 ```
 
 ---

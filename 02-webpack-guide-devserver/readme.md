@@ -100,7 +100,7 @@ If using Valet then `index.html`is already served by nginx through named host
 
 ```sh
 rm -rf public/assets/** && \
-NODE_ENV=development node_modules/.bin/webpack-dev-server --config=$(pwd)/webpack.front.config.js --host=webpacktest-devserver.test --port=4000 --history-api-fallback -d --inline
+NODE_ENV=development npx webpack-dev-server --config=$(pwd)/webpack.front.config.js --host=webpacktest-devserver.test --port=4000 --history-api-fallback -d --inline
 ```
 
 
@@ -108,7 +108,7 @@ If just using localhost then `index.html` is served by Webpack dev server thrugh
 
 ```sh
 rm -rf public/assets/** && \
-NODE_ENV=development node_modules/.bin/webpack-dev-server --config=$(pwd)/webpack.front.config.js --host=localhost --port=4000 --history-api-fallback -d --inline --content-base $(pwd)/public
+NODE_ENV=development npx webpack-dev-server --config=$(pwd)/webpack.front.config.js --host=localhost --port=4000 --history-api-fallback -d --inline --content-base $(pwd)/public
 ```
 
 Visit [http://webpacktest-devserver.test/](http://webpacktest-devserver.test/) or [http://localhost:4000/](http://localhost:4000/), based on your setup.
@@ -207,7 +207,7 @@ Kill revious `ctr+c`. Rerun it, observe that fonts are loading now.
 
 ```sh
 rm -rf public/assets/** && \
-NODE_ENV=development node_modules/.bin/webpack-dev-server \
+NODE_ENV=development npx webpack-dev-server \
 --config=$(pwd)/webpack.front.config.js -d
 ```
 
