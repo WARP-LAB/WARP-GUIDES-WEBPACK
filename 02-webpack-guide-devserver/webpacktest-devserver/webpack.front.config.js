@@ -20,12 +20,12 @@ let targetHost;
 if (production) {
   publicPath = `//${pkgConfig.config.hostProduction}${pkgConfig.config.pathAboveRootProduction}/assets/`;
   targetHost = pkgConfig.config.hostProduction;
-} else if (staging) {
-  publicPath = `//${pkgConfig.config.hostStaging}${pkgConfig.config.pathAboveRootStaging}/assets/`;
-  targetHost = pkgConfig.config.hostStaging;
 } else if (testing) {
   publicPath = `//${pkgConfig.config.hostTesting}${pkgConfig.config.pathAboveRootTesting}/assets/`;
   targetHost = pkgConfig.config.hostTesting;
+} else if (staging) {
+  publicPath = `//${pkgConfig.config.hostStaging}${pkgConfig.config.pathAboveRootStaging}/assets/`;
+  targetHost = pkgConfig.config.hostStaging;
 } else {
   const protocol = pkgConfig.config.isWebpackDevServerHTTPS ? 'https:' : 'http:';
   publicPath = `${protocol}//${pkgConfig.config.hostDevelopment}:${pkgConfig.config.portFrontendWebpackDevServerHTTP}${pkgConfig.config.pathAboveRootDevelopment}/assets/`;
