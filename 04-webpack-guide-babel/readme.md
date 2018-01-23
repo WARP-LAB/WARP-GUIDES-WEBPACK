@@ -263,14 +263,12 @@ Previously it was `targets.uglify` key and had to be set to `true` to force ever
 
 Some basic useful plugins, but this is per project setup.
 
-[Object rest spread transform](https://babeljs.io/docs/plugins/transform-object-rest-spread/)  
+[Object rest spread transform](https://github.com/babel/babel/tree/master/packages/babel-plugin-proposal-object-rest-spread) ([old docs](https://babeljs.io/docs/plugins/transform-object-rest-spread/))  
 [Class properties transform](https://babeljs.io/docs/plugins/transform-class-properties/)  
 [Function bind transform](https://babeljs.io/docs/plugins/transform-function-bind/)  
 
 ```sh
-npm install babel-plugin-transform-class-properties --save-dev
-npm install babel-plugin-transform-object-rest-spread --save-dev
-npm install babel-plugin-transform-function-bind --save-dev
+npm install @babel/plugin-proposal-object-rest-spread --save-dev
 ```
 
 _.babelrc_
@@ -290,9 +288,7 @@ _.babelrc_
     ]
   ],
   "plugins": [
-    "transform-class-properties",
-    "transform-function-bind",
-    "transform-object-rest-spread"
+    "@babel/plugin-proposal-object-rest-spread"
   ],
   "env": {
     "development": {
@@ -308,4 +304,19 @@ _.babelrc_
 
 ```
 
-There are many pligins and we could also use *umbrella* presets such as [babel-preset-es2015](https://babeljs.io/docs/plugins/preset-es2015/) that automatically installs a collection of transform plugins, but for this tutorial we will use only few and explicitly will install them (except for Hello World React, where we will install deps via preset).
+Test it by adding object spread into _site.js_
+
+```javascript
+// ...
+
+  // Spread test
+  const someObject = {x: 11, y: 12};
+  const {x} = someObject;
+  console.log('x value', x);
+  const objectCloneTestViaSpread = {...someObject};
+  console.log('objectCloneTestViaSpread', objectCloneTestViaSpread);
+  
+//...
+```
+
+There are many plugins and we could also use *umbrella* presets such as [babel-preset-es2015](https://babeljs.io/docs/plugins/preset-es2015/) that automatically installs a collection of transform plugins, but for this tutorial we will use only few and explicitly will install them (except for Hello World React, where we will install deps via preset).

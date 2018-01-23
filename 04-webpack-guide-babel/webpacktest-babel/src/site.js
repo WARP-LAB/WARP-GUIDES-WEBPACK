@@ -27,6 +27,13 @@ const myArrowFunction = () => {
     return element > 10;
   });
   console.log('Found elements', found);
+
+  // Spread test
+  const someObject = {x: 11, y: 12};
+  const {x} = someObject;
+  console.log('x value', x);
+  const objectCloneTestViaSpread = {...someObject};
+  console.log('objectCloneTestViaSpread', objectCloneTestViaSpread);
 };
 
 myArrowFunction();
