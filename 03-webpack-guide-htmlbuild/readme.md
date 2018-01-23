@@ -130,14 +130,14 @@ Include chunk-specific hash in the filename for JavaScript and CSS.
 
   output: {
     path: path.join(__dirname, 'public/assets'),
-    filename: '[name].[chunkhash].js',
+    filename: (development) ? '[name].js' : '[name].[chunkhash].js',
     publicPath: publicPath
   },
 
 // ...
 
 config.plugins.push(new ExtractTextPlugin({
-  filename: '[name].[chunkhash].css',
+  filename: (development) ? '[name].css' : '[name].[chunkhash].css',
   disable: development, // disable when development
   allChunks: true
 }));
@@ -145,4 +145,4 @@ config.plugins.push(new ExtractTextPlugin({
 // ...
 ```
 
-Build it for dev and prod. Observe outputted filenames in *assets* directory, observe that outputted `index.html` tracks it.
+Build it for prod. Observe outputted filenames in *assets* directory, observe that outputted `index.html` tracks it.
