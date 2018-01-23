@@ -119,3 +119,30 @@ config.plugins.push(new HtmlWebpackHarddiskPlugin());
 
 Build it for dev and prod. Observe how (if) `index.html` is outputted into `public` directory and served to the browser in both cases.
 
+## Add hashes
+
+Include chunk-specific hash in the filename for JavaScript and CSS.
+
+*webpack.front.config.js*
+
+```javascript
+// ...
+
+  output: {
+    path: path.join(__dirname, 'public/assets'),
+    filename: '[name].[chunkhash].js',
+    publicPath: publicPath
+  },
+
+// ...
+
+config.plugins.push(new ExtractTextPlugin({
+  filename: '[name].[chunkhash].css',
+  disable: development, // disable when development
+  allChunks: true
+}));
+
+// ...
+```
+
+Build it for dev and prod. Observe outputted filenames in *assets* directory, observe that outputted `index.html` tracks it.
