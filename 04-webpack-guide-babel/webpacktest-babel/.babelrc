@@ -1,21 +1,13 @@
 {
   "presets": [
   	[
-      "env",
+      "@babel/preset-env",
     	{
-        "targets": {
-          "browsers": [
-          	"> 1%",
-          	"last 2 versions",
-          	"Firefox ESR",
-            "IE 11",
-            "iOS > 7"
-          ],
-          "uglify": true
-        },
-        "useBuiltIns": true,
         "modules": false,
-        "debug": false
+        "useBuiltIns": "usage",
+        "forceAllTransforms": false,
+        "ignoreBrowserslistConfig": false,
+        "debug": true
       }
     ]
   ],

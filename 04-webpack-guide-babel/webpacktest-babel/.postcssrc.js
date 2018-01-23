@@ -1,7 +1,7 @@
 module.exports = (ctx) => ({
   plugins: [
     require('autoprefixer')({
-      // browsers: [], // defined in PostCSS configuration file!
+      // browsers: [], // defined in .browserslistrc file!
       cascade: true,
       remove: true
     }),
