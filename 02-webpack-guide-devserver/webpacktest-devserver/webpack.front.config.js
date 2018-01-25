@@ -205,7 +205,7 @@ config.module = {
         {
           loader: 'url-loader',
           options: {
-            limit: 100000
+            limit: 20000
           }
         },
         (production)

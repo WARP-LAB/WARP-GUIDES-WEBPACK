@@ -785,28 +785,7 @@ Build for *development* and *production*, note the differences.
 
 ## Webpack file-loader & url-loader & resolve-url-loader
 
-Now let us add some images to source. Make `my-small-image.jpg` few tens of KB and `my-large-image.jpg` above above 10 MB.
-
-`tree -a -I 'node_modules' .`
-
-```
-├── .browserslistrc
-├── .postcssrc.js
-├── package.json
-├── public
-│   ├── assets
-│   └── index.html
-├── src
-│   ├── images
-│   │   ├── my-large-image.jpg
-│   │   └── my-small-image.jpg
-│   ├── index.template.ejs
-│   ├── preflight.js
-│   ├── site.global.scss
-│   ├── site.js
-│   └── site.legacy.css
-└── webpack.front.config.js
-```
+Now let us add some images to source. Make `my-small-image.jpg` below 20 KB [this is handy](http://lorempixel.com/200/200/) and `my-large-image.jpg` about 50 KB [this is handy](http://lorempixel.com/600/600/). Put them under `src/images` directory.
 
 Loaders  
 [file-loader](https://github.com/webpack-contrib/file-loader)  
@@ -937,7 +916,7 @@ config.module = {
         {
           loader: 'url-loader',
           options: {
-            limit: 100000
+            limit: 20000
           }
         }
       ]
@@ -951,7 +930,7 @@ config.module = {
 Run webpack and inspect `public/assets/` directory and `public/assets/site.css`
 
 ```sh
-rm -rf public/assets/** && NODE_ENV=development npx webpack --config=$(pwd)/webpack.front.config.js --progress
+rm -rf public/assets/** && NODE_ENV=production npx webpack --config=$(pwd)/webpack.front.config.js --progress
 ```
 
 Notice how larger image is outputted as file while smaller image is inlined `url(data:image/jpeg;base64,...);` in CSS. Just as we want it.
@@ -982,7 +961,7 @@ _webpack.front.config.js_
         {
           loader: 'url-loader',
           options: {
-            limit: 100000
+            limit: 20000
           }
         },
         {
@@ -1009,7 +988,7 @@ This process is expensive. In development we do not care about file size as we a
         {
           loader: 'url-loader',
           options: {
-            limit: 100000
+            limit: 20000
           }
         },
         (production)
@@ -1238,7 +1217,7 @@ _webpack.front.config.js_
         {
           loader: 'url-loader',
           options: {
-            limit: 10000
+            limit: 20000
           }
         },
         (production)
