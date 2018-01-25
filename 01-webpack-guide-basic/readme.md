@@ -36,18 +36,26 @@ webpacktest-basic
 
 ```html
 <!DOCTYPE html>
-<html class="noscript">
+<html lang="en" class="noscript incapable">
 <head>
   <meta charset="utf-8">
   <title>My Title</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
   <script src="./assets/preflight.js"></script>
   <link rel="stylesheet" type="text/css" href="./assets/site.css">
 </head>
 <body>
+  <noscript>
+    <div class="noscript">
+      Lynx FTW!
+    </div>
+  </noscript>
+  <div class="incapable">
+    Incapable :(
+  </div>
   <div class="app"></div>
   <script>
-    var dataReact = {};
+    window.__TEMPLATE_DATA__ = {};
   </script>
   <script async src="./assets/site.js"></script>
 </body>
@@ -462,6 +470,28 @@ $mycolor: red;
   height: 200px;
 }
 
+/* Example of preflight CSS state machine */
+
+.noscript {
+  display: block;
+  background-color: aqua;
+}
+
+.incapable {
+  display: block;
+  background-color: olive;
+}
+
+html.noscript .incapable { display: none; }
+
+html.noscript .app { display: none; }
+
+html.incapable .app { display: none; }
+
+html.capable .incapable { display: none; }
+
+html.script .noscript { display: none; }
+
 ```
 
 Run webpack and inspect `public/assets/site.css`
@@ -632,24 +662,7 @@ npm install normalize.css --save-dev
 
 We add it as a module, so prefix it `~`. So now you know what `resolve: { modules: [] }` in webpack stands for. Search paths!
 
-Add to our SCSS
-
-_src/site.global.scss_
-
-```scss
-@charset 'UTF-8';
-@import '~normalize.css';
-@import 'site.legacy.css';
-
-$mycolor: red;
-
-.app {
-  background-color: $mycolor;
-  display: flex;
-  transform: translateY(50px);
-  height: 200px;
-}
-```
+Add to _src/site.global.scss_ SCSS `@import '~normalize.css';`
 
 Run webpack and inspect `public/assets/site.css`
 
@@ -714,7 +727,7 @@ const sourceMapType = (!production) ? 'source-map' : false;
 
 Run webpack and inspect `public/assets/` directory (look for `map` files). There are also other source map trypes available, read the docs.
 
-Set it back to generate inline source maps.
+Set it back to generate inline source maps for now. [Read about performance.](https://webpack.js.org/guides/build-performance/#devtool)
 
 ## Make SCSS build environment aware
 
@@ -764,6 +777,8 @@ $paragarphColor: black;
   }
 
 }
+
+// ...
 ```
 
 Build for *development* and *production*, note the differences.
@@ -842,6 +857,8 @@ body {
 
   background-image: url('./images/my-small-image.jpg');
 }
+
+// ...
 ```
 
 Add loaders to module rules. Note that we resolve URLs in SCSS pipe as well we add loader for image files (don't be surprised about not including SVG, later on that).
