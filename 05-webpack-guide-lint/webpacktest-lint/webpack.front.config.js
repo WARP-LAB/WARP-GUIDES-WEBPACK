@@ -403,6 +403,7 @@ config.plugins.push(new HtmlWebpackPlugin({
   alwaysWriteToDisk: true,
   minify: false
 }));
+// HtmlWebpackHarddiskPlugin
 config.plugins.push(new HtmlWebpackHarddiskPlugin());
 
 // ----------------
