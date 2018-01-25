@@ -392,11 +392,11 @@ config.plugins.push(new HtmlWebpackPlugin({
   filename: `${path.join(__dirname, 'public')}/index.html`,
   template: `${path.join(__dirname, 'src')}/index.template.ejs`,
   inject: false, // we specify manually where we want our entry outputs to be in the template
-  // favicon: ,
+  // favicon: favicon.ico,
   hash: false,
   cache: true,
   showErrors: true,
-  // chunks: ['site', 'preflight'],
+  // chunks: [],
   chunksSortMode: 'auto',
   excludeChunks: [],
   xhtml: false,
