@@ -233,27 +233,63 @@ config.module = {
     },
     {
       test: /\.woff2(\?v=\d+\.\d+\.\d+)?$/,
-      use: 'url-loader?limit=100&mimetype=application/font-woff2'
+      use: [{
+        loader: 'url-loader',
+        options: {
+          limit: 10,
+          mimetype: 'application/font-woff2'
+        }
+      }]
     },
     {
       test: /\.woff(\?v=\d+\.\d+\.\d+)?$/,
-      use: 'url-loader?limit=100&mimetype=application/font-woff'
+      use: [{
+        loader: 'url-loader',
+        options: {
+          limit: 10,
+          mimetype: 'application/font-woff'
+        }
+      }]
     },
     {
       test: /\.otf(\?v=\d+\.\d+\.\d+)?$/,
-      use: 'url-loader?limit=100&mimetype=application/x-font-opentype'
+      use: [{
+        loader: 'url-loader',
+        options: {
+          limit: 10,
+          mimetype: 'application/x-font-opentype' // application/font-sfnt
+        }
+      }]
     },
     {
       test: /\.ttf(\?v=\d+\.\d+\.\d+)?$/,
-      use: 'url-loader?limit=100&mimetype=application/x-font-ttf'
+      use: [{
+        loader: 'url-loader',
+        options: {
+          limit: 10,
+          mimetype: 'application/x-font-truetype' // application/font-sfnt
+        }
+      }]
     },
     {
       test: /\.eot(\?v=\d+\.\d+\.\d+)?$/,
-      use: 'url-loader?limit=100&mimetype=application/vnd.ms-fontobject'
+      use: [{
+        loader: 'url-loader',
+        options: {
+          limit: 10,
+          mimetype: 'application/vnd.ms-fontobject'
+        }
+      }]
     },
     {
       test: /\.svg(\?v=\d+\.\d+\.\d+)?$/,
-      use: 'url-loader?limit=100&mimetype=image/svg+xml'
+      use: [{
+        loader: 'url-loader',
+        options: {
+          limit: 10,
+          mimetype: 'mimetype=image/svg+xml'
+        }
+      }]
     }
   ]
 };

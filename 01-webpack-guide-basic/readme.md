@@ -1015,53 +1015,11 @@ Font squirrel online generator is good enough [Font Squirrel Generator](https://
 
 ## Fonts - webfont packing & loading
 
-Let us add new directory `fonts` in `src`. Choose font that has few styles (regular and bold + italic) for simplicity. [Space Mono](https://www.fontsquirrel.com/fonts/space-mono)
+Let us add new directory `fonts` in `src`.  
+Choose font that has few styles (regular and bold + italic) for simplicity. [Space Mono](https://www.fontsquirrel.com/fonts/space-mono)  
+Convert fonts and put them all under `src/fonts/spacemono/`.
 
 We need also extra files: `fonts/spacemono-definition.scss`, `src/typography.scss`
-
-
-```
-├── .browserslistrc
-├── .postcssrc.js
-├── package.json
-├── public
-│   ├── assets
-│   └── index.html
-├── src
-│   ├── fonts
-│   │   ├── spacemono
-│   │   │   ├── spacemono-bold-webfont.eot
-│   │   │   ├── spacemono-bold-webfont.svg
-│   │   │   ├── spacemono-bold-webfont.ttf
-│   │   │   ├── spacemono-bold-webfont.woff
-│   │   │   ├── spacemono-bold-webfont.woff2
-│   │   │   ├── spacemono-bolditalic-webfont.eot
-│   │   │   ├── spacemono-bolditalic-webfont.svg
-│   │   │   ├── spacemono-bolditalic-webfont.ttf
-│   │   │   ├── spacemono-bolditalic-webfont.woff
-│   │   │   ├── spacemono-bolditalic-webfont.woff2
-│   │   │   ├── spacemono-italic-webfont.eot
-│   │   │   ├── spacemono-italic-webfont.svg
-│   │   │   ├── spacemono-italic-webfont.ttf
-│   │   │   ├── spacemono-italic-webfont.woff
-│   │   │   ├── spacemono-italic-webfont.woff2
-│   │   │   ├── spacemono-regular-webfont.eot
-│   │   │   ├── spacemono-regular-webfont.svg
-│   │   │   ├── spacemono-regular-webfont.ttf
-│   │   │   ├── spacemono-regular-webfont.woff
-│   │   │   └── spacemono-regular-webfont.woff2
-│   │   └── spacemono-definition.scss
-│   ├── images
-│   │   ├── my-large-image.jpg
-│   │   └── my-small-image.jpg
-│   ├── index.template.ejs
-│   ├── preflight.js
-│   ├── site.global.scss
-│   ├── site.js
-│   ├── site.legacy.css
-│   └── typography.scss
-└── webpack.front.config.js
-```
 
 Define font family. This example uses bulletproof syntax, but actually [you can retire it](https://www.zachleat.com/web/retire-bulletproof-syntax/).
 
@@ -1171,7 +1129,7 @@ _src/site.global.scss_
 // ...
 ```
 
-Add loaders for font files in webpack config. We can simply use `file-loader` but as an example use `url-loder` here as a reminder that super small fonts (say iconfonts with few symbols) could be inlined.
+Add loaders for font files in webpack config. We can simply use `file-loader` but as an example use `url-loder` here as a reminder that there might be those rare cases where base64 inlining in CSS might would make sense. Anyways, we set limit so low, that no fonts will be inlined into CSS.
 
 _webpack.front.config.js_
 
@@ -1179,27 +1137,63 @@ _webpack.front.config.js_
 // ...
     {
       test: /\.woff2(\?v=\d+\.\d+\.\d+)?$/,
-      use: 'url-loader?limit=100&mimetype=application/font-woff2'
+      use: [{
+        loader: 'url-loader',
+        options: {
+          limit: 10,
+          mimetype: 'application/font-woff2'
+        }
+      }]
     },
     {
       test: /\.woff(\?v=\d+\.\d+\.\d+)?$/,
-      use: 'url-loader?limit=100&mimetype=application/font-woff'
+      use: [{
+        loader: 'url-loader',
+        options: {
+          limit: 10,
+          mimetype: 'application/font-woff'
+        }
+      }]
     },
     {
       test: /\.otf(\?v=\d+\.\d+\.\d+)?$/,
-      use: 'url-loader?limit=100&mimetype=application/x-font-opentype'
+      use: [{
+        loader: 'url-loader',
+        options: {
+          limit: 10,
+          mimetype: 'application/x-font-opentype' // application/font-sfnt
+        }
+      }]
     },
     {
       test: /\.ttf(\?v=\d+\.\d+\.\d+)?$/,
-      use: 'url-loader?limit=100&mimetype=application/x-font-ttf'
+      use: [{
+        loader: 'url-loader',
+        options: {
+          limit: 10,
+          mimetype: 'application/x-font-truetype' // application/font-sfnt
+        }
+      }]
     },
     {
       test: /\.eot(\?v=\d+\.\d+\.\d+)?$/,
-      use: 'url-loader?limit=100&mimetype=application/vnd.ms-fontobject'
+      use: [{
+        loader: 'url-loader',
+        options: {
+          limit: 10,
+          mimetype: 'application/vnd.ms-fontobject'
+        }
+      }]
     },
     {
       test: /\.svg(\?v=\d+\.\d+\.\d+)?$/,
-      use: 'url-loader?limit=100&mimetype=image/svg+xml'
+      use: [{
+        loader: 'url-loader',
+        options: {
+          limit: 10,
+          mimetype: 'mimetype=image/svg+xml'
+        }
+      }]
     }
 // ...
 ```
@@ -1212,7 +1206,7 @@ rm -rf public/assets/** && NODE_ENV=development npx webpack --config=$(pwd)/webp
 
 ## Webpack SVG images vs SVG fonts
 
-Let us distinguish between webfonts and images. We do it by namig convention. All webfonts alaways have to be suffixed with `-webfont`.
+Let us distinguish between webfonts and images. We do it by namig convention. To do so, all webfonts alaways have to be suffixed with `-webfont`.
 
 _webpack.front.config.js_
 
@@ -1240,8 +1234,6 @@ _webpack.front.config.js_
 
 //...
 ```
-
-
 
 ## Webpack GLSL shader loader
 
