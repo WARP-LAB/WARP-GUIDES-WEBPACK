@@ -1371,8 +1371,8 @@ Will be used in code splitting and duplication prevention
 #### Optional
 
 * [webpack.optimize.OccurrenceOrderPlugin](https://webpack.js.org/guides/migrating/#occurrenceorderplugin-is-now-on-by-default) (now enabled by default)
-* [webpack.optimize.MinChunkSizePlugin](https://webpack.js.org/plugins/min-chunk-size-plugin/)
-* [webpack.optimize.LimitChunkCountPlugin](https://webpack.js.org/plugins/limit-chunk-count-plugin/)
+* [webpack.optimize.MinChunkSizePlugin](https://webpack.js.org/plugins/min-chunk-size-plugin/) (currently does not apply)
+* [webpack.optimize.LimitChunkCountPlugin](https://webpack.js.org/plugins/limit-chunk-count-plugin/) (currently does not apply)
 
 _webpack.front.config.js_
 
@@ -1404,8 +1404,8 @@ config.plugins.push(new webpack.DefinePlugin({
 // WEBPACK BUILT IN OPTIMIZATION
 
 if (production) {
-  config.plugins.push(new webpack.optimize.LimitChunkCountPlugin({maxChunks: 15}));
-  config.plugins.push(new webpack.optimize.MinChunkSizePlugin({minChunkSize: 10000}));
+  // config.plugins.push(new webpack.optimize.LimitChunkCountPlugin({maxChunks: 15}));
+  // config.plugins.push(new webpack.optimize.MinChunkSizePlugin({minChunkSize: 10000}));
   config.plugins.push(new webpack.optimize.UglifyJsPlugin({
     compress: {
       sequences: true,

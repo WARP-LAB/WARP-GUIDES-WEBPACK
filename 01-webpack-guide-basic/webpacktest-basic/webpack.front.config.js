@@ -222,8 +222,8 @@ config.plugins.push(new webpack.optimize.ModuleConcatenationPlugin());
 // IN PRODUCTION
 
 if (production) {
-  config.plugins.push(new webpack.optimize.LimitChunkCountPlugin({maxChunks: 15}));
-  config.plugins.push(new webpack.optimize.MinChunkSizePlugin({minChunkSize: 10000}));
+  // config.plugins.push(new webpack.optimize.LimitChunkCountPlugin({maxChunks: 15}));
+  // config.plugins.push(new webpack.optimize.MinChunkSizePlugin({minChunkSize: 10000}));
   config.plugins.push(new UglifyJsPlugin({
     parallel: true,
     uglifyOptions: {
