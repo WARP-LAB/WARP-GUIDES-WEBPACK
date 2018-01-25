@@ -77,18 +77,26 @@ Manually change your html too for now. Use `localhost` instead of `webpacktest-d
 
 ```html
 <!DOCTYPE html>
-<html class="noscript">
+<html lang="en" class="noscript incapable">
 <head>
   <meta charset="utf-8">
   <title>My Title</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
   <script src="//webpacktest-devserver.test:4000/assets/preflight.js"></script>
   <link rel="stylesheet" type="text/css" href="//webpacktest-devserver.test:4000/assets/site.css">
 </head>
 <body>
+  <noscript>
+    <div class="noscript">
+      Lynx FTW!
+    </div>
+  </noscript>
+  <div class="incapable">
+    Incapable :(
+  </div>
   <div class="app"></div>
   <script>
-    var dataReact = {};
+    window.__TEMPLATE_DATA__ = {};
   </script>
   <script async src="//webpacktest-devserver.test:4000/assets/site.js"></script>
 </body>

@@ -66,18 +66,26 @@ _src/index.template.ejs_
 
 ```ejs
 <!DOCTYPE html>
-<html class="noscript">
+<html lang="en" class="noscript incapable">
 <head>
   <meta charset="utf-8">
   <title><%= htmlWebpackPlugin.options.title %></title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
   <script src="<%= htmlWebpackPlugin.files.chunks.preflight.entry %>"></script>
   <link rel="stylesheet" type="text/css" href="<%= htmlWebpackPlugin.files.chunks.site.css %>">
 </head>
 <body>
+<noscript>
+    <div class="noscript">
+      Lynx FTW!
+    </div>
+  </noscript>
+  <div class="incapable">
+    Incapable :(
+  </div>
   <div class="app"></div>
   <script>
-    var dataReact = {};
+    window.__TEMPLATE_DATA__ = {};
   </script>
   <script async src="<%= htmlWebpackPlugin.files.chunks.site.entry %>"></script>
 </body>
