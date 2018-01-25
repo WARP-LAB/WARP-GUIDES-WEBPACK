@@ -336,6 +336,16 @@ config.plugins.push(new webpack.DefinePlugin({
 }));
 
 // ----------------
+// Hot reloading
+
+if (development && pkgConfig.config.isWebpackDevServerHot) {
+  config.plugins.push(new webpack.HotModuleReplacementPlugin());
+  config.plugins.push(new webpack.NamedModulesPlugin());
+} else {
+  config.plugins.push(new webpack.HashedModuleIdsPlugin());
+}
+
+// ----------------
 // WEBPACK BUILT IN OPTIMIZATION
 // ALWAYS
 
@@ -394,16 +404,6 @@ config.plugins.push(new HtmlWebpackPlugin({
   minify: false
 }));
 config.plugins.push(new HtmlWebpackHarddiskPlugin());
-
-// ----------------
-// Hot reloading
-
-if (development && pkgConfig.config.isWebpackDevServerHot) {
-  config.plugins.push(new webpack.HotModuleReplacementPlugin());
-  config.plugins.push(new webpack.NamedModulesPlugin());
-} else {
-  config.plugins.push(new webpack.HashedModuleIdsPlugin());
-}
 
 // ----------------
 // ExtractTextPlugin CONFIG
