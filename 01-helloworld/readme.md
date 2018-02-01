@@ -44,37 +44,6 @@ webpacktest-basic
 └── webpack.front.config.js
 ```
 
-*public/index.html*
-
-```html
-<!DOCTYPE html>
-<html lang="en" class="noscript incapable">
-<head>
-  <meta charset="utf-8">
-  <title>My Title</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
-  <script src="./assets/preflight.js"></script>
-  <link href="./assets/preflight.css" rel="stylesheet" type="text/css">
-  <link href="./assets/index.css" rel="stylesheet" type="text/css">
-</head>
-<body>
-  <noscript>
-    <div class="noscript">
-      Lynx FTW!
-    </div>
-  </noscript>
-  <div class="incapable">
-    Incapable :(
-  </div>
-  <div class="app"></div>
-  <script>
-    window.__TEMPLATE_DATA__ = {};
-  </script>
-  <script async src="./assets/index.js"></script>
-</body>
-</html>
-```
-
 Leave `webpack.front.config.js`, javascript, EJS and CSS/SCSS files empty for now. Either leave `package.json` out and generate it in the next step (`npm init`) or put simpe template `package.json` in place / [manually fill in](https://docs.npmjs.com/files/package.json) bare minimum yourself.
 
 _package.json_
@@ -105,13 +74,16 @@ npm init
 
 *Note for [absolute beginners](https://www.youtube.com/watch?v=r8NZa9wYZ_U). All `npm` as well as `webpack` commands are executed while being `cd`-ed in this projects 'master directory'. You can do it while being somewhere else via `npm --prefix ${DIRNAME} install ${DIRNAME}` though. RTFM@NPM / ask.*
 
-## Set up webpack so that we can simply build JavaScript file
+
+## Install webpack
 
 Install webpack and save to dev dependencies
 
 ```sh
 npm install webpack --save-dev
 ```
+
+## Configure webpack so that we can simply build Hello World
 
 Fill in webpack configuration file. Please always use ES6 in webpack config files.
 
@@ -148,6 +120,39 @@ let config = {
 module.exports = config;
 ```
 
+### Fill in basic HTML, JS
+
+*public/index.html*
+
+```html
+<!DOCTYPE html>
+<html lang="en" class="noscript incapable">
+<head>
+  <meta charset="utf-8">
+  <title>My Title</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+  <script src="./assets/preflight.js"></script>
+  <link href="./assets/preflight.css" rel="stylesheet" type="text/css">
+  <link href="./assets/index.css" rel="stylesheet" type="text/css">
+</head>
+<body>
+  <noscript>
+    <div class="noscript">
+      Lynx FTW!
+    </div>
+  </noscript>
+  <div class="incapable">
+    Incapable :(
+  </div>
+  <div class="app"></div>
+  <script>
+    window.__TEMPLATE_DATA__ = {};
+  </script>
+  <script async src="./assets/index.js"></script>
+</body>
+</html>
+```
+
 Set up hello world javascript that selects `app` div in our html and puts some text in it. Note that we are using ES5 here.
 
 _src/index.js_
@@ -165,6 +170,8 @@ Run webpack (before that clean assets directory)
 rm -rf $(pwd)/public/assets/** && $(pwd)/node_modules/webpack/bin/webpack.js --config=$(pwd)/webpack.front.config.js --progress
 ```
 
+Inspect `public/assets` directory. Open `index.html` directly in the browser from filesystem.
+
 Further below instead of accessing local `node_modules` bin manually, we will use [`npx`](https://github.com/zkat/npx)
 
 Notice, that entry point __key names__ dictate what will be the outputted __filename__ in `./public/assets`. That is, you can change key name and real file name to whatever, i.e.,
@@ -179,13 +186,13 @@ and you will get `myBundle.js` in `./public/assets` (later you will see that CSS
 
 You can change this behaviour if output `filename: '[name].js'` is set to `filename: 'someConstantName.js'`.  
 But don't do that, let your entry point key name define the output name.  
-Think of what would happen if you had multiple entry points (just like in a real world scenario). How would you manage filenames then if output file would not somehow depend on entry point, but would be always constant?  
-And yeah, we will not discuss filename based versioning (cache busting) stuff in this tut.
-
+Think of what would happen if you had multiple entry points (just like in a real world scenario). How would you manage filenames then if output file would not somehow depend on entry point, but would be always constant? Also later on when we get to chunking up webpack one entry point will produce multiple outputs.
 
 ## Webpack environments (`NODE_ENV`)
 
-When running webpack we should specify what environment we are building it for. Let us assume simple 4-tier. We will do this by specifying environment via `NODE_ENV`. This assumes development on BSD/*nix, but if one has to switch back and forth between MSW  and POSIX, then use [cross-env](https://www.npmjs.com/package/cross-env) package!
+When running webpack we should specify what environment we are building it for. Let us assume simple 4-tier. We will do this by specifying environment via `NODE_ENV`. This assumes development on macOS, which is officially certified as compliant with the Unix 03 / POSIX standard, or other BSD/*nix. But if one has to switch back and forth between POSIX and MSW while working on project, then using [cross-env](https://www.npmjs.com/package/cross-env) is a must!
+
+Examples of passing NODE_ENV to webpack:
 
 ```sh
 NODE_ENV=development npx webpack --config=$(pwd)/webpack.front.config.js --progress
@@ -194,19 +201,15 @@ NODE_ENV=staging npx webpack --config=$(pwd)/webpack.front.config.js --progress
 NODE_ENV=production npx webpack --config=$(pwd)/webpack.front.config.js --progress
 ```
 
-
 ## Webpack minimise JavaScript
 
-For JavaScript minimisation we can use webpack built in plugin which actually uses [UglifyJS](https://github.com/mishoo/UglifyJS2) under the hood.
+For JavaScript minimisation we should use webpack built in plugin [uglifyjs-webpack-plugin](https://webpack.js.org/plugins/uglifyjs-webpack-plugin/).  
 
-For built in plugin documentation the standalone docs can be used - [uglifyjs-webpack-plugin](https://webpack.js.org/plugins/uglifyjs-webpack-plugin/)
-
-Standalone plugin documentation [uglifyjs-webpack-plugin](https://webpack.js.org/plugins/uglifyjs-webpack-plugin/) and [git repo](https://github.com/webpack-contrib/uglifyjs-webpack-plugin)
+As of writing we should not use aliased `webpack.optimize.UglifyJsPlugin` (as per docs we can use the alias again when webpack 4.0 comes out), but install and require `uglifyjs` manually.  
+This plugin once could minify only ES5, but now it supports ES6+. `uglifyjs-webpack-plugin` is now based on `uglify-es` (which in turn is the result of previosusly so called *UglifyJS harmony branch*)
 
 Options for `compress` key can be [found here](http://lisperator.net/uglifyjs/compress)  
 Other keys [here](https://github.com/webpack-contrib/uglifyjs-webpack-plugin#options)
-
-Note that in Webpack 3 it is not aliased to `webpack.optimize.UglifyJsPlugin` (read docs).
 
 Install plugin
 
@@ -219,7 +222,6 @@ _webpack.front.config.js_
 ```javascript
 'use strict';
 const path = require('path');
-const webpack = require('webpack');
 const UglifyJsPlugin = require('uglifyjs-webpack-plugin'); // aliasing this back to webpack.optimize.UglifyJsPluginis is scheduled for webpack v4.0.0
 
 // ----------------
@@ -259,7 +261,12 @@ let config = {
 
 // ----------------
 // PLUGINS
+
 config.plugins = []; // add new key 'plugins' of type arrat to config object
+
+// ----------------
+// WEBPACK BUILT IN OPTIMIZATION
+// IN PRODUCTION
 
 if (production) {
   config.plugins.push(new UglifyJsPlugin({
@@ -277,17 +284,27 @@ module.exports = config;
 
 Run webpack, specify `NODE_ENV` value
 
+*production*
+
 ```sh
 rm -rf $(pwd)/public/assets/** && NODE_ENV=production npx webpack --config=$(pwd)/webpack.front.config.js --progress
 ```
 
-Inspect how `assets/index.js` changes based on whether `NODE_ENV` is set to `production` or `development`.
+*development*
+
+```sh
+rm -rf $(pwd)/public/assets/** && NODE_ENV=development npx webpack --config=$(pwd)/webpack.front.config.js --progress
+```
+
+Inspect the outputted `assets/index.js` in both cases.
 
 ## Manually copy files over to destination
 
-Our `index.html` file has `preflight.js` and `preflight.css` referenced in the head which is not present after building webpack (and we get `404`). However here let us not use `entry` stuff, simply copy it over to `output`.
+Our `index.html` file has `preflight.js` and `preflight.css` referenced in the head. But they are not present in output directory after building webpack, thus opening `index.html` directly in the browser from filesystem will greet *Hello World*, but checking console we will probably show `404` for those assets (and also *index.css*, but more on that later as we currently have no CSS at all).
 
-From the current tools that are available one approach would be to use `copy-webpack-plugin` which is quite popular (and you can use it for this purpose), however we will be using `filemanager-webpack-plugin` as *filemanager* allows specifying actions that are executed before webpack begins the bundling process.
+Let us consider these assets as a special case where we want to avoid any webpack stuff to be attached to it (runtime and manifest, more on that later). What do I mean by webpack stuff? Build the project once again for development (no minimising) and inspect `[ublic/assets/index.js`. *That webpack stuff.*
+
+From the current tools that are available one approach would be to use `copy-webpack-plugin` which is quite popular (and you can use it for this purpose), however we will be using `filemanager-webpack-plugin` as *filemanager* allows specifying actions that are executed both before and/or after webpack begins the bundling process.
 
 ```sh
 npm install filemanager-webpack-plugin --save-dev
@@ -371,17 +388,15 @@ html.capable .incapable { display: none; }
 html.script .noscript { display: none; }
 ```
 
-
 Run webpack
 
 ```sh
 rm -rf $(pwd)/public/assets/** && NODE_ENV=production npx webpack --config=$(pwd)/webpack.front.config.js --progress
 ```
 
-Inspect. The files are in `public/assets` directory. Run the app in the browser, JS does it's job of renaming classnames and CSS does it's job of of hiding those `noscript` and `incabable` containers.
+The files are in `public/assets` directory. Open `index.html` in the browser, preflight JS does it's job of renaming classnames and prefligt CSS does it's job of of hiding that `Incabable :(` message.
 
-
-## Webpack CSS loaders so that CSS/SCSS can be required in JavaScript
+## Webpack CSS loaders
 
 ### node-sass
 
@@ -393,17 +408,18 @@ npm install node-sass --save-dev
 
 ### loaders
 
-We need a bunch of webpack loaders for this to work and to get that `index.css` working that is ref'ed in the `<head>`.
+We need a bunch of webpack loaders to get that `index.css` working that is 404'ed when running our `index.html`.
 
-Loaders and their documentation  
+Loaders & documentation  
 [https://github.com/webpack-contrib/style-loader](https://github.com/webpack-contrib/style-loader)  
 [https://github.com/webpack-contrib/css-loader](https://github.com/webpack-contrib/css-loader)  
 [https://github.com/webpack-contrib/sass-loader](https://github.com/webpack-contrib/sass-loader)  
 
-Plugin and its documentation  
-[https://webpack.js.org/plugins/extract-text-webpack-plugin/](https://webpack.js.org/plugins/extract-text-webpack-plugin/)  
+Plugins & documentation  
+[extract-text-webpack-plugin](https://github.com/webpack/extract-text-webpack-plugin), more docs at 
+[webpack site](https://webpack.js.org/plugins/extract-text-webpack-plugin/)  
 
-[extract-text-webpack-plugin](https://github.com/webpack/extract-text-webpack-plugin) moves every `require('style.css')` within JavaScript that is spilled out in chunks into a separate CSS output file. So your styles are not inlined into the JavaScript (which would be kind of default webpack way without this plugin), but separate in a CSS bundle file `entryPointKeyName.css`.
+`extract-text-webpack-plugin` moves every `require('style.css')` within JavaScript that is spilled out in chunks into a separate CSS output file. So your styles are not inlined into the JavaScript (which would be kind of default webpack way without this plugin), but separate in a CSS file `entryPointKeyName.css`.
 
 ```sh
 npm install style-loader --save-dev
@@ -417,8 +433,7 @@ _webpack.front.config.js_
 ```javascript
 'use strict';
 const path = require('path');
-const webpack = require('webpack');
-const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
+const UglifyJsPlugin = require('uglifyjs-webpack-plugin'); // aliasing this back to webpack.optimize.UglifyJsPluginis is scheduled for webpack v4.0.0
 const FileManagerPlugin = require('filemanager-webpack-plugin');
 const ExtractTextPlugin = require('extract-text-webpack-plugin'); // aliasing this back to webpack.optimize.UglifyJsPluginis is scheduled for webpack v4.0.0
 
@@ -436,7 +451,6 @@ const outputPath = path.join(__dirname, 'public/assets');
 
 // ----------------
 // BASE CONFIG
-
 let config = {
   context: __dirname,
   entry: {
@@ -468,7 +482,12 @@ config.module = {
       use: ExtractTextPlugin.extract({
         fallback: 'style-loader',
         use: [
-          'css-loader?sourceMap'
+          {
+            loader: 'css-loader',
+            options: {
+              sourceMap: true
+            }
+          }
         ]
       })
     },
@@ -477,8 +496,18 @@ config.module = {
       use: ExtractTextPlugin.extract({
         fallback: 'style-loader',
         use: [
-          'css-loader?sourceMap',
-          'sass-loader?sourceMap'
+          {
+            loader: 'css-loader',
+            options: {
+              sourceMap: true
+            }
+          },
+          {
+            loader: 'sass-loader',
+            options: {
+              sourceMap: true
+            }
+          }
         ]
       })
     }
@@ -488,8 +517,11 @@ config.module = {
 // ----------------
 // PLUGINS
 
-config.plugins = [];
+config.plugins = []; // add new key 'plugins' of type arrat to config object
 
+// ----------------
+// WEBPACK BUILT IN OPTIMIZATION
+// IN PRODUCTION
 
 if (production) {
   config.plugins.push(new UglifyJsPlugin({
@@ -501,6 +533,9 @@ if (production) {
     }
   }));
 }
+
+// ----------------
+// FileManagerPlugin
 
 config.plugins.push(new FileManagerPlugin({
   onStart: {
@@ -516,6 +551,9 @@ config.plugins.push(new FileManagerPlugin({
     archive: []
   }
 }));
+
+// ----------------
+// ExtractTextPlugin
 
 config.plugins.push(new ExtractTextPlugin({
   filename: '[name].css',
@@ -543,7 +581,7 @@ _src/index.legacy.css_
 ```css
 @charset 'UTF-8';
 
-/* this is pure CSS */
+/* This is example of vanilla CSS */
 
 h1 {
   color: blue !important;
@@ -573,7 +611,7 @@ Run webpack and inspect `public/assets/index.css`
 rm -rf $(pwd)/public/assets/** && NODE_ENV=development npx webpack --config=$(pwd)/webpack.front.config.js --progress
 ```
 
-SCSS and CSS is compiled and spit out in a file under `public/assets` named the same as the entry point key of the JavaScript from which SCSS was included in the first place. See how `index.legacy.css` was compiled into the output.
+SCSS and CSS is compiled and spit out in a file under `public/assets` named the same as the entry point key of the JavaScript from which SCSS was included in the first place. See how `index.legacy.css` was compiled into the output. And *Hello World* in browser now has colors!
 
 ## PostCSS plugins
 
