@@ -2,7 +2,8 @@
 const path = require('path');
 const webpack = require('webpack');
 const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
-const ExtractTextPlugin = require('extract-text-webpack-plugin');
+const FileManagerPlugin = require('filemanager-webpack-plugin');
+const ExtractTextPlugin = require('extract-text-webpack-plugin'); // aliasing this back to webpack.optimize.UglifyJsPluginis is scheduled for webpack v4.0.0
 
 // ----------------
 // ENV
@@ -13,8 +14,11 @@ const production = process.env.NODE_ENV === 'production';
 console.log('ENVIRONMENT \x1b[36m%s\x1b[0m', process.env.NODE_ENV);
 
 // ----------------
-// SOURCE MAP CONF
+// Output path
+const outputPath = path.join(__dirname, 'public/assets');
 
+// ----------------
+// Source map conf
 const sourceMapType = (development) ? 'inline-source-map' : false;
 
 // ----------------
@@ -24,11 +28,12 @@ let config = {
   devtool: sourceMapType,
   context: __dirname,
   entry: {
-    site: path.join(__dirname, 'src/site.js'),
-    preflight: path.join(__dirname, 'src/preflight.js')
+    index: [
+      path.join(__dirname, 'src/index.js')
+    ]
   },
   output: {
-    path: path.join(__dirname, 'public/assets'),
+    path: outputPath,
     filename: '[name].js'
   },
   resolve: {
@@ -119,7 +124,8 @@ config.module = {
         },
         (production)
           ? {
-            loader: 'image-webpack-loader'
+            loader: 'image-webpack-loader',
+            options: {}
           }
           : null
       ].filter((e) => e !== null)
@@ -195,7 +201,6 @@ config.plugins = [];
 // ----------------
 // WEBPACK DEFINE PLUGIN
 // ALWAYS
-// define environmental variables into scripts
 
 config.plugins.push(new webpack.DefinePlugin({
   'process.env': {
@@ -222,36 +227,55 @@ config.plugins.push(new webpack.optimize.ModuleConcatenationPlugin());
 // IN PRODUCTION
 
 if (production) {
-  // config.plugins.push(new webpack.optimize.LimitChunkCountPlugin({maxChunks: 15}));
-  // config.plugins.push(new webpack.optimize.MinChunkSizePlugin({minChunkSize: 10000}));
-  config.plugins.push(new UglifyJsPlugin({
-    parallel: true,
-    uglifyOptions: {
-      compress: {
-        sequences: true,
-        dead_code: true,
-        conditionals: true,
-        booleans: true,
-        unused: true,
-        if_return: true,
-        join_vars: true,
-        drop_console: false,
-        warnings: false
-      },
-      mangle: false,
-      output: {
-        comments: false,
-        beautify: false
-      }
+  config.plugins.push(new webpack.optimize.UglifyJsPlugin({
+    compress: {
+      sequences: true,
+      dead_code: true,
+      conditionals: true,
+      booleans: true,
+      unused: true,
+      if_return: true,
+      join_vars: true,
+      drop_console: false,
+      warnings: false
+    },
+    mangle: false,
+    beautify: false,
+    output: {
+      space_colon: false,
+      comments: false
     },
     extractComments: false,
-    sourceMap: sourceMapType // evaluates to bool
+    sourceMap: sourceMapType
   }));
 }
 
 // ----------------
-// ExtractTextPlugin CONFIG
-// ALWAYS
+// CODE SPLITTING
+
+// config.plugins.push(new webpack.optimize.LimitChunkCountPlugin({maxChunks: 15}));
+// config.plugins.push(new webpack.optimize.MinChunkSizePlugin({minChunkSize: 10000}));
+
+// ----------------
+// FileManagerPlugin
+
+config.plugins.push(new FileManagerPlugin({
+  onStart: {
+    copy: [
+      {
+        source: path.join(__dirname, 'src/preflight/*.{js,css}'),
+        destination: outputPath
+      }
+    ],
+    move: [],
+    delete: [],
+    mkdir: [],
+    archive: []
+  }
+}));
+
+// ----------------
+// ExtractTextPlugin
 
 config.plugins.push(new ExtractTextPlugin({
   filename: '[name].css',

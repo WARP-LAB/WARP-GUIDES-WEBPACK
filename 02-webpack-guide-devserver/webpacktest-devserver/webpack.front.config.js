@@ -1,9 +1,10 @@
 'use strict';
 const path = require('path');
-const webpack = require('webpack');
 const pkgConfig = require('./package.json');
+const webpack = require('webpack');
 const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
-const ExtractTextPlugin = require('extract-text-webpack-plugin');
+const FileManagerPlugin = require('filemanager-webpack-plugin');
+const ExtractTextPlugin = require('extract-text-webpack-plugin'); // aliasing this back to webpack.optimize.UglifyJsPluginis is scheduled for webpack v4.0.0
 
 // ----------------
 // ENV
@@ -15,20 +16,21 @@ console.log('ENVIRONMENT \x1b[36m%s\x1b[0m', process.env.NODE_ENV);
 
 // ----------------
 // PUBLIC PATH based on env
+const protocol = pkgConfig.config.isWebpackDevServerHTTPS ? 'https:' : 'http:';
+const devServerPort = pkgConfig.config.isWebpackDevServerHTTPS ? pkgConfig.config.portFrontendWebpackDevServerHTTPS : pkgConfig.config.portFrontendWebpackDevServerHTTP;
 let publicPath;
 let targetHost;
 if (production) {
   publicPath = `//${pkgConfig.config.hostProduction}${pkgConfig.config.pathAboveRootProduction}/assets/`;
   targetHost = pkgConfig.config.hostProduction;
-} else if (testing) {
-  publicPath = `//${pkgConfig.config.hostTesting}${pkgConfig.config.pathAboveRootTesting}/assets/`;
-  targetHost = pkgConfig.config.hostTesting;
 } else if (staging) {
   publicPath = `//${pkgConfig.config.hostStaging}${pkgConfig.config.pathAboveRootStaging}/assets/`;
   targetHost = pkgConfig.config.hostStaging;
+} else if (testing) {
+  publicPath = `//${pkgConfig.config.hostTesting}${pkgConfig.config.pathAboveRootTesting}/assets/`;
+  targetHost = pkgConfig.config.hostTesting;
 } else {
-  const protocol = pkgConfig.config.isWebpackDevServerHTTPS ? 'https:' : 'http:';
-  publicPath = `${protocol}//${pkgConfig.config.hostDevelopment}:${pkgConfig.config.portFrontendWebpackDevServerHTTP}${pkgConfig.config.pathAboveRootDevelopment}/assets/`;
+  publicPath = `${protocol}//${pkgConfig.config.hostDevelopment}:${devServerPort}${pkgConfig.config.pathAboveRootDevelopment}/assets/`;
   targetHost = pkgConfig.config.hostDevelopment;
 }
 
@@ -36,7 +38,11 @@ console.log('publicPath \x1b[36m%s\x1b[0m', publicPath);
 console.log('targetHost \x1b[36m%s\x1b[0m', targetHost);
 
 // ----------------
-// SOURCE MAP CONF
+// Output path
+const outputPath = path.join(__dirname, 'public/assets');
+
+// ----------------
+// Source map conf
 const sourceMapType = (development) ? 'inline-source-map' : false;
 
 // ----------------
@@ -46,11 +52,12 @@ let config = {
   devtool: sourceMapType,
   context: __dirname,
   entry: {
-    site: path.join(__dirname, 'src/site.js'),
-    preflight: path.join(__dirname, 'src/preflight.js')
+    index: [
+      path.join(__dirname, 'src/index.js')
+    ]
   },
   output: {
-    path: path.join(__dirname, 'public/assets'),
+    path: outputPath,
     filename: '[name].js',
     publicPath
   },
@@ -66,11 +73,11 @@ let config = {
 
 // ----------------
 // WEBPACK DEV SERVER
-// https://webpack.js.org/configuration/dev-server/#devserver
 
 config.devServer = {
   // -d is shorthand for --debug --devtool source-map --output-pathinfo
   allowedHosts: [
+    targetHost,
     '.test',
     'localhost'
   ],
@@ -83,7 +90,7 @@ config.devServer = {
     'Access-Control-Allow-Origin': '*'
   },
   historyApiFallback: true,
-  host: 'webpacktest-devserver.test',
+  host: targetHost,
 
   // either use cli --hot (and --inline) or this config flag
   // needs webpack.HotModuleReplacementPlugin() which is now enabled automatically
@@ -107,9 +114,7 @@ config.devServer = {
     warnings: false,
     errors: true
   },
-  port: pkgConfig.config.isWebpackDevServerHTTPS
-    ? pkgConfig.config.portFrontendWebpackDevServerHTTPS
-    : pkgConfig.config.portFrontendWebpackDevServerHTTP,
+  port: devServerPort,
   // proxy: {
   //   '/api': 'http://localhost:3000'
   // },
@@ -210,7 +215,8 @@ config.module = {
         },
         (production)
           ? {
-            loader: 'image-webpack-loader'
+            loader: 'image-webpack-loader',
+            options: {}
           }
           : null
       ].filter((e) => e !== null)
@@ -286,7 +292,6 @@ config.plugins = [];
 // ----------------
 // WEBPACK DEFINE PLUGIN
 // ALWAYS
-// define environmental variables into scripts
 
 config.plugins.push(new webpack.DefinePlugin({
   'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development'),
@@ -305,7 +310,7 @@ config.plugins.push(new webpack.DefinePlugin({
 }));
 
 // ----------------
-// Hot reloading
+// Hot reloading and named modules
 
 if (development && pkgConfig.config.isWebpackDevServerHot) {
   config.plugins.push(new webpack.HotModuleReplacementPlugin());
@@ -326,40 +331,59 @@ config.plugins.push(new webpack.optimize.ModuleConcatenationPlugin());
 // IN PRODUCTION
 
 if (production) {
-  // config.plugins.push(new webpack.optimize.LimitChunkCountPlugin({maxChunks: 15}));
-  // config.plugins.push(new webpack.optimize.MinChunkSizePlugin({minChunkSize: 10000}));
-  config.plugins.push(new UglifyJsPlugin({
-    parallel: true,
-    uglifyOptions: {
-      compress: {
-        sequences: true,
-        dead_code: true,
-        conditionals: true,
-        booleans: true,
-        unused: true,
-        if_return: true,
-        join_vars: true,
-        drop_console: false,
-        warnings: false
-      },
-      mangle: false,
-      output: {
-        comments: false,
-        beautify: false
-      }
+  config.plugins.push(new webpack.optimize.UglifyJsPlugin({
+    compress: {
+      sequences: true,
+      dead_code: true,
+      conditionals: true,
+      booleans: true,
+      unused: true,
+      if_return: true,
+      join_vars: true,
+      drop_console: false,
+      warnings: false
+    },
+    mangle: false,
+    beautify: false,
+    output: {
+      space_colon: false,
+      comments: false
     },
     extractComments: false,
-    sourceMap: sourceMapType // evaluates to bool
+    sourceMap: sourceMapType
   }));
 }
 
 // ----------------
-// ExtractTextPlugin CONFIG
-// ALWAYS
+// CODE SPLITTING
+
+// config.plugins.push(new webpack.optimize.LimitChunkCountPlugin({maxChunks: 15}));
+// config.plugins.push(new webpack.optimize.MinChunkSizePlugin({minChunkSize: 10000}));
+
+// ----------------
+// FileManagerPlugin
+
+config.plugins.push(new FileManagerPlugin({
+  onStart: {
+    copy: [
+      {
+        source: path.join(__dirname, 'src/preflight/*.{js,css}'),
+        destination: outputPath
+      }
+    ],
+    move: [],
+    delete: [],
+    mkdir: [],
+    archive: []
+  }
+}));
+
+// ----------------
+// ExtractTextPlugin
 
 config.plugins.push(new ExtractTextPlugin({
   filename: '[name].css',
-  disable: development, // disable when development
+  disable: development,  // disable when development
   allChunks: true
 }));
 

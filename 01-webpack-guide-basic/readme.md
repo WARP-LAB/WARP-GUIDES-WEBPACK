@@ -23,12 +23,24 @@ webpacktest-basic
 │   ├── assets
 │   └── index.html
 ├── src
+│   ├── fonts
+│   ├── helpers
+│   │   ├── helpers.lazy.js
+│   │   └── helpers.simple.js
+│   ├── html
+│   │   └── index.template.ejs
 │   ├── images
-│   ├── index.template.ejs
-│   ├── preflight.js
-│   ├── site.global.scss
-│   ├── site.js
-│   └── site.legacy.css
+│   ├── index.global.scss
+│   ├── index.js
+│   ├── index.legacy.css
+│   ├── index.local.scss
+│   ├── preflight
+│   │   ├── preflight.css
+│   │   └── preflight.js
+│   ├── section.global.scss
+│   ├── section.js
+│   ├── section.local.scss
+│   └── typography.global.scss
 └── webpack.front.config.js
 ```
 
@@ -42,7 +54,8 @@ webpacktest-basic
   <title>My Title</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
   <script src="./assets/preflight.js"></script>
-  <link rel="stylesheet" type="text/css" href="./assets/site.css">
+  <link href="./assets/preflight.css" rel="stylesheet" type="text/css">
+  <link href="./assets/index.css" rel="stylesheet" type="text/css">
 </head>
 <body>
   <noscript>
@@ -57,12 +70,12 @@ webpacktest-basic
   <script>
     window.__TEMPLATE_DATA__ = {};
   </script>
-  <script async src="./assets/site.js"></script>
+  <script async src="./assets/index.js"></script>
 </body>
 </html>
 ```
 
-Leave `webpack.front.config.js`, javascript, EJS and CSS/SCSS files empty for now. Either leave `package.json` out and generate it in the next step (`npm init`) or put our template `package.json` in place / [manually fill in](https://docs.npmjs.com/files/package.json) bare minimum yourself.
+Leave `webpack.front.config.js`, javascript, EJS and CSS/SCSS files empty for now. Either leave `package.json` out and generate it in the next step (`npm init`) or put simpe template `package.json` in place / [manually fill in](https://docs.npmjs.com/files/package.json) bare minimum yourself.
 
 _package.json_
 
@@ -108,13 +121,19 @@ _webpack.front.config.js_
 'use strict';
 const path = require('path');
 
+// ----------------
+// Output path
+const outputPath = path.join(__dirname, 'public/assets');
+
 let config = {
   context: __dirname,
   entry: {
-    site: './src/site.js'
+    index: [
+      path.join(__dirname, 'src/index.js')
+    ]
   },
   output: {
-    path: path.join(__dirname, 'public/assets'),
+    path: outputPath,
     filename: '[name].js'
   },
   resolve: {
@@ -131,7 +150,7 @@ module.exports = config;
 
 Set up hello world javascript that selects `app` div in our html and puts some text in it. Note that we are using ES5 here.
 
-_src/site.js_
+_src/index.js_
 
 ```javascript
 'use strict';
@@ -143,10 +162,10 @@ console.log('Hello JS!');
 Run webpack (before that clean assets directory)
 
 ```sh
-rm -rf public/assets/** && ./node_modules/webpack/bin/webpack.js --config=$(pwd)/webpack.front.config.js --progress
+rm -rf $(pwd)/public/assets/** && $(pwd)/node_modules/webpack/bin/webpack.js --config=$(pwd)/webpack.front.config.js --progress
 ```
 
-Further below instead of accessing local node_modules bin manually, we will use [`npx`](https://github.com/zkat/npx)
+Further below instead of accessing local `node_modules` bin manually, we will use [`npx`](https://github.com/zkat/npx)
 
 Notice, that entry point __key names__ dictate what will be the outputted __filename__ in `./public/assets`. That is, you can change key name and real file name to whatever, i.e.,
 
@@ -164,56 +183,9 @@ Think of what would happen if you had multiple entry points (just like in a real
 And yeah, we will not discuss filename based versioning (cache busting) stuff in this tut.
 
 
-## Build multiple JavaScript files
-
-Our template has `preflight.js` in the head which is not present after building in previous step (and we get `404`). So let us add new endpoint for preflight.
-
-_src/preflight.js_
-
-```javascript
-// change noscript to script in html tag
-document.documentElement.className = document.documentElement.className.replace(/\bnoscript\b/, 'script');
-```
-
-_webpack.front.config.js_
-
-```javascript
-'use strict';
-const path = require('path');
-
-let config = {
-  context: __dirname,
-  entry: {
-    site: './src/site.js',
-    preflight: './src/preflight.js'
-  },
-  output: {
-    path: path.join(__dirname, 'public/assets'),
-    filename: '[name].js'
-  },
-  resolve: {
-    modules: [
-      path.resolve('./src/'),
-      'src',
-      'node_modules',
-      'bower_components'
-    ]
-  }
-};
-module.exports = config;
-```
-
-Run webpack
-
-```sh
-rm -rf public/assets/** && npx webpack --config=$(pwd)/webpack.front.config.js --progress
-```
-
-Inspect. The file is in `public/assets` directory and it does its job in changin class name.
-
 ## Webpack environments (`NODE_ENV`)
 
-When running webpack we should specify what environment we are building it for. Let us assume simple 4-tier. We will do this by specifying environment via `NODE_ENV`
+When running webpack we should specify what environment we are building it for. Let us assume simple 4-tier. We will do this by specifying environment via `NODE_ENV`. This assumes development on BSD/*nix, but if one has to switch back and forth between MSW  and POSIX, then use [cross-env](https://www.npmjs.com/package/cross-env) package!
 
 ```sh
 NODE_ENV=development npx webpack --config=$(pwd)/webpack.front.config.js --progress
@@ -259,15 +231,20 @@ const production = process.env.NODE_ENV === 'production';
 console.log('ENVIRONMENT \x1b[36m%s\x1b[0m', process.env.NODE_ENV);
 
 // ----------------
+// Output path
+const outputPath = path.join(__dirname, 'public/assets');
+
+// ----------------
 // BASE CONFIG
 let config = {
   context: __dirname,
   entry: {
-    site: './src/site.js',
-    preflight: './src/preflight.js'
+    index: [
+      path.join(__dirname, 'src/index.js')
+    ]
   },
   output: {
-    path: path.join(__dirname, 'public/assets'),
+    path: outputPath,
     filename: '[name].js'
   },
   resolve: {
@@ -301,10 +278,107 @@ module.exports = config;
 Run webpack, specify `NODE_ENV` value
 
 ```sh
-rm -rf public/assets/** && NODE_ENV=production npx webpack --config=$(pwd)/webpack.front.config.js --progress
+rm -rf $(pwd)/public/assets/** && NODE_ENV=production npx webpack --config=$(pwd)/webpack.front.config.js --progress
 ```
 
-Inspect how `assets/site.js` changes based on whether `NODE_ENV` is set to `production` or `development`.
+Inspect how `assets/index.js` changes based on whether `NODE_ENV` is set to `production` or `development`.
+
+## Manually copy files over to destination
+
+Our `index.html` file has `preflight.js` and `preflight.css` referenced in the head which is not present after building webpack (and we get `404`). However here let us not use `entry` stuff, simply copy it over to `output`.
+
+From the current tools that are available one approach would be to use `copy-webpack-plugin` which is quite popular (and you can use it for this purpose), however we will be using `filemanager-webpack-plugin` as *filemanager* allows specifying actions that are executed before webpack begins the bundling process.
+
+```sh
+npm install filemanager-webpack-plugin --save-dev
+```
+
+_webpack.front.config.js_
+
+```javascript
+// ...
+const FileManagerPlugin = require('filemanager-webpack-plugin');
+// ...
+config.plugins.push(new FileManagerPlugin({
+  onStart: {
+    copy: [
+      {
+        source: path.join(__dirname, 'src/preflight/*.{js,css}'),
+        destination: outputPath
+      }
+    ],
+    move: [],
+    delete: [],
+    mkdir: [],
+    archive: []
+  }
+}));
+// ...
+```
+
+_src/preflight/preflight.js_
+
+```javascript
+'use strict';
+
+// PREFILIGHT HAS TO STAY ES3 COMPATIBLE
+// Inline in head.
+// This will pause HTML parsing and execute immediately.
+// It changes preceding DOM.
+// When we hit body CSS state machine will be already setup.
+
+// ############################################################
+// Change noscript to script.
+document.documentElement.className = document.documentElement.className.replace(/\bnoscript\b/, 'script');
+
+// ############################################################
+// Change incapable to capable.
+// Normally we try to deploy stuff that works on ES5-ish browsers.
+// That means normaly IE11+, but sometimes even down to IE9, although that denies usage of many nice tools.
+// As example this CTM will inform us via CSS state machine that we are IE10+.
+if ('visibilityState' in document) {
+  document.documentElement.className = document.documentElement.className.replace(/\bincapable\b/, 'capable');
+}
+
+// ############################################################
+// Just say hello.
+console.log('I am Preflight');
+```
+
+_src/preflight/preflight.css_
+
+```css
+/* Example of preflight CSS state machine */
+
+.noscript {
+  display: block;
+  background-color: aqua;
+}
+
+.incapable {
+  display: block;
+  background-color: olive;
+}
+
+html.noscript .incapable { display: none; }
+
+html.noscript .app { display: none; }
+
+html.incapable .app { display: none; }
+
+html.capable .incapable { display: none; }
+
+html.script .noscript { display: none; }
+```
+
+
+Run webpack
+
+```sh
+rm -rf $(pwd)/public/assets/** && NODE_ENV=production npx webpack --config=$(pwd)/webpack.front.config.js --progress
+```
+
+Inspect. The files are in `public/assets` directory. Run the app in the browser, JS does it's job of renaming classnames and CSS does it's job of of hiding those `noscript` and `incabable` containers.
 
 
 ## Webpack CSS loaders so that CSS/SCSS can be required in JavaScript
@@ -319,7 +393,7 @@ npm install node-sass --save-dev
 
 ### loaders
 
-So we need a bunch of webpack loaders for this to work and to get that `site.css` working that is ref'ed in the `<head>`.
+We need a bunch of webpack loaders for this to work and to get that `index.css` working that is ref'ed in the `<head>`.
 
 Loaders and their documentation  
 [https://github.com/webpack-contrib/style-loader](https://github.com/webpack-contrib/style-loader)  
@@ -345,7 +419,8 @@ _webpack.front.config.js_
 const path = require('path');
 const webpack = require('webpack');
 const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
-const ExtractTextPlugin = require('extract-text-webpack-plugin');
+const FileManagerPlugin = require('filemanager-webpack-plugin');
+const ExtractTextPlugin = require('extract-text-webpack-plugin'); // aliasing this back to webpack.optimize.UglifyJsPluginis is scheduled for webpack v4.0.0
 
 // ----------------
 // ENV
@@ -356,16 +431,21 @@ const production = process.env.NODE_ENV === 'production';
 console.log('ENVIRONMENT \x1b[36m%s\x1b[0m', process.env.NODE_ENV);
 
 // ----------------
+// Output path
+const outputPath = path.join(__dirname, 'public/assets');
+
+// ----------------
 // BASE CONFIG
 
 let config = {
   context: __dirname,
   entry: {
-    site: './src/site.js',
-    preflight: './src/preflight.js'
+    index: [
+      path.join(__dirname, 'src/index.js')
+    ]
   },
   output: {
-    path: path.join(__dirname, 'public/assets'),
+    path: outputPath,
     filename: '[name].js'
   },
   resolve: {
@@ -410,11 +490,6 @@ config.module = {
 
 config.plugins = [];
 
-config.plugins.push(new ExtractTextPlugin({
-  filename: '[name].css',
-  disable: false, // always enabled for now
-  allChunks: true
-}));
 
 if (production) {
   config.plugins.push(new UglifyJsPlugin({
@@ -427,22 +502,43 @@ if (production) {
   }));
 }
 
+config.plugins.push(new FileManagerPlugin({
+  onStart: {
+    copy: [
+      {
+        source: path.join(__dirname, 'src/preflight/*.{js,css}'),
+        destination: outputPath
+      }
+    ],
+    move: [],
+    delete: [],
+    mkdir: [],
+    archive: []
+  }
+}));
+
+config.plugins.push(new ExtractTextPlugin({
+  filename: '[name].css',
+  disable: false, // always enabled for now
+  allChunks: true
+}));
+
 module.exports = config;
 ```
 
-_src/site.js_
+_src/index.js_
 
 ```javascript
 'use strict';
 
-require('./site.global.scss');
+require('./index.global.scss');
 
 var div = document.querySelector('.app');
 div.innerHTML = '<h1>Hello JS</h1><p>Lorem ipsum.</p>';
 console.log('Hello JS!');
 ```
 
-_src/site.legacy.css_
+_src/index.legacy.css_
 
 ```css
 @charset 'UTF-8';
@@ -454,12 +550,12 @@ h1 {
 }
 ```
 
-_src/site.global.scss_
+_src/index.global.scss_
 
 ```scss
 @charset 'UTF-8';
 
-@import 'site.legacy.css';
+@import 'index.legacy.css';
 
 $mycolor: red;
 
@@ -469,38 +565,15 @@ $mycolor: red;
   transform: translateY(50px);
   height: 200px;
 }
-
-/* Example of preflight CSS state machine */
-
-.noscript {
-  display: block;
-  background-color: aqua;
-}
-
-.incapable {
-  display: block;
-  background-color: olive;
-}
-
-html.noscript .incapable { display: none; }
-
-html.noscript .app { display: none; }
-
-html.incapable .app { display: none; }
-
-html.capable .incapable { display: none; }
-
-html.script .noscript { display: none; }
-
 ```
 
-Run webpack and inspect `public/assets/site.css`
+Run webpack and inspect `public/assets/index.css`
 
 ```sh
-rm -rf public/assets/** && NODE_ENV=development npx webpack --config=$(pwd)/webpack.front.config.js --progress
+rm -rf $(pwd)/public/assets/** && NODE_ENV=development npx webpack --config=$(pwd)/webpack.front.config.js --progress
 ```
 
-SCSS and CSS is compiled and spit out in a file under `public/assets` named the same as the entry point key of the JavaScript from which SCSS was included in the first place.
+SCSS and CSS is compiled and spit out in a file under `public/assets` named the same as the entry point key of the JavaScript from which SCSS was included in the first place. See how `index.legacy.css` was compiled into the output.
 
 ## PostCSS plugins
 
@@ -531,7 +604,7 @@ We could use `cssnano` via [css-loader](https://github.com/webpack-contrib/css-l
 
 #### PostCSS configuration file
 
-Add new file project root. Currently enable only autoprefixer. Do some sick backwards browser support for a test *inline*.
+Add new file at project root.
 
 _.postcssrc.js_
 
@@ -539,7 +612,7 @@ _.postcssrc.js_
 module.exports = (ctx) => ({
   plugins: [
     require('autoprefixer')({
-      browsers: ['> 0.0001%'],
+      // browsers: [], // defined in .browserslistrc file!
       cascade: true,
       remove: true
     }),
@@ -564,6 +637,8 @@ module.exports = (ctx) => ({
 `autoprefixer` (browserslist) rules [should](https://github.com/postcss/autoprefixer#browsers) be put into either `package.json` or `browserslist` config file ([see docs](https://github.com/ai/browserslist#packagejson)). We are going to put them in `.browserslistrc`.
 
 Target super old browsers to see the result
+
+Add new file at project root.
 
 _.browserlistrc_
 
@@ -644,10 +719,10 @@ config.module = {
 // ...
 ```
 
-Run webpack and inspect `public/assets/site.css`
+Run webpack and inspect `public/assets/index.css`
 
 ```sh
-rm -rf public/assets/** && NODE_ENV=development npx webpack --config=$(pwd)/webpack.front.config.js --progress
+rm -rf $(pwd)/public/assets/** && NODE_ENV=development npx webpack --config=$(pwd)/webpack.front.config.js --progress
 ```
 
 Prefixes everywhere!
@@ -662,12 +737,12 @@ npm install normalize.css --save-dev
 
 We add it as a module, so prefix it `~`. So now you know what `resolve: { modules: [] }` in webpack stands for. Search paths!
 
-Add to _src/site.global.scss_ SCSS `@import '~normalize.css';`
+Add to _src/index.global.scss_ SCSS `@import '~normalize.css';`
 
-Run webpack and inspect `public/assets/site.css`
+Run webpack and inspect `public/assets/index.css`
 
 ```sh
-rm -rf public/assets/** && NODE_ENV=development npx webpack --config=$(pwd)/webpack.front.config.js --progress
+rm -rf $(pwd)/public/assets/** && NODE_ENV=development npx webpack --config=$(pwd)/webpack.front.config.js --progress
 ```
 
 ## Webpack CSS source maps
@@ -682,8 +757,7 @@ _webpack.front.config.js_
 // ...
 
 // ----------------
-// SOURCE MAP CONF
-
+// Source map conf
 const sourceMapType = (development) ? 'inline-source-map' : false;
 
 // ...
@@ -710,11 +784,11 @@ if (production) {
 // ...
 ```
 
-Run webpack for development and production and inspect last lines of `public/assets/site.js` and `public/assets/site.css`
+Run webpack for development and production and inspect last lines of `public/assets/index.js` and `public/assets/index.css`
 
 ```sh
-rm -rf public/assets/** && NODE_ENV=development npx webpack --config=$(pwd)/webpack.front.config.js --progress
-rm -rf public/assets/** && NODE_ENV=production npx webpack --config=$(pwd)/webpack.front.config.js --progress
+rm -rf $(pwd)/public/assets/** && NODE_ENV=development npx webpack --config=$(pwd)/webpack.front.config.js --progress
+rm -rf $(pwd)/public/assets/** && NODE_ENV=production npx webpack --config=$(pwd)/webpack.front.config.js --progress
 ```
 
 Now try
@@ -749,12 +823,12 @@ _webpack.front.config.js_
 
 Usage example
 
-_site.global.scss_
+_index.global.scss_
 
 ```scss
 @charset 'UTF-8';
 @import '~normalize.css';
-@import 'site.legacy.css';
+@import 'index.legacy.css';
 
 $mycolor: red;
 
@@ -777,8 +851,6 @@ $paragarphColor: black;
   }
 
 }
-
-// ...
 ```
 
 Build for *development* and *production*, note the differences.
@@ -803,12 +875,12 @@ npm install resolve-url-loader --save-dev
 
 Add image to our SCSS as well as pure CSS file
 
-_src/site.global.scss_
+_src/index.global.scss_
 
 ```scss
 @charset 'UTF-8';
 @import '~normalize.css';
-@import 'site.legacy.css';
+@import 'index.legacy.css';
 
 $mycolor: red;
 
@@ -836,8 +908,6 @@ body {
 
   background-image: url('./images/my-small-image.jpg');
 }
-
-// ...
 ```
 
 Add loaders to module rules. Note that we resolve URLs in SCSS pipe as well we add loader for image files (don't be surprised about not including SVG, later on that).
@@ -927,13 +997,20 @@ config.module = {
 // ...
 ```
 
-Run webpack and inspect `public/assets/` directory and `public/assets/site.css`
+Run webpack and inspect `public/assets/` directory and `public/assets/index.css`
 
 ```sh
-rm -rf public/assets/** && NODE_ENV=production npx webpack --config=$(pwd)/webpack.front.config.js --progress
+rm -rf $(pwd)/public/assets/** && NODE_ENV=development npx webpack --config=$(pwd)/webpack.front.config.js --progress
 ```
 
-Notice how larger image is outputted as file while smaller image is inlined `url(data:image/jpeg;base64,...);` in CSS. Just as we want it.
+Notice how larger image is outputted as file while smaller image is inlined 
+
+```css
+.app {
+  background-image: `url(data:image/jpeg;base64,...);
+```
+
+in CSS. Just as intended.
 
 ## Webpack image-webpack-loader
 
@@ -945,7 +1022,6 @@ Loader
 
 ```sh
 brew install automake libtool libpng
-npm install image-webpack-loader@3.2.0 --save-dev
 npm install image-webpack-loader --save-dev
 ```
 
@@ -965,7 +1041,8 @@ _webpack.front.config.js_
           }
         },
         {
-          loader: 'image-webpack-loader'
+          loader: 'image-webpack-loader',
+          options: {}
         }
       ]
     }
@@ -975,7 +1052,7 @@ _webpack.front.config.js_
 Run webpack and inspect `public/assets/` directory, how outputted image size differs from source.
 
 ```sh
-rm -rf public/assets/** && NODE_ENV=development npx webpack --config=$(pwd)/webpack.front.config.js --progress
+rm -rf $(pwd)/public/assets/** && NODE_ENV=development npx webpack --config=$(pwd)/webpack.front.config.js --progress
 ```
 
 This process is expensive. In development we do not care about file size as we are either developing locally or in intranet, so set it to 
@@ -993,7 +1070,8 @@ This process is expensive. In development we do not care about file size as we a
         },
         (production)
           ? {
-            loader: 'image-webpack-loader'
+            loader: 'image-webpack-loader',
+            options: {}
           }
           : null
       ].filter((e) => e !== null)
@@ -1011,15 +1089,14 @@ Font squirrel online generator is good enough [Font Squirrel Generator](https://
 
 ## Fonts - webfont packing & loading
 
-Let us add new directory `fonts` in `src`.  
 Choose font that has few styles (regular and bold + italic) for simplicity. [Space Mono](https://www.fontsquirrel.com/fonts/space-mono)  
 Convert fonts and put them all under `src/fonts/spacemono/`.
 
-We need also extra files: `fonts/spacemono-definition.scss`, `src/typography.scss`
+We need also extra file `fonts/spacemono-definition.scss`.
 
 Define font family. This example uses bulletproof syntax, but actually [you can retire it](https://www.zachleat.com/web/retire-bulletproof-syntax/).
 
-_fonts/spacemono-definition.scss_
+_fonts/spacemono-definition.global.scss_
 
 ```scss
 @charset 'UTF-8';
@@ -1079,12 +1156,12 @@ _fonts/spacemono-definition.scss_
 
 Import definitions, set typography globals
 
-_src/typography.scss_
+_src/typography.global.scss_
 
 ```scss
 @charset 'UTF-8';
 
-@import 'fonts/spacemono-definition';
+@import 'fonts/spacemono-definition.global.scss';
 
 body {
   font-family: 'spacemono-webpack', 'Comic Sans MS', monospace;
@@ -1112,15 +1189,15 @@ i b {
 }
 ```
 
-Import typography into site SCSS
+Import typography into index SCSS
 
-_src/site.global.scss_
+_src/index.global.scss_
 
 ```scss
 @charset 'UTF-8';
 @import '~normalize.css';
-@import 'site.legacy.css';
-@import 'typography.scss';
+@import 'index.legacy.css';
+@import 'typography.global.scss';
 
 // ...
 ```
@@ -1194,15 +1271,15 @@ _webpack.front.config.js_
 // ...
 ```
 
-Run webpack and inspect `public/assets/` directory and `public/assets/site.css`.
+Run webpack and inspect `public/assets/` directory and `public/assets/index.css`.
 
 ```sh
-rm -rf public/assets/** && NODE_ENV=development npx webpack --config=$(pwd)/webpack.front.config.js --progress
+rm -rf $(pwd)/public/assets/** && NODE_ENV=development npx webpack --config=$(pwd)/webpack.front.config.js --progress
 ```
 
 ## Webpack SVG images vs SVG fonts
 
-Let us distinguish between webfonts and images. We do it by namig convention. To do so, all webfonts alaways have to be suffixed with `-webfont`.
+Let us distinguish between webfonts and images. We do it by namig convention. To do so, all webfonts alaways have to be suffixed with `-webfont`. If the *bulletproof syntax* is dropped then this can be avoided.
 
 _webpack.front.config.js_
 
@@ -1222,7 +1299,8 @@ _webpack.front.config.js_
         },
         (production)
           ? {
-            loader: 'image-webpack-loader'
+            loader: 'image-webpack-loader',
+            options: {}
           }
           : null
       ].filter((e) => e !== null)
@@ -1304,26 +1382,26 @@ _example.js_
 
 ## Requiring js 
 
-Add new file `helpers.js`
+Edit `src/helpers/helpers.simple.js`
  
 ```javascript
 module.exports = {
   helperA: function () {
-    console.log('I am helper A');
+    console.log('I am simple helper A');
   },
   helperB: function () {
-    console.log('I am helper B');
+    console.log('I am simple helper B');
   }
 };
 ``` 
 
-Edit *site.js*
+Edit *index.js*
 
 ```javascript
 'use strict';
 
-require('./site.global.scss');
-var helpers = require('./helpers.js');
+require('./index.global.scss');
+var helpers = require('./helpers/helpers.simple.js');
 
 var div = document.querySelector('.app');
 div.innerHTML = '<h1>Hello JS</h1><p>Lorem ipsum.</p>';
@@ -1366,7 +1444,7 @@ Define free variables. Useful for having development builds with debug logging o
 #### Obligatory later
 
 * [webpack.optimize.CommonsChunkPlugin](https://webpack.js.org/plugins/commons-chunk-plugin/)  
-Will be used in code splitting and duplication prevention
+Will be used in code splitting and duplication prevention (currently does not apply)
 
 #### Optional
 
@@ -1385,7 +1463,7 @@ config.plugins = [];
 
 // ----------------
 // WEBPACK DEFINE PLUGIN
-// define environmental variables into scripts
+// ALWAYS
 
 config.plugins.push(new webpack.DefinePlugin({
   'process.env': {
@@ -1402,10 +1480,16 @@ config.plugins.push(new webpack.DefinePlugin({
 
 // ----------------
 // WEBPACK BUILT IN OPTIMIZATION
+// ALWAYS
+
+// ModuleConcatenationPlugin
+config.plugins.push(new webpack.optimize.ModuleConcatenationPlugin());
+
+// ----------------
+// WEBPACK BUILT IN OPTIMIZATION
+// IN PRODUCTION
 
 if (production) {
-  // config.plugins.push(new webpack.optimize.LimitChunkCountPlugin({maxChunks: 15}));
-  // config.plugins.push(new webpack.optimize.MinChunkSizePlugin({minChunkSize: 10000}));
   config.plugins.push(new webpack.optimize.UglifyJsPlugin({
     compress: {
       sequences: true,
@@ -1430,13 +1514,10 @@ if (production) {
 }
 
 // ----------------
-// ExtractTextPlugin CONFIG
+// CODE SPLITTING
 
-config.plugins.push(new ExtractTextPlugin({
-  filename: '[name].css',
-  disable: false, // always enabled for now
-  allChunks: true
-}));
+// config.plugins.push(new webpack.optimize.LimitChunkCountPlugin({maxChunks: 15}));
+// config.plugins.push(new webpack.optimize.MinChunkSizePlugin({minChunkSize: 10000}));
 
 // ...
 ```
@@ -1444,8 +1525,8 @@ config.plugins.push(new ExtractTextPlugin({
 Build both for development and production
 
 ```sh
-rm -rf public/assets/** && NODE_ENV=development npx webpack --config=$(pwd)/webpack.front.config.js --progress
-rm -rf public/assets/** && NODE_ENV=production npx webpack --config=$(pwd)/webpack.front.config.js --progress
+rm -rf $(pwd)/public/assets/** && NODE_ENV=development npx webpack --config=$(pwd)/webpack.front.config.js --progress
+rm -rf $(pwd)/public/assets/** && NODE_ENV=production npx webpack --config=$(pwd)/webpack.front.config.js --progress
 ```
 
 ---
