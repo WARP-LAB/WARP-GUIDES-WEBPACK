@@ -18,8 +18,13 @@ console.log('ENVIRONMENT \x1b[36m%s\x1b[0m', process.env.NODE_ENV);
 const outputPath = path.join(__dirname, 'public/assets');
 
 // ----------------
+// Source map conf
+const sourceMapType = (development) ? 'inline-source-map' : false;
+
+// ----------------
 // BASE CONFIG
 let config = {
+  devtool: sourceMapType,
   context: __dirname,
   entry: {
     index: [
@@ -54,7 +59,20 @@ config.module = {
             loader: 'css-loader',
             options: {
               minimize: false,
+              importLoaders: 2,
               sourceMap: true
+            }
+          },
+          {
+            loader: 'postcss-loader',
+            options: {
+              sourceMap: true
+            }
+          },
+          {
+            loader: 'resolve-url-loader',
+            options: {
+              keepQuery: true
             }
           }
         ]
@@ -69,17 +87,109 @@ config.module = {
             loader: 'css-loader',
             options: {
               minimize: false,
+              importLoaders: 3,
               sourceMap: true
+            }
+          },
+          {
+            loader: 'postcss-loader',
+            options: {
+              sourceMap: true
+            }
+          },
+          {
+            loader: 'resolve-url-loader',
+            options: {
+              keepQuery: true
             }
           },
           {
             loader: 'sass-loader',
             options: {
-              sourceMap: true
+              sourceMap: true,
+              data: `$env: ${JSON.stringify(process.env.NODE_ENV || 'development')};`
             }
           }
         ]
       })
+    },
+    {
+      test: /\.(png|jpe?g|gif|svg)$/,
+      exclude: /.-webfont\.svg$/,
+      use: [
+        {
+          loader: 'url-loader',
+          options: {
+            limit: 20000
+          }
+        },
+        (production)
+          ? {
+            loader: 'image-webpack-loader',
+            options: {}
+          }
+          : null
+      ].filter((e) => e !== null)
+    },
+    {
+      test: /\.woff2(\?v=\d+\.\d+\.\d+)?$/,
+      use: [{
+        loader: 'url-loader',
+        options: {
+          limit: 10,
+          mimetype: 'application/font-woff2'
+        }
+      }]
+    },
+    {
+      test: /\.woff(\?v=\d+\.\d+\.\d+)?$/,
+      use: [{
+        loader: 'url-loader',
+        options: {
+          limit: 10,
+          mimetype: 'application/font-woff'
+        }
+      }]
+    },
+    {
+      test: /\.otf(\?v=\d+\.\d+\.\d+)?$/,
+      use: [{
+        loader: 'url-loader',
+        options: {
+          limit: 10,
+          mimetype: 'application/x-font-opentype' // application/font-sfnt
+        }
+      }]
+    },
+    {
+      test: /\.ttf(\?v=\d+\.\d+\.\d+)?$/,
+      use: [{
+        loader: 'url-loader',
+        options: {
+          limit: 10,
+          mimetype: 'application/x-font-truetype' // application/font-sfnt
+        }
+      }]
+    },
+    {
+      test: /\.eot(\?v=\d+\.\d+\.\d+)?$/,
+      use: [{
+        loader: 'url-loader',
+        options: {
+          limit: 10,
+          mimetype: 'application/vnd.ms-fontobject'
+        }
+      }]
+    },
+    {
+      test: /\.svg(\?v=\d+\.\d+\.\d+)?$/,
+      use: [{
+        loader: 'url-loader',
+        options: {
+          limit: 10,
+          mimetype: 'mimetype=image/svg+xml'
+        }
+      }]
     }
   ]
 };
@@ -140,7 +250,7 @@ if (production) {
       comments: false
     },
     extractComments: false,
-    sourceMap: false
+    sourceMap: sourceMapType
   }));
 }
 

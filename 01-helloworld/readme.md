@@ -5,7 +5,10 @@
 # In this section
 ---
 
-TBD.
+* Basics
+* Requiring JS
+* Scope hoisting
+* Notes on other loaders
 
 ---
 # Preflight
@@ -94,7 +97,7 @@ Install webpack and save to dev dependencies
 npm install webpack --save-dev
 ```
 
-## Configure webpack so that we can simply build Hello World
+## First configuration
 
 Fill in webpack configuration file. Please always use ES6 in webpack config files.
 
@@ -281,12 +284,25 @@ config.plugins = []; // add new key 'plugins' of type arrat to config object
 
 if (production) {
   config.plugins.push(new UglifyJsPlugin({
-    parallel: true,
-    uglifyOptions: {
-      compress: {
-        warnings: false
-      }
-    }
+    compress: {
+      sequences: true,
+      dead_code: true,
+      conditionals: true,
+      booleans: true,
+      unused: true,
+      if_return: true,
+      join_vars: true,
+      drop_console: false,
+      warnings: false
+    },
+    mangle: false,
+    beautify: false,
+    output: {
+      space_colon: false,
+      comments: false
+    },
+    extractComments: false,
+    sourceMap: false
   }));
 }
 
@@ -407,7 +423,12 @@ rm -rf $(pwd)/public/assets/** && NODE_ENV=production npx webpack --config=$(pwd
 
 The files are in `public/assets` directory. Open `index.html` in the browser, preflight JS does it's job of renaming classnames and prefligt CSS does it's job of of hiding that `Incabable :(` message.
 
-## Webpack CSS loaders
+## Note on cssnext
+
+Using [PostCSS and the cssnext](http://cssnext.io) is not here yet...  
+Sass.
+
+## Webpack Sass and CSS loaders
 
 ### node-sass
 
@@ -446,7 +467,7 @@ _webpack.front.config.js_
 const path = require('path');
 const UglifyJsPlugin = require('uglifyjs-webpack-plugin'); // aliasing this back to webpack.optimize.UglifyJsPluginis is scheduled for webpack v4.0.0
 const FileManagerPlugin = require('filemanager-webpack-plugin');
-const ExtractTextPlugin = require('extract-text-webpack-plugin'); // aliasing this back to webpack.optimize.UglifyJsPluginis is scheduled for webpack v4.0.0
+const ExtractTextPlugin = require('extract-text-webpack-plugin');
 
 // ----------------
 // ENV
@@ -496,6 +517,7 @@ config.module = {
           {
             loader: 'css-loader',
             options: {
+              minimize: false,
               sourceMap: true
             }
           }
@@ -510,6 +532,7 @@ config.module = {
           {
             loader: 'css-loader',
             options: {
+              minimize: false,
               sourceMap: true
             }
           },
@@ -536,12 +559,25 @@ config.plugins = []; // add new key 'plugins' of type arrat to config object
 
 if (production) {
   config.plugins.push(new UglifyJsPlugin({
-    parallel: true,
-    uglifyOptions: {
-      compress: {
-        warnings: false
-      }
-    }
+    compress: {
+      sequences: true,
+      dead_code: true,
+      conditionals: true,
+      booleans: true,
+      unused: true,
+      if_return: true,
+      join_vars: true,
+      drop_console: false,
+      warnings: false
+    },
+    mangle: false,
+    beautify: false,
+    output: {
+      space_colon: false,
+      comments: false
+    },
+    extractComments: false,
+    sourceMap: false
   }));
 }
 
@@ -623,6 +659,102 @@ rm -rf $(pwd)/public/assets/** && NODE_ENV=development npx webpack --config=$(pw
 ```
 
 SCSS and CSS is compiled and spit out in a file under `public/assets` named the same as the entry point key of the JavaScript from which SCSS was included in the first place. See how `index.legacy.css` was compiled into the output. And *Hello World* in browser now has colors!
+
+---
+# Scope hoisting
+---
+
+[Read](https://webpack.js.org/plugins/module-concatenation-plugin/)
+
+_webpack.front.config.js_
+
+```javascript
+// ...
+const webpack = require('webpack');
+
+// ...
+
+// ----------------
+// WEBPACK BUILT IN OPTIMIZATION
+// ALWAYS
+
+// ModuleConcatenationPlugin
+config.plugins.push(new webpack.optimize.ModuleConcatenationPlugin());
+
+```
+
+---
+# Requiring JS
+---
+
+Just as we required CSS
+
+Edit `src/helpers/helpers.simple.js`
+ 
+```javascript
+module.exports = {
+  helperA: function () {
+    console.log('I am simple helper A');
+  },
+  helperB: function () {
+    console.log('I am simple helper B');
+  }
+};
+```
+
+Edit *index.js*
+
+```javascript
+/* global __DEVELOPMENT__ */
+'use strict';
+
+require('./index.global.scss');
+var helpers = require('./helpers/helpers.simple.js');
+
+if (__DEVELOPMENT__) {
+  console.log('I\'m in development!');
+}
+
+var div = document.querySelector('.app');
+div.innerHTML = '<h1>Hello JS</h1><p>Lorem ipsum.</p>';
+console.log('Hello JS!');
+helpers.helperA();
+```
+
+---
+# Define plugin
+---
+
+[webpack.DefinePlugin](https://webpack.js.org/plugins/define-plugin/)  
+Define free variables. Useful for having development builds with debug logging or adding global constants. The values will be inlined into the code which allows a minification pass to remove the redundant conditional.
+
+_webpack.front.config.js_
+
+```javascript
+// ...
+
+// ----------------
+// WEBPACK DEFINE PLUGIN
+// ALWAYS
+
+config.plugins.push(new webpack.DefinePlugin({
+  'process.env': {
+    // 'DEBUG': JSON.stringify(process.env.DEBUG || development),
+    'NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development'),
+    'BROWSER': true
+  },
+  __CLIENT__: true,
+  __SERVER__: false,
+  __DEV__: development,
+  __DEVELOPMENT__: development,
+  __TESTING__: testing,
+  __STAGING__: staging,
+  __PRODUCTION__: production,
+  __DEVTOOLS__: development
+}));
+
+// ...
+```
 
 ---
 # Next
