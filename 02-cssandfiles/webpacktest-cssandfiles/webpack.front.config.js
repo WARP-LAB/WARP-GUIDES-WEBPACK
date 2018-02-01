@@ -23,6 +23,7 @@ const sourceMapType = (development) ? 'inline-source-map' : false;
 
 // ----------------
 // BASE CONFIG
+
 let config = {
   devtool: sourceMapType,
   context: __dirname,
@@ -197,7 +198,7 @@ config.module = {
 // ----------------
 // PLUGINS
 
-config.plugins = []; // add new key 'plugins' of type arrat to config object
+config.plugins = []; // add new key 'plugins' of type array to config object
 
 // ----------------
 // WEBPACK DEFINE PLUGIN
@@ -232,25 +233,27 @@ config.plugins.push(new webpack.optimize.ModuleConcatenationPlugin());
 
 if (production) {
   config.plugins.push(new UglifyJsPlugin({
-    compress: {
-      sequences: true,
-      dead_code: true,
-      conditionals: true,
-      booleans: true,
-      unused: true,
-      if_return: true,
-      join_vars: true,
-      drop_console: false,
-      warnings: false
-    },
-    mangle: false,
-    beautify: false,
-    output: {
-      space_colon: false,
-      comments: false
+    parallel: true,
+    uglifyOptions: {
+      compress: {
+        sequences: true,
+        dead_code: true,
+        conditionals: true,
+        booleans: true,
+        unused: true,
+        if_return: true,
+        join_vars: true,
+        drop_console: false,
+        warnings: false
+      },
+      mangle: false,
+      output: {
+        comments: false,
+        beautify: false
+      }
     },
     extractComments: false,
-    sourceMap: sourceMapType
+    sourceMap: sourceMapType // evaluates to bool
   }));
 }
 

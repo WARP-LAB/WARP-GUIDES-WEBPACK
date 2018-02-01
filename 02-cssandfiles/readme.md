@@ -81,7 +81,7 @@ module.exports = (ctx) => ({
 
 ### Autoprefixer
 
-`autoprefixer` (browserslist) rules [should](https://github.com/postcss/autoprefixer#browsers) be put into either `package.json` or `browserslist` (multiple filenames supported) config file ([see docs](https://github.com/ai/browserslist#packagejson)). We are going to put them in `.browserslistrc`.
+`autoprefixer` (browserslist) rules [should](https://github.com/postcss/autoprefixer#browsers) should be put into either `package.json` or `browserslist` (multiple filenames supported) config file ([see docs](https://github.com/ai/browserslist#packagejson)). We are going to put them in `.browserslistrc`.
 
 Docs for autoprefixer rules found in _.postcssrc.js_ can be found [here](https://github.com/postcss/autoprefixer#options).
 
@@ -243,11 +243,10 @@ if (production) {
 // ...
 ```
 
-Run webpack for development and production and inspect last lines of `public/assets/index.js` and `public/assets/index.css`
+Run webpack for development and inspect last lines of `public/assets/index.js` and `public/assets/index.css`
 
 ```sh
 rm -rf $(pwd)/public/assets/** && NODE_ENV=development npx webpack --config=$(pwd)/webpack.front.config.js --progress
-rm -rf $(pwd)/public/assets/** && NODE_ENV=production npx webpack --config=$(pwd)/webpack.front.config.js --progress
 ```
 
 Inspect `.app` class in browser's inspector.
@@ -542,7 +541,7 @@ We need also extra file `fonts/spacemono-definition.global.scss`.
 
 Define font family. 
 
-_fonts/spacemono-definition.global.scss_
+_src/fonts/spacemono-definition.global.scss_
 
 ```scss
 @charset 'UTF-8';

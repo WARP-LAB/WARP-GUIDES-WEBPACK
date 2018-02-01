@@ -6,7 +6,6 @@
 ---
 
 * Basics
-* Requiring JS
 * Scope hoisting
 * Notes on other loaders
 
@@ -215,6 +214,56 @@ NODE_ENV=staging npx webpack --config=$(pwd)/webpack.front.config.js --progress
 NODE_ENV=production npx webpack --config=$(pwd)/webpack.front.config.js --progress
 ```
 
+and using them in _webpack.front.config.js_
+
+```javascript
+// ...
+
+// ----------------
+// ENV
+const development = process.env.NODE_ENV === 'development';
+const testing = process.env.NODE_ENV === 'testing';
+const staging = process.env.NODE_ENV === 'staging';
+const production = process.env.NODE_ENV === 'production';
+console.log('ENVIRONMENT \x1b[36m%s\x1b[0m', process.env.NODE_ENV);
+
+// ...
+```
+
+---
+# Requiring JS
+---
+
+Just as we required CSS
+
+Edit `src/helpers/helpers.simple.js`
+ 
+```javascript
+module.exports = {
+  helperA: function () {
+    console.log('I am simple helper A');
+  },
+  helperB: function () {
+    console.log('I am simple helper B');
+  }
+};
+```
+
+Edit *index.js*
+
+```javascript
+'use strict';
+
+var helpers = require('./helpers/helpers.simple.js');
+
+var div = document.querySelector('.app');
+div.innerHTML = '<h1>Hello JS</h1><p>Lorem ipsum.</p>';
+console.log('Hello JS!');
+helpers.helperA();
+```
+
+Build and observe.
+
 ## Webpack minimise JavaScript
 
 For JavaScript minimisation we should use webpack built in plugin [uglifyjs-webpack-plugin](https://webpack.js.org/plugins/uglifyjs-webpack-plugin/).  
@@ -234,49 +283,16 @@ npm install uglifyjs-webpack-plugin --save-dev
 _webpack.front.config.js_
 
 ```javascript
-'use strict';
-const path = require('path');
+// ...
+
 const UglifyJsPlugin = require('uglifyjs-webpack-plugin'); // aliasing this back to webpack.optimize.UglifyJsPluginis is scheduled for webpack v4.0.0
 
-// ----------------
-// ENV
-const development = process.env.NODE_ENV === 'development';
-const testing = process.env.NODE_ENV === 'testing';
-const staging = process.env.NODE_ENV === 'staging';
-const production = process.env.NODE_ENV === 'production';
-console.log('ENVIRONMENT \x1b[36m%s\x1b[0m', process.env.NODE_ENV);
-
-// ----------------
-// Output path
-const outputPath = path.join(__dirname, 'public/assets');
-
-// ----------------
-// BASE CONFIG
-let config = {
-  context: __dirname,
-  entry: {
-    index: [
-      path.join(__dirname, 'src/index.js')
-    ]
-  },
-  output: {
-    path: outputPath,
-    filename: '[name].js'
-  },
-  resolve: {
-    modules: [
-      path.resolve('./src/'),
-      'src',
-      'node_modules',
-      'bower_components'
-    ]
-  }
-};
+// ...
 
 // ----------------
 // PLUGINS
 
-config.plugins = []; // add new key 'plugins' of type arrat to config object
+config.plugins = []; // add new key 'plugins' of type array to config object
 
 // ----------------
 // WEBPACK BUILT IN OPTIMIZATION
@@ -284,29 +300,31 @@ config.plugins = []; // add new key 'plugins' of type arrat to config object
 
 if (production) {
   config.plugins.push(new UglifyJsPlugin({
-    compress: {
-      sequences: true,
-      dead_code: true,
-      conditionals: true,
-      booleans: true,
-      unused: true,
-      if_return: true,
-      join_vars: true,
-      drop_console: false,
-      warnings: false
-    },
-    mangle: false,
-    beautify: false,
-    output: {
-      space_colon: false,
-      comments: false
+    parallel: true,
+    uglifyOptions: {
+      compress: {
+        sequences: true,
+        dead_code: true,
+        conditionals: true,
+        booleans: true,
+        unused: true,
+        if_return: true,
+        join_vars: true,
+        drop_console: false,
+        warnings: false
+      },
+      mangle: false,
+      output: {
+        comments: false,
+        beautify: false
+      }
     },
     extractComments: false,
     sourceMap: false
   }));
 }
 
-module.exports = config;
+// ...
 ```
 
 Run webpack, specify `NODE_ENV` value
@@ -343,6 +361,10 @@ _webpack.front.config.js_
 // ...
 const FileManagerPlugin = require('filemanager-webpack-plugin');
 // ...
+
+// ----------------
+// FileManagerPlugin
+
 config.plugins.push(new FileManagerPlugin({
   onStart: {
     copy: [
@@ -428,7 +450,7 @@ The files are in `public/assets` directory. Open `index.html` in the browser, pr
 Using [PostCSS and the cssnext](http://cssnext.io) is not here yet...  
 Sass.
 
-## Webpack Sass and CSS loaders
+## Sass and CSS loaders
 
 ### node-sass
 
@@ -559,22 +581,24 @@ config.plugins = []; // add new key 'plugins' of type arrat to config object
 
 if (production) {
   config.plugins.push(new UglifyJsPlugin({
-    compress: {
-      sequences: true,
-      dead_code: true,
-      conditionals: true,
-      booleans: true,
-      unused: true,
-      if_return: true,
-      join_vars: true,
-      drop_console: false,
-      warnings: false
-    },
-    mangle: false,
-    beautify: false,
-    output: {
-      space_colon: false,
-      comments: false
+    parallel: true,
+    uglifyOptions: {
+      compress: {
+        sequences: true,
+        dead_code: true,
+        conditionals: true,
+        booleans: true,
+        unused: true,
+        if_return: true,
+        join_vars: true,
+        drop_console: false,
+        warnings: false
+      },
+      mangle: false,
+      output: {
+        comments: false,
+        beautify: false
+      }
     },
     extractComments: false,
     sourceMap: false
@@ -616,11 +640,13 @@ _src/index.js_
 ```javascript
 'use strict';
 
+var helpers = require('./helpers/helpers.simple.js');
 require('./index.global.scss');
 
 var div = document.querySelector('.app');
 div.innerHTML = '<h1>Hello JS</h1><p>Lorem ipsum.</p>';
 console.log('Hello JS!');
+helpers.helperA();
 ```
 
 _src/index.legacy.css_
@@ -658,13 +684,15 @@ Run webpack and inspect `public/assets/index.css`
 rm -rf $(pwd)/public/assets/** && NODE_ENV=development npx webpack --config=$(pwd)/webpack.front.config.js --progress
 ```
 
-SCSS and CSS is compiled and spit out in a file under `public/assets` named the same as the entry point key of the JavaScript from which SCSS was included in the first place. See how `index.legacy.css` was compiled into the output. And *Hello World* in browser now has colors!
+SCSS and CSS is compiled and spit out in a file under `public/assets` named the same as the entry point key of the JavaScript from which SCSS was included in the first place. See how `index.legacy.css` was compiled into the output.
+
+And *Hello World* in browser now has colours!
 
 ---
 # Scope hoisting
 ---
 
-[Read](https://webpack.js.org/plugins/module-concatenation-plugin/)
+This should belong to *Hello World* as it is so important when using webpack. [Read here](https://webpack.js.org/plugins/module-concatenation-plugin/).
 
 _webpack.front.config.js_
 
@@ -684,23 +712,8 @@ config.plugins.push(new webpack.optimize.ModuleConcatenationPlugin());
 ```
 
 ---
-# Requiring JS
+# Define plugin
 ---
-
-Just as we required CSS
-
-Edit `src/helpers/helpers.simple.js`
- 
-```javascript
-module.exports = {
-  helperA: function () {
-    console.log('I am simple helper A');
-  },
-  helperB: function () {
-    console.log('I am simple helper B');
-  }
-};
-```
 
 Edit *index.js*
 
@@ -721,12 +734,10 @@ console.log('Hello JS!');
 helpers.helperA();
 ```
 
----
-# Define plugin
----
-
+Where is `__DEVELOPMENT__` coming from? Global inlined constants has place and use!  
 [webpack.DefinePlugin](https://webpack.js.org/plugins/define-plugin/)  
-Define free variables. Useful for having development builds with debug logging or adding global constants. The values will be inlined into the code which allows a minification pass to remove the redundant conditional.
+
+Moreover as the values will be inlined into the code it will allows minification pass to remove the redundant conditional.
 
 _webpack.front.config.js_
 
@@ -754,6 +765,33 @@ config.plugins.push(new webpack.DefinePlugin({
 }));
 
 // ...
+```
+
+Build for development and inspect console output as well as outputted file at `public/assets.index.js`
+
+```sh
+rm -rf $(pwd)/public/assets/** && NODE_ENV=development npx webpack --config=$(pwd)/webpack.front.config.js --progress
+```
+Console says `I'm in development!` as `__DEVELOPMENT__` is `true`. And outputted file has unrolled the constant
+
+```javascript
+if (true) {
+  console.log('I\'m in development!');
+}
+```
+
+Build for production and inspect outputted file at `public/assets.index.js`
+
+```sh
+rm -rf $(pwd)/public/assets/** && NODE_ENV=production npx webpack --config=$(pwd)/webpack.front.config.js --progress
+```
+
+no `'I\'m in development!'` can be found because we told UglifyYS to remove unreachable code.
+
+```javascript
+if (false) {
+  console.log('I\'m in development!'); // <--this is unreachable, so remove it
+}
 ```
 
 ---
