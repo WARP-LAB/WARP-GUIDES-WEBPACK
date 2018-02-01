@@ -15,6 +15,17 @@ package-lock.json
 *.woff
 *.woff2
 
+# unignore images and fonts from media dir
+
+!media/**/*.jpg
+!media/**/*.png
+!media/**/*.gif
+!media/**/*.svg
+!media/**/*.ttf
+!media/**/*.otf
+!media/**/*.eot
+!media/**/*.woff
+!media/**/*.woff2
 
 # Created by https://www.gitignore.io/api/osx,node,sass,less,pydev,linux,bower,grunt,xcode,vagrant,eclipse,laravel,pycharm,angular,windows,android,netbeans,composer,textmate,intellij,phpstorm,webstorm,qtcreator,sublimetext,intellij+iml,visualstudio,androidstudio
 
