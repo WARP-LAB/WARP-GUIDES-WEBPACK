@@ -1,0 +1,12 @@
+@charset 'UTF-8';
+
+/* This is example of vanilla CSS */
+
+h1 {
+  color: blue !important;
+}
+.app {
+  background-color: red;
+  display: flex;
+  transform: translateY(50px);
+  height: 200px; }
