@@ -1,20 +1,24 @@
-# WEBPACK BEGINNERS GUIDE <sup>+ npm side notes</sup>
+# Babel
+
+---
+# In this section
+---
+
+* --
 
 ---
 # Preflight
 ---
 
-Use existing `webpacktest-htmlbuild` code base from previous guide stage. Either work on top of it or just make a copy. The directory now is called `webpacktest-babel`.
-
-Make changes in `package.json`.  
-Note that `index.html` is build product. Manual approach will not work any more, as we are using hashes in output filenames. You can disable hashes and return to manual approach as in pre-`html-webpack-plugin` approach. See *htmlbuild* stage of this guide.
+Use existing `webpacktest-htmlandcache` code base from previous guide stage. Either work on top of it or just make a copy. The directory now is called `webpacktest-babel`. Make changes in `package.json` name field. Don't forget `npm install`.
 
 ---
 # Babel
 ---
 
-Until now `site.js` contained old javascript (except for Common.js `require()` that got handled by webpack loader). You will have to write ES2015(ES6), ES2016, ES2017 code with probably even some stage-x features.
-
+Until now `index.js` contained *old*, ECMAScript 3 compatible code.  
+Exception was Node.js module system, `require` and `module.exports` (inspired by *Common.js* syntax) that got handled by webpack.  
+You will have to write ES2015 (ES6) and newer code with probably even some [pre stage-3](https://github.com/tc39/proposals) features. In order for it to work in web browsers there is a need to compile it to ES5 code. [Babel](https://babeljs.io)!
 
 ## Babel core
 
@@ -59,7 +63,7 @@ Note, that currently Babel Loader 8.x is beta.
 npm install babel-loader@8.0.0-beta.0 --save-dev
 ```
 
-Now specify loader for JavaScript files. Exclude `node_modules` as they *should be* ES5 already. Exclude `src/preflight.js` as by it's role/definition it should never contain anything ES5+ (ES3 recommended) as of year 2017. Let us disable also cache which will help us observe behaviour down the line.
+Now specify loader for JavaScript files within the *rules*. Exclude `node_modules` as they *should be* transpiled already. Exclude `src/preflight/preflight.js` as by it's role/definition it should never contain anything newer than ES3. Let us disable also cache which will help us observe behaviour down the line.
 
 _webpack.front.config.js_
 
@@ -79,17 +83,18 @@ _webpack.front.config.js_
 
 ## Webpack Babel test
 
-Let us make changes in `site.js`. For test use arrow function that is ES6 feature as well as ES2015 module `import` syntax instead of `require()`. Instead of `import * as helpers from './helpers.js';` just import the needed helper.
+Let us make changes in `index.js`. For test use some bits and pieces such as arrow function, `const`/`let`, template literals, stuff that is ES2015+. And switch everywhere to ES2015 module syntax.
 
-_src/site.js_
+_src/index.js_
 
 ```javascript
+/* global __DEVELOPMENT__ */
 'use strict';
 
-import './site.global.scss';
-import {helperA} from './helpers.js';
+import './index.global.scss';
+import {helperA} from './helpers/helpers.simple.js';
 
-if(__DEVELOPMENT__) {
+if (__DEVELOPMENT__) {
   console.log('I\'m in development!');
 }
 
@@ -110,7 +115,7 @@ const myArrowFunction = () => {
 myArrowFunction();
 ```
 
-Now change syntax in our `helpers.js` to ES2015(ES6) module `export` favour.
+Change syntax in `helpers.simple.js` to ES2015 module `export` favour.
 
 ```javascript
 export function helperA () {
@@ -122,19 +127,32 @@ export function helperB () {
 }
 ```
 
-Build it for production, for a moment disable `UglifyJsPlugin`. Inspect how array function got compiled to old JavaScript, so that all decent browsers can use this.
+For a moment you can disable `UglifyJsPlugin` (just comment it out in *webpack.front.config.js*). Build it for production.  
+
+Inspect how array function, `const` and template string got compiled to ES5 so that browsers can understand an use it.
 
 ```javascript
-var myArrowFunction = function myArrowFunction() { /* ... */ }
+var myArrowFunction = function myArrowFunction() {
+  var div = document.querySelector('.app');
+  var today = greetings.today;
+  div.innerHTML = "<h1>".concat(today, "</h1><p>Lorem ipsum.</p>");
+  div.classList.add('some-class');
+  console.log('Hello JS!');
+  (0, _helpersSimple.helperA)();
+};
 ```
+
+Just as Babel says - *Use next generation JavaScript, today.*
 
 ## Tree shaking
 
-Webpack 2 finally has [tree shaking](https://webpack.js.org/guides/tree-shaking/).
+Reenable `UglifyJsPlugin`. Build project production and look for `I am simple helper A` and `I am simple helper B` in compiled `assets/index.hash.js`.  
 
-Reenable `UglifyJsPlugin`. Build project as is for production and look for `I am helper A` and `I am helper B` in compiled `assets/site.js`. `I am helper B` is present although we never use it.
+`I am simple helper B` is present although we explicitly imported and used only `helperA` in `index.js` (make sure that you have `drop_console: false` in `uglifyOptions`).
 
-Now edit _.babelrc_
+Webpack finally has [tree shaking](https://webpack.js.org/guides/tree-shaking/).
+
+In order for Babel to support it edit _.babelrc_
 
 ```json
 {
@@ -150,13 +168,13 @@ Now edit _.babelrc_
 
 ```
 
-Build it again. Observe that `I am helper B` is not any more in the built product. Horray.
+By setting `{ "modules": false }` we tell Babel not to compile our ES2015 modules found in our code to Common.js modules (default value for `modules` is `commonjs`, see [docs](https://github.com/babel/babel/tree/master/packages/babel-preset-env#modules)). Webpack understands ES2015 modules syntax (static structure) which is what allows it to do tree shaking.
 
-Essentially `"modules": false` ([see docs](https://github.com/babel/babel-preset-env#modules)) is disabling `babel-plugin-transform-es2015-modules-commonjs` which is included along with `babel-preset-env` and enabled by default. This plugin turns ES2015 modules into *CommonJS* modules which is issue as tree-shaking can be applied only on modules that have a static structure. Because of this webpack won’t be able to tree-shake unused code from the final bundle. Thus we need to disable it, Q.E.D.
+Build it again. Observe that `I am simple helper B` is not to be found in the built product. Horray!
 
 ## Babel polyfill
 
-We need also polyfills. There are so many polyfills out there and methods to polyfill (user agent based), but let us use one supplied by Babel as it [works together with `babel-preset-env`](https://github.com/babel/babel/tree/master/packages/babel-preset-env)
+We need also polyfills. There are so many polyfills out there and methods to polyfill (user agent based), but let us use one supplied by Babel as it [works together with `@babel/preset-en`](https://github.com/babel/babel/tree/master/packages/babel-preset-env)
 
 [DOCS](https://babeljs.io/docs/usage/polyfill/), however see my ranting why docs might be wrong [https://github.com/babel/babel/issues/7254](https://github.com/babel/babel/issues/7254)
 
@@ -185,7 +203,7 @@ Add needed keys to _.babelrc_
 }
 ```
 
-Add something that needs polifill on older browsers in _site.js_, such as `Array.find`
+Add something that needs polifill on older browsers in _index.js_, such as `Array.find`
 
 ```javascript
   // Test Array.find polyfill
@@ -200,7 +218,7 @@ Add something that needs polifill on older browsers in _site.js_, such as `Array
 ## Test Babel polyfills
 
 
-Build for production and inspect both building messages as well as `public/site.js`. [Polyfills everywhere](https://cdn.meme.am/instances/500x/65651431.jpg).
+Build for production and inspect both building messages as well as `public/index.js`. [Polyfills everywhere](https://cdn.meme.am/instances/500x/65651431.jpg).
 
 Note that babel informs us that
 
@@ -209,7 +227,7 @@ Added following polyfill:
   es6.array.find { "android":"4.4.3", "ie":"10" }
 ```
 
-For for a moment change `.browserslistrc` production targets to `last 1 Chrome version`. Build again. Observe that babel does not need to include any polyfills (and outputted *site.js* bundle is smaller than when we were targeting older browsers in `.browserslistrc`).
+For for a moment change `.browserslistrc` production targets to `last 1 Chrome version`. Build again. Observe that babel does not need to include any polyfills (and outputted *index.js* bundle is smaller than when we were targeting older browsers in `.browserslistrc`).
 
 
 ## Other polyfills
@@ -230,7 +248,7 @@ _src/webpack.front.config.js_
   entry: {
     site: [
       'classlist-polyfill',
-      './src/site.js'
+      './src/index.js'
     ],
     preflight: './src/preflight.js'
   },
@@ -304,7 +322,7 @@ _.babelrc_
 
 ```
 
-Test it by adding object spread into _site.js_
+Test it by adding object spread into _index.js_
 
 ```javascript
 // ...
