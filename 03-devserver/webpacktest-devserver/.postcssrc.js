@@ -3,7 +3,11 @@ module.exports = (ctx) => ({
     require('autoprefixer')({
       // browsers: [], // defined in .browserslistrc file!
       cascade: true,
-      remove: true
+      add: true,
+      remove: false,
+      supports: true,
+      flexbox: true,
+      grid: false
     }),
     require('css-mqpacker')(),
     // we always minimise CSS, also on dev, as we have source maps, but this shows how we can make this env aware

@@ -9,6 +9,6 @@ if (__DEVELOPMENT__) {
 }
 
 var div = document.querySelector('.app');
-div.innerHTML = '<h1>Hello JS</h1><p>Lorem ipsum.</p>';
+div.innerHTML = '<h1>Hello JS</h1><p>Lorem ipsum.</p><input type="text" name="testtext" placeholder="Text Here">';
 console.log('Hello JS!');
 helpers.helperA();

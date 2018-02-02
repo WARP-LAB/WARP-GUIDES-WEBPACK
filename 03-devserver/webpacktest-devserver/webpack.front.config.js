@@ -1,10 +1,10 @@
 'use strict';
 const path = require('path');
-const pkgConfig = require('./package.json');
+const pConfig = require('./package.json');
 const webpack = require('webpack');
-const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
+const UglifyJsPlugin = require('uglifyjs-webpack-plugin'); // aliasing this back to webpack.optimize.UglifyJsPluginis is scheduled for webpack v4.0.0
 const FileManagerPlugin = require('filemanager-webpack-plugin');
-const ExtractTextPlugin = require('extract-text-webpack-plugin'); // aliasing this back to webpack.optimize.UglifyJsPluginis is scheduled for webpack v4.0.0
+const ExtractTextPlugin = require('extract-text-webpack-plugin');
 
 // ----------------
 // ENV
@@ -15,27 +15,29 @@ const production = process.env.NODE_ENV === 'production';
 console.log('ENVIRONMENT \x1b[36m%s\x1b[0m', process.env.NODE_ENV);
 
 // ----------------
-// PUBLIC PATH based on env
-const protocol = pkgConfig.config.isWebpackDevServerHTTPS ? 'https:' : 'http:';
-const devServerPort = pkgConfig.config.isWebpackDevServerHTTPS ? pkgConfig.config.portFrontendWebpackDevServerHTTPS : pkgConfig.config.portFrontendWebpackDevServerHTTP;
-let publicPath;
+// Host, port, putput public path based on env
 let targetHost;
+let outputPublicPath;
+const protocolPrefix = pConfig.config.isWebpackDevServerHTTPS ? 'https:' : 'http:';
+const portNumber = pConfig.config.isWebpackDevServerHTTPS ? pConfig.config.portFrontendWebpackDevServerHTTPS : pConfig.config.portFrontendWebpackDevServerHTTP;
+
 if (production) {
-  publicPath = `//${pkgConfig.config.hostProduction}${pkgConfig.config.pathAboveRootProduction}/assets/`;
-  targetHost = pkgConfig.config.hostProduction;
+  outputPublicPath = `//${pConfig.config.hostProduction}${pConfig.config.pathAboveRootProduction}/assets/`;
+  targetHost = pConfig.config.hostProduction;
 } else if (staging) {
-  publicPath = `//${pkgConfig.config.hostStaging}${pkgConfig.config.pathAboveRootStaging}/assets/`;
-  targetHost = pkgConfig.config.hostStaging;
+  outputPublicPath = `//${pConfig.config.hostStaging}${pConfig.config.pathAboveRootStaging}/assets/`;
+  targetHost = pConfig.config.hostStaging;
 } else if (testing) {
-  publicPath = `//${pkgConfig.config.hostTesting}${pkgConfig.config.pathAboveRootTesting}/assets/`;
-  targetHost = pkgConfig.config.hostTesting;
+  outputPublicPath = `//${pConfig.config.hostTesting}${pConfig.config.pathAboveRootTesting}/assets/`;
+  targetHost = pConfig.config.hostTesting;
 } else {
-  publicPath = `${protocol}//${pkgConfig.config.hostDevelopment}:${devServerPort}${pkgConfig.config.pathAboveRootDevelopment}/assets/`;
-  targetHost = pkgConfig.config.hostDevelopment;
+  outputPublicPath = `${protocolPrefix}//${pConfig.config.hostDevelopment}:${portNumber}${pConfig.config.pathAboveRootDevelopment}/assets/`;
+  targetHost = pConfig.config.hostDevelopment;
 }
 
-console.log('publicPath \x1b[36m%s\x1b[0m', publicPath);
 console.log('targetHost \x1b[36m%s\x1b[0m', targetHost);
+console.log('outputPublicPath \x1b[36m%s\x1b[0m', outputPublicPath);
+console.log('portNumber \x1b[36m%s\x1b[0m', portNumber);
 
 // ----------------
 // Output path
@@ -59,7 +61,7 @@ let config = {
   output: {
     path: outputPath,
     filename: '[name].js',
-    publicPath
+    publicPath: outputPublicPath
   },
   resolve: {
     modules: [
@@ -72,19 +74,25 @@ let config = {
 };
 
 // ----------------
-// WEBPACK DEV SERVER
+// webpack DevServer
 
 config.devServer = {
-  // -d is shorthand for --debug --devtool source-map --output-pathinfo
   allowedHosts: [
-    targetHost,
     '.test',
     'localhost'
   ],
+  disableHostCheck: false,
+  bonjour: false,
   clientLogLevel: 'info',
   compress: true,
-  contentBase: false, // path.join(__dirname, 'public'), // pass content base if not using nginx
-  disableHostCheck: false,
+
+  contentBase: false, // path.join(__dirname, 'public'), // pass content base if not using nginx to serve files
+  // watchContentBase: true,
+  // watchOptions: {
+  //   poll: true
+  // },
+
+  // lazy: true,
   // filename: 'site.js', // used if lazy true
   headers: {
     'Access-Control-Allow-Origin': '*'
@@ -92,21 +100,22 @@ config.devServer = {
   historyApiFallback: true,
   host: targetHost,
 
-  // either use cli --hot (and --inline) or this config flag
-  // needs webpack.HotModuleReplacementPlugin() which is now enabled automatically
-  hot: pkgConfig.config.isWebpackDevServerHot,
+  // needs webpack.HotModuleReplacementPlugin()
+  hot: pConfig.config.isWebpackDevServerHot,
   // hotOnly: true
 
-  https: pkgConfig.config.isWebpackDevServerHTTPS
+  https: pConfig.config.isWebpackDevServerHTTPS
     ? {
+      // ca: fs.readFileSync('/path/to/ca.pem'),
       // key: fs.readFileSync('/path/to/server.key'),
-      // cert: fs.readFileSync('/path/to/server.crt'),
-      // ca: fs.readFileSync('/path/to/ca.pem')
+      // cert: fs.readFileSync('/path/to/server.crt')
     }
     : false,
+  // pfx: '/path/to/file.pfx',
+  // pfxPassphrase: 'passphrase',
+
   index: 'index.htm',
   inline: true,
-  // lazy: true,
   noInfo: false,
   open: false,
   // openPage: '/different/page',
@@ -114,21 +123,16 @@ config.devServer = {
     warnings: false,
     errors: true
   },
-  port: devServerPort,
-  // proxy: {
-  //   '/api': 'http://localhost:3000'
-  // },
+  port: portNumber,
+  // proxy: {},
   // public: 'myapp.test:80',
-  publicPath,
+  publicPath: outputPublicPath,
   quiet: false,
   // socket: 'socket',
-  // staticOptions: null,
-  // stats: null,
+  // staticOptions: {},
+  stats: 'normal',
   useLocalIp: false,
-  // watchContentBase: true,
-  // watchOptions: {
-  //   poll: true
-  // },
+
   before (app) {
     console.log('Webpack devserver middlewres before');
   },
@@ -150,6 +154,7 @@ config.module = {
           {
             loader: 'css-loader',
             options: {
+              minimize: false,
               importLoaders: 2,
               sourceMap: true
             }
@@ -177,6 +182,7 @@ config.module = {
           {
             loader: 'css-loader',
             options: {
+              minimize: false,
               importLoaders: 3,
               sourceMap: true
             }
@@ -287,32 +293,34 @@ config.module = {
 // ----------------
 // PLUGINS
 
-config.plugins = [];
+config.plugins = []; // add new key 'plugins' of type array to config object
 
 // ----------------
 // WEBPACK DEFINE PLUGIN
 // ALWAYS
 
 config.plugins.push(new webpack.DefinePlugin({
-  'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development'),
-  'process.env.BROWSER': true,
+  'process.env': {
+    // 'DEBUG': JSON.stringify(process.env.DEBUG || development),
+    'NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development'),
+    'BROWSER': true
+  },
   __CLIENT__: true,
   __SERVER__: false,
   __DEV__: development,
   __DEVELOPMENT__: development,
-  __DEVTOOLS__: development,
   __TESTING__: testing,
   __STAGING__: staging,
   __PRODUCTION__: production,
-  __HOST__: targetHost,
-  __PORT_FRONT_APP_HTTP1__: pkgConfig.config.portFrontendAppHTTP, // JSON.stringify
-  __PORT_FRONT_APP_HTTP2__: pkgConfig.config.portFrontendAppHTTS
+  __DEVTOOLS__: development,
+  __PORT_FRONT_APP_HTTP__: pConfig.config.portFrontendAppHTTP, // JSON.stringify
+  __PORT_FRONT_APP_HTTPS__: pConfig.config.portFrontendAppHTTPS
 }));
 
 // ----------------
 // Hot reloading and named modules
 
-if (development && pkgConfig.config.isWebpackDevServerHot) {
+if (development && pConfig.config.isWebpackDevServerHot) {
   config.plugins.push(new webpack.HotModuleReplacementPlugin());
   config.plugins.push(new webpack.NamedModulesPlugin());
 } else {
@@ -331,34 +339,30 @@ config.plugins.push(new webpack.optimize.ModuleConcatenationPlugin());
 // IN PRODUCTION
 
 if (production) {
-  config.plugins.push(new webpack.optimize.UglifyJsPlugin({
-    compress: {
-      sequences: true,
-      dead_code: true,
-      conditionals: true,
-      booleans: true,
-      unused: true,
-      if_return: true,
-      join_vars: true,
-      drop_console: false,
-      warnings: false
-    },
-    mangle: false,
-    beautify: false,
-    output: {
-      space_colon: false,
-      comments: false
+  config.plugins.push(new UglifyJsPlugin({
+    parallel: true,
+    uglifyOptions: {
+      compress: {
+        sequences: true,
+        dead_code: true,
+        conditionals: true,
+        booleans: true,
+        unused: true,
+        if_return: true,
+        join_vars: true,
+        drop_console: false,
+        warnings: false
+      },
+      mangle: false,
+      output: {
+        comments: false,
+        beautify: false
+      }
     },
     extractComments: false,
-    sourceMap: sourceMapType
+    sourceMap: sourceMapType // evaluates to bool
   }));
 }
-
-// ----------------
-// CODE SPLITTING
-
-// config.plugins.push(new webpack.optimize.LimitChunkCountPlugin({maxChunks: 15}));
-// config.plugins.push(new webpack.optimize.MinChunkSizePlugin({minChunkSize: 10000}));
 
 // ----------------
 // FileManagerPlugin
@@ -383,20 +387,8 @@ config.plugins.push(new FileManagerPlugin({
 
 config.plugins.push(new ExtractTextPlugin({
   filename: '[name].css',
-  disable: development,  // disable when development
+  disable: development, // disable when development
   allChunks: true
 }));
-
-// ----------------
-// POSTCSS LOADER CONFIG
-// ALWAYS
-
-// defined in .postcssrc.js
-
-// ----------------
-// BROWSERLIST CONFIG
-// ALWAYS
-
-// defined in .browserslistrc
 
 module.exports = config;
