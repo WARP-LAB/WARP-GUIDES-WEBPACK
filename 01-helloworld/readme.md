@@ -1,5 +1,4 @@
-# WEBPACK BEGINNERS GUIDE <sup>+ npm side notes</sup>
-
+# webpack says *Hello World*
 
 ---
 # In this section

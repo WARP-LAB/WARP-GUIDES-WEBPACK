@@ -1,4 +1,4 @@
-# WEBPACK BEGINNERS GUIDE <sup>+ npm side notes</sup>
+# webpack DevServer and hot reloading
 
 ---
 # In this section

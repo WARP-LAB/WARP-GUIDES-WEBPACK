@@ -1,4 +1,4 @@
-# WEBPACK BEGINNERS GUIDE <sup>+ npm side notes</sup>
+# Extra CSS, PostCSS settings and file loading
 
 ---
 # In this section

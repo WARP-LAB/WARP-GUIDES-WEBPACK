@@ -1,5 +1,4 @@
-# WEBPACK BEGINNERS GUIDE <sup>+ npm side notes</sup>
-
+# HTML building, asset injecting and inlining, cache busting
 
 ---
 # In this section
