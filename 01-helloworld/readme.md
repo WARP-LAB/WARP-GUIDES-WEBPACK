@@ -689,7 +689,7 @@ SCSS and CSS is compiled and spit out in a file under `public/assets` named the 
 And *Hello World* in browser now has colours!
 
 ---
-# Scope hoisting
+# Scope hoisting w/ ModuleConcatenationPlugin
 ---
 
 This should belong to *Hello World* as it is so important when using webpack. [Read here](https://webpack.js.org/plugins/module-concatenation-plugin/).
@@ -793,6 +793,11 @@ if (false) {
   console.log('I\'m in development!'); // <--this is unreachable, so remove it
 }
 ```
+---
+# OccurrenceOrderPlugin
+---
+
+It would also belong to *Hello World* basic webpack setup, but it is now [enabled by default](https://webpack.js.org/guides/migrating/#occurrenceorderplugin-is-now-on-by-default).
 
 ---
 # Next
