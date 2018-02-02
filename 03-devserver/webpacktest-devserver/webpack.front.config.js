@@ -19,7 +19,7 @@ console.log('ENVIRONMENT \x1b[36m%s\x1b[0m', process.env.NODE_ENV);
 let targetHost;
 let outputPublicPath;
 const protocolPrefix = pConfig.config.isWebpackDevServerHTTPS ? 'https:' : 'http:';
-const portNumber = pConfig.config.isWebpackDevServerHTTPS ? pConfig.config.portFrontendWebpackDevServerHTTPS : pConfig.config.portFrontendWebpackDevServerHTTP;
+const devServerPortNumber = pConfig.config.isWebpackDevServerHTTPS ? pConfig.config.portFrontendWebpackDevServerHTTPS : pConfig.config.portFrontendWebpackDevServerHTTP;
 
 if (production) {
   outputPublicPath = `//${pConfig.config.hostProduction}${pConfig.config.pathAboveRootProduction}/assets/`;
@@ -31,13 +31,13 @@ if (production) {
   outputPublicPath = `//${pConfig.config.hostTesting}${pConfig.config.pathAboveRootTesting}/assets/`;
   targetHost = pConfig.config.hostTesting;
 } else {
-  outputPublicPath = `${protocolPrefix}//${pConfig.config.hostDevelopment}:${portNumber}${pConfig.config.pathAboveRootDevelopment}/assets/`;
+  outputPublicPath = `${protocolPrefix}//${pConfig.config.hostDevelopment}:${devServerPortNumber}${pConfig.config.pathAboveRootDevelopment}/assets/`;
   targetHost = pConfig.config.hostDevelopment;
 }
 
 console.log('targetHost \x1b[36m%s\x1b[0m', targetHost);
 console.log('outputPublicPath \x1b[36m%s\x1b[0m', outputPublicPath);
-console.log('portNumber \x1b[36m%s\x1b[0m', portNumber);
+console.log('devServerPortNumber \x1b[36m%s\x1b[0m', devServerPortNumber);
 
 // ----------------
 // Output path
@@ -123,7 +123,7 @@ config.devServer = {
     warnings: false,
     errors: true
   },
-  port: portNumber,
+  port: devServerPortNumber,
   // proxy: {},
   // public: 'myapp.test:80',
   publicPath: outputPublicPath,
