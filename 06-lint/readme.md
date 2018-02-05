@@ -1,13 +1,18 @@
-# WEBPACK BEGINNERS GUIDE <sup>+ npm side notes</sup>
+# Linting JavaScript and CSS/SCSS
+
+
+---
+# In this section
+---
+
+* ESlint
+* stylelint
 
 ---
 # Preflight
 ---
 
-Use existing `webpacktest-babel` code base from previous guide stage. Either work on top of it or just make a copy. The directory now is called `webpacktest-lint`.
-
-Make changes in `package.json`.  
-Note that `index.html` is build product. Manual approach will not work any more, as we are using hashes in output filenames. You can disable hashes and return to manual approach as in pre-`html-webpack-plugin` approach. See *htmlbuild* stage of this guide.
+Use existing `webpacktest-babel` code base from previous guide stage. Either work on top of it or just make a copy. The directory now is called `webpacktest-lint`. Make changes in `package.json` name field. Don't forget `npm install`.
 
 ---
 # ESLint
@@ -33,10 +38,23 @@ Install plugin for Babel
 
 ```sh
 npm install babel-eslint --save-dev
+```
+
+As well as *`eslint` plugin companion to `babel-eslint`*
+
+```sh
 npm install eslint-plugin-babel --save-dev
 ```
 
-Install some ESLint plugins that are needed four our current state of code complexity. Basically plugins listed below are demanded by [eslint-config-standard](https://github.com/standard/eslint-config-standard#usage) that we will be using, see below.
+## JavaScript Standard Style
+
+We will be coding and linting our code against [**JavaScript Standard Style**](https://github.com/feross/standard#who-uses-javascript-standard-style) (yes, not using AirBNB)
+
+However we will not be using [*pure standard*](https://standardjs.com), but sharable config version of it - [ESLint Shareable Config for JavaScript Standard Style](https://github.com/feross/eslint-config-standard)
+
+**We will be using semicolons [whatever they say](https://www.youtube.com/watch?v=gsfbh17Ax9I), end of story.**
+
+Install ESLint plugins that are needed for our current state of code complexity. Basically plugins listed below are demanded (peer dependencies) by [eslint-config-standard](https://github.com/standard/eslint-config-standard#usage) that we will be using, see below.
 
 ```sh
 npm install eslint-plugin-import --save-dev
@@ -44,16 +62,13 @@ npm install eslint-plugin-node --save-dev
 npm install eslint-plugin-promise --save-dev
 npm install eslint-plugin-standard --save-dev
 ```
-
-Install config we will be using as base - [**Standard**](https://github.com/feross/standard#who-uses-javascript-standard-style) (yes, not using AirBNB)
-
-However we will not be using [*pure standard*](https://standardjs.com), but sharable config version of it - [An ESLint Shareable Config for JavaScript Standard Style](https://github.com/feross/eslint-config-standard)
-
-**We will be using semicolons [whatever they say](https://www.youtube.com/watch?v=gsfbh17Ax9I), end of story.**
+And install the config itself
 
 ```sh
 npm install eslint-config-standard --save-dev
 ```
+
+## Configuration file
 
 Crete new file _.eslintrc.js_ under master directory and fill it
 
@@ -111,7 +126,7 @@ module.exports = {
 ```
 For base ESLINT (ES2015 - ES6)
 
-* Parser option syntax is discussed in [ESlint Language Options](https://eslint.org/docs/user-guide/migrating-to-2.0.0#language-options)  .
+* Parser option syntax is discussed in [ESlint Language Options](https://eslint.org/docs/user-guide/migrating-to-2.0.0#language-options).
 * ESlint level rules are documented in [ESlint Rules](https://eslint.org/docs/rules/).
 * ESLint Shareable Config for JavaScript Standard Style rules are [defined here](https://github.com/standard/standard/blob/master/docs/RULES-en.md).
 * Other plugin rules are defined in plugin docs.
@@ -138,11 +153,12 @@ npm install eslint-loader --save-dev
 ```
 
 Update _webpack.front.config.js_  
-webpack does not have `pre/postLoaders`, we have to use `enforce`.  
-And add ESLint configuration. It will fail on any errors or warning when `!development`, it will build, but scream when `development`.
+webpack does not have `pre/postLoaders` any more, we have to use `enforce`.  
+And add ESLint configuration. It will fail on any error or warning when `!development`, it will build, but scream when `development` (note that this is very restrictive setup, in real world it can bee loosened).
 
 ```javascript
 // ...
+
     {
       enforce: 'pre',
       test: /\.js$/,
@@ -151,9 +167,9 @@ And add ESLint configuration. It will fail on any errors or warning when `!devel
       options: {
         emitError: true,
         emitWarning: true,
-        quiet: false,
         failOnWarning: !development,
         failOnError: !development,
+        quiet: true,
         outputReport: false
       }
     },
@@ -161,29 +177,31 @@ And add ESLint configuration. It will fail on any errors or warning when `!devel
 // ...
 ```
 
-In _src/site.js_ do something questionable LIKE REMOVING SEMICOLON :)
+In _src/index.js_ do something questionable LIKE REMOVING SEMICOLON :)
 
-Build it.
+Build it for development.
 
-Observe webpack building notices/warnings/errors. It should contain something like this
+Observe webpack building notices/warnings/errors. Console should contain something like this
 
 ```sh
-ERROR in ./src/site.js
+ERROR in ./src/index.js
 Module build failed: Module failed because of a eslint error.
 
-  17:45  error  Missing semicolon  semi
+  error  Missing semicolon  semi
 
 ✖ 1 problem (1 error, 0 warnings)
   1 error, 0 warnings potentially fixable with the `--fix` option.
 ```
 
-Add back semicolon, rebuild, observe. 
+as well as webapp in browser should contain such overlay.
+
+Add back semicolon, save file, *DevServer* will auto rebuild it and error is gone. 
 
 ## ESLint in text editors
 
 ### Atom
 
-Just ask sharable aAtom package settings, but basically it consists of
+Just ask sharable Atom package settings, but basically it consists of
 
 ```sh
 apm install linter
@@ -193,23 +211,15 @@ apm install linter-eslint
 
 It will use the same `.eslintrc.js`
 
-### Sublime Text 3 - ESLint
-
-We abandoned Sublime. webpack-1.x guide has Sublime setup covered.
-
-## Set ESLint autofix in text editors
-
-**Don't trust autofix, use with care, per one file only! This is like autorouting in EDA.. sad panda.**
-
 ---
 # stylelint
 ---
 
-Add linting also to your SCSS.
+Add linting also to your (S)CSS.
 
 ## Webpack stylelint
 
-Stylelint is tricky, so stylelint errors are not allowed to abort building process. More often than not it is even disabled in webpack config. But use it in editor as guidance.
+Stylelint is tricky, so stylelint errors are not allowed to abort building process. More often than not it is even disabled in webpack config and used only in editor as guidance.
 
 Install [Stylelint](https://stylelint.io)
 
@@ -230,6 +240,7 @@ npm install stylelint-scss --save-dev
 npm install stylelint-config-standard --save-dev
 ```
 
+## Configuration file
 
 Create _.stylelintrc.js_ and fill in some general values. See
 * [stylelint configuration](https://github.com/stylelint/stylelint/blob/master/docs/user-guide/configuration.md).
@@ -346,7 +357,7 @@ config.plugins.push(new StyleLintPlugin({
 ```
 
 
-In _src/site.global.scss_ do something questionable, like incorrect (S)CSS
+In _src/index.global.scss_ do something questionable, like incorrect (S)CSS
 
 ```scss
 yolo {
@@ -354,15 +365,28 @@ yolo {
 }
 ```
 
-Build the project for development, observe how build fails with `webpack: Failed to compile.`
+Build the project for development, observe how build fails with
+
+```
+WARNING in
+src/index.global.scss
+ 33:1   ✖  Unexpected unknown type selector "yolo"   selector-type-no-unknown
+ 34:3   ✖  Unexpected unknown property "colooor"     property-no-unknown
+ 34:16  ✖  Expected a trailing semicolon             declaration-block-trailing-semicolon
+```
 
 Make build not fail on S(C)SS errors by setting
 
 ```javascript
+// ...
+config.plugins.push(new StyleLintPlugin({
+// ...
     emitErrors: false,
+// ...
+}));
 ```
 
-which will make them as warnings and build will continue.
+which will make them as warnings, but build will continue.
 
 Add also `.stylelintignore` to ignore compiled CSS
 
@@ -383,9 +407,8 @@ apm install linter-stylelint
 
 It will use the same `.stylelintrc.js`
 
+---
+# Next
+---
 
-## Config for plain JavaScript and SCSS
-
-At this point we have base for vanilla JS projects configured. Start coding!
-
-Yet another step is adding React.
+Bundle analyzing and chunk splitting.
