@@ -284,4 +284,16 @@ config.plugins.push(new ExtractTextPlugin({
   allChunks: true
 }));
 
+// ----------------
+// POSTCSS LOADER CONFIG
+// ALWAYS
+
+// defined in .postcssrc.js
+
+// ----------------
+// BROWSERSLIST CONFIG
+// ALWAYS
+
+// defined in .browserslistrc
+
 module.exports = config;

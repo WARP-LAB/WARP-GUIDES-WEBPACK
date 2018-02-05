@@ -433,7 +433,6 @@ config.plugins.push(new HtmlWebpackPlugin({
 // HtmlWebpackHarddiskPlugin
 config.plugins.push(new HtmlWebpackHarddiskPlugin());
 
-
 // ----------------
 // ExtractTextPlugin
 
@@ -442,5 +441,22 @@ config.plugins.push(new ExtractTextPlugin({
   disable: development, // disable when development
   allChunks: true
 }));
+
+// ----------------
+// POSTCSS LOADER CONFIG
+// ALWAYS
+
+// defined in .postcssrc.js
+
+// ----------------
+// BROWSERSLIST CONFIG
+// ALWAYS
+
+// defined in .browserslistrc
+
+// ----------------
+// BABEL CONFIG
+
+// defined in .babelrc
 
 module.exports = config;
