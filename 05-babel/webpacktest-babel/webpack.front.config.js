@@ -353,31 +353,31 @@ config.plugins.push(new webpack.optimize.ModuleConcatenationPlugin());
 // WEBPACK BUILT IN OPTIMIZATION
 // IN PRODUCTION
 
-// if (production) {
-//   config.plugins.push(new UglifyJsPlugin({
-//     parallel: true,
-//     uglifyOptions: {
-//       compress: {
-//         sequences: true,
-//         dead_code: true,
-//         conditionals: true,
-//         booleans: true,
-//         unused: true,
-//         if_return: true,
-//         join_vars: true,
-//         drop_console: false,
-//         warnings: false
-//       },
-//       mangle: false,
-//       output: {
-//         comments: false,
-//         beautify: false
-//       }
-//     },
-//     extractComments: false,
-//     sourceMap: sourceMapType // evaluates to bool
-//   }));
-// }
+if (production) {
+  config.plugins.push(new UglifyJsPlugin({
+    parallel: true,
+    uglifyOptions: {
+      compress: {
+        sequences: true,
+        dead_code: true,
+        conditionals: true,
+        booleans: true,
+        unused: true,
+        if_return: true,
+        join_vars: true,
+        drop_console: false,
+        warnings: false
+      },
+      mangle: false,
+      output: {
+        comments: false,
+        beautify: false
+      }
+    },
+    extractComments: false,
+    sourceMap: sourceMapType // evaluates to bool
+  }));
+}
 
 // ----------------
 // FileManagerPlugin
