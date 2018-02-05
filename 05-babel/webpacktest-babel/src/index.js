@@ -16,7 +16,7 @@ const greetings = {
 const myArrowFunction = () => {
   // Test Array.find polyfill
   const arr = [5, 12, 8, 130, 44];
-  const found = arr.find(function(element) {
+  const found = arr.find(function (element) {
     return element > 10;
   });
   console.log('Found elements', found);
