@@ -346,7 +346,7 @@ Inspect the outputted `assets/index.js` in both cases.
 
 Our `index.html` file has `preflight.js` and `preflight.css` referenced in the head. But they are not present in output directory after building webpack, thus opening `index.html` directly in the browser from filesystem will greet *Hello World*, but checking console we will probably show `404` for those assets (and also *index.css*, but more on that later as we currently have no CSS at all).
 
-Let us consider these assets as a special case where we want to avoid any webpack stuff to be attached to it (runtime and manifest, more on that later). What do I mean by webpack stuff? Build the project once again for development (no minimising) and inspect `[ublic/assets/index.js`. *That webpack stuff.*
+Let us consider these assets as a special case where we want to avoid any webpack stuff to be attached to it (runtime and manifest, more on that later). What do I mean by webpack stuff? Build the project once again for development (no minimising) and inspect `public/assets/index.js`. *That webpack stuff.*
 
 From the current tools that are available one approach would be to use `copy-webpack-plugin` which is quite popular (and you can use it for this purpose), however we will be using `filemanager-webpack-plugin` as *filemanager* allows specifying actions that are executed both before and/or after webpack begins the bundling process.
 
@@ -443,6 +443,8 @@ rm -rf $(pwd)/public/assets/** && NODE_ENV=production npx webpack --config=$(pwd
 ```
 
 The files are in `public/assets` directory. Open `index.html` in the browser, preflight JS does it's job of renaming classnames and prefligt CSS does it's job of of hiding that `Incabable :(` message.
+
+The sole reason for preflight is to use some ES3 code without any polyfills (in production actualy preflight script is inlined in template) that can execute on *any* browser for detecting very very basic browser features, including JavaScript support, in order to set if the webapp can be run at all. It is not about which features to enable, *preflight is not modernizr*. Granual feature detection and fallbacks can be done in actual app code using *Modernzr*.
 
 ## Note on cssnext
 
