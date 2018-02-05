@@ -1,0 +1,28 @@
+{
+  "presets": [
+  	[
+      "@babel/preset-env",
+    	{
+        "modules": false,
+        "useBuiltIns": "usage",
+        "forceAllTransforms": false,
+        "ignoreBrowserslistConfig": false,
+        "debug": true
+      }
+    ]
+  ],
+  "plugins": [
+    "@babel/plugin-proposal-object-rest-spread",
+    "@babel/plugin-syntax-dynamic-import"
+  ],
+  "env": {
+    "development": {
+    },
+    "testing": {
+    },
+    "staging": {
+    },
+    "production": {
+    }
+  }
+}

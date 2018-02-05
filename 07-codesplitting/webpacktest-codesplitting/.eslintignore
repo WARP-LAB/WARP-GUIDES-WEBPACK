@@ -1,0 +1,7 @@
+# by default: node_modules/**
+# by default: bower_components/**
+public/**
+static/**
+!.postcssrc.js
+!.eslintrc.js
+!.stylelintrc.js

@@ -1,0 +1,36 @@
+@charset 'UTF-8';
+@import '~normalize.css';
+@import 'typography.global.scss';
+@import 'index.legacy.css';
+
+$mycolor: red;
+
+$paragarphColor: black;
+
+@if $env == 'development' {
+  $paragarphColor: magenta;
+} @else {
+  $paragarphColor: yellow;
+}
+
+body {
+  background-image: url('./images/my-large-image.jpg');
+}
+
+.app {
+  background-color: $mycolor;
+  display: flex;
+  transform: translateY(50px);
+  height: 200px;
+
+  p {
+    color: $paragarphColor;
+  }
+
+  background-image: url('./images/my-small-image.jpg');
+}
+
+// Stylelint test
+// yolo {
+//   colooor: bluez
+// }
