@@ -40,23 +40,34 @@ _While doing edits I realised that notes should be made for some basic npm stuff
 
 ### 5. Babel
 
-* Currently revisiting
+* Short explanation what Babel does
+* Installing Babel
+* Module system and Tree Shaking
+* Babel env preset and polyfills
+* Babel plugins
 
 ### 6. Linting JavaScript and SCSS/CSS
 
-* Currently revisiting
+* ESlint
+* stylelint
 
 ### 7. Analyzing bundle and code chunk splitting
 
-* Currently revisiting
+* Analysing the built product by webpack
+* The issue that code splitting solves
+* Code splitting setup
+* Different approaches - common, vendor, runtime (manifest) chunks
+* Keeping the chunkhashes under control for caching
+* Lazy loading, naming lazy loaded chunks
+* Inlining runtime (manifest)
 
 ### 8. React.js
 
-* Currently revisiting
+* Out of date, will be revisited
 
 ### 9. CSS modules
 
-* Currently revisiting
+* Out of date, will be revisited
 
 ## Summary
 
