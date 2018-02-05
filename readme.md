@@ -51,7 +51,7 @@ _While doing edits I realised that notes should be made for some basic npm stuff
 * ESlint
 * stylelint
 
-### 7. Analyzing bundle and code chunk splitting
+### 7. Analysing bundle and code chunk splitting
 
 * Analysing the built product by webpack
 * The issue that code splitting solves
@@ -101,8 +101,8 @@ Make sure you have latest LTS, `node` version 8.x+, `npm` version 5.2+
 
 ### Todo / notes to self
 
-* [code splitting](https://webpack.js.org/guides/code-splitting-libraries/) in app and vendor [using entries](https://webpack.js.org/concepts/entry-points/#separate-app-and-vendor-entries) and *CommonsChunkPlugin* or [DllPlugin](https://webpack.js.org/plugins/dll-plugin/), see also [inlining webpack manifest](https://github.com/jouni-kantola/inline-chunk-manifest-html-webpack-plugin)
-* [async preloading](https://github.com/GoogleChrome/preload-webpack-plugin) via *PreloadWebpackPlugin*
-* Extend more on `index.html` building via [*HtmlWebpackPlugin*](https://www.npmjs.com/package/html-webpack-plugin) - talk about plugins.
-* progressive stuff
+* [DllPlugin](https://webpack.js.org/plugins/dll-plugin/) as alternative to *CommonsChunkPlugin*
+* Should we use [*PreloadWebpackPlugin*](https://github.com/GoogleChrome/preload-webpack-plugin) if [*ScriptExtHtmlWebpackPlugin*](https://github.com/numical/script-ext-html-webpack-plugin) that we already use has this functionality?
+* Extend more on `index.html` (or any other template, evern *PHP*) building via [*HtmlWebpackPlugin*](https://www.npmjs.com/package/html-webpack-plugin) - talk about plugins.
+* Progressive webapp stuff
 * Maybe discuss how *webpack-dev-server* can be launched via API (that is some separate file to launch server - `server.dev.js` containing `new WebpackDevServer()`).
