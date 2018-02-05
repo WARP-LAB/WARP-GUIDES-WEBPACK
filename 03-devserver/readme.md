@@ -195,7 +195,7 @@ config.devServer = {
   // },
 
   // lazy: true,
-  // filename: 'site.js', // used if lazy true
+  // filename: 'index.js', // used if lazy true
   headers: {
     'Access-Control-Allow-Origin': '*'
   },

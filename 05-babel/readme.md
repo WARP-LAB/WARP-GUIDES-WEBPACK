@@ -44,7 +44,7 @@ npm install @babel/preset-env --save-dev
 
 ## Babel basic configuration
 
-Crete new file _.babelrc_ under master directory and fill it
+Crete new file _.babelrc_ under master directory and fill it. We will not use [shorthand](https://babeljs.io/docs/plugins/#pluginpreset-shorthand) for clarity purposes, thus we will use `preset-*` and later `plugin-*` explicitly.
 
 ```json
 {
@@ -63,7 +63,7 @@ Note, that currently Babel Loader 8.x is beta.
 npm install babel-loader@8.0.0-beta.0 --save-dev
 ```
 
-Now specify loader for JavaScript files within the *rules*. Exclude `node_modules` as they *should be* transpiled already. Exclude `src/preflight/preflight.js` as by it's role/definition it should never contain anything newer than ES3. Let us disable also cache which will help us observe behaviour down the line.
+Now specify loader for JavaScript files within the *rules*. Exclude `node_modules` as they *should be* transpiled already. Exclude `src/preflight/preflight.js` as by it's role/definition it should never contain anything newer than ES3 (however buildinh system will never pick it up anyways, as it is not *imported* in our entry or its children). Let us disable also cache which will help us observe behaviour down the line.
 
 _webpack.front.config.js_
 
@@ -127,7 +127,11 @@ export function helperB () {
 }
 ```
 
-For a moment you can disable `UglifyJsPlugin` (just comment it out in *webpack.front.config.js*). Build it for production.  
+For a moment you can disable `UglifyJsPlugin` (just comment it out in *webpack.front.config.js*). Build it for production. 
+
+```sh
+npm run build:front:prod
+``` 
 
 Inspect how array function, `const` and template string got compiled to ES5 so that browsers can understand an use it.
 
@@ -168,13 +172,13 @@ In order for Babel to support it edit _.babelrc_
 
 ```
 
-By setting `{ "modules": false }` we tell Babel not to compile our ES2015 modules found in our code to Common.js modules (default value for `modules` is `commonjs`, see [docs](https://github.com/babel/babel/tree/master/packages/babel-preset-env#modules)). Webpack understands ES2015 modules syntax (static structure) which is what allows it to do tree shaking.
+By setting `{ "modules": false }` we tell Babel not to compile our ES2015 modules found in our code to Common.js modules (default value for `modules` is `commonjs`, see [docs](https://github.com/babel/babel/tree/master/packages/babel-preset-env#modules)). Webpack understands ES2015 modules syntax (static structure) which is what allows it to do tree shaking. And we need `UglifyJsPlugin` to remove dead code.
 
-Build it again. Observe that `I am simple helper B` is not to be found in the built product. Horray!
+Build it again for productions. Observe that `I am simple helper B` is not to be found in the built product. Horray!
 
 ## Babel polyfill
 
-We need also polyfills. There are so many polyfills out there and methods to polyfill (user agent based), but let us use one supplied by Babel as it [works together with `@babel/preset-en`](https://github.com/babel/babel/tree/master/packages/babel-preset-env)
+We need also polyfills. There are so many polyfills out there and methods to polyfill (user agent based), but let us use one supplied by Babel as it [works together with `@babel/preset-env` and browserslist](https://github.com/babel/babel/tree/master/packages/babel-preset-env#browserslist-support)
 
 [DOCS](https://babeljs.io/docs/usage/polyfill/), however see my ranting why docs might be wrong [https://github.com/babel/babel/issues/7254](https://github.com/babel/babel/issues/7254)
 
@@ -203,22 +207,33 @@ Add needed keys to _.babelrc_
 }
 ```
 
-Add something that needs polifill on older browsers in _index.js_, such as `Array.find`
+Add something that needs polifill on older browsers in _index.js_, such as `Array.prototype.find`
 
 ```javascript
   // Test Array.find polyfill
   const arr = [5, 12, 8, 130, 44];
-  let found = arr.find(function(element) {
+  const found = arr.find(function(element) {
     return element > 10;
   });
   console.log('Found elements', found);
 ```
 
+and let *.browserslistrc* hold support for old browsers
+
+```
+[production]
+last 2 versions
+Explorer 10
+iOS > 7
+
+[development]
+> 0.0001%
+```
 
 ## Test Babel polyfills
 
 
-Build for production and inspect both building messages as well as `public/index.js`. [Polyfills everywhere](https://cdn.meme.am/instances/500x/65651431.jpg).
+Build for production and inspect both building messages as well as `public/assets/index.hash.js`. Polyfills everywhere.
 
 Note that babel informs us that
 
@@ -226,6 +241,8 @@ Note that babel informs us that
 Added following polyfill:
   es6.array.find { "android":"4.4.3", "ie":"10" }
 ```
+
+which is as expected as [comapt table](https://kangax.github.io/compat-table/es6/#test-Array.prototype_methods_Array.prototype.find_a_href=_https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/find_title=_MDN_documentation_img_src=_../mdn.png_alt=_MDN_(Mozilla_Development_Network)_logo_width=_15_height=_13_/_/a_nbsp;) shows that *Array.prototype.find* is not present in IE.
 
 For for a moment change `.browserslistrc` production targets to `last 1 Chrome version`. Build again. Observe that babel does not need to include any polyfills (and outputted *index.js* bundle is smaller than when we were targeting older browsers in `.browserslistrc`).
 
@@ -246,11 +263,10 @@ _src/webpack.front.config.js_
 // ..
 
   entry: {
-    site: [
+    index: [
       'classlist-polyfill',
-      './src/index.js'
-    ],
-    preflight: './src/preflight.js'
+      path.join(__dirname, 'src/index.js')
+    ]
   },
 
 // ..
@@ -259,7 +275,8 @@ _src/webpack.front.config.js_
 ## Shims
 
 We do not deploy for old browsers. However we do nice fallbacks for clients. Not overdoing it with conditional IE style sheets, just basic stuff.  
-Therefore some shims might be needed.
+
+Some shims for reference.
 
 * lte IE 9
 	* [foutbgone.js](https://github.com/renarsvilnis/fout-b-gone/)
@@ -270,20 +287,20 @@ Therefore some shims might be needed.
 	* [respond.js](https://github.com/scottjehl/Respond)
 
 
-
 ## Babel `forceAllTransforms` note
 
 Note `forceAllTransforms` key in `.babelrc`.  
 Previously it was `targets.uglify` key and had to be set to `true` to force everything to be changed to ES5. It was needed as in the build process we used UglifyJS that could take only ES5 code. Now the UglifyJS v3 that we use in building process (see 01 chapter of this tutorial, `uglifyjs-webpack-plugin`) is built on top in `uglify-es` (it is the stable outcome of "Harmony" branch which was transition for uglify to support ES6) and that can work with ES6 code.
 
-
 ## Babel plugins
 
-Some basic useful plugins, but this is per project setup.
+Beware that currently some of plugins are being moved to so called *mono repo*, thus correct install might be `npm install @babel/plugin-... --save-dev` instead of `npm install babel-plugin-... --save-dev`
+
+There are many plugins and we could also use *umbrella* presets such as [babel-preset-es2015](https://babeljs.io/docs/plugins/preset-es2015/) that automatically installs a collection of transform plugins, but for this tutorial we will use only few and explicitly will install them (except for *Hello React*, where we will install deps via preset). Thus at this point introducing one:
 
 [Object rest spread transform](https://github.com/babel/babel/tree/master/packages/babel-plugin-proposal-object-rest-spread) ([old docs](https://babeljs.io/docs/plugins/transform-object-rest-spread/))  
-[Class properties transform](https://babeljs.io/docs/plugins/transform-class-properties/)  
-[Function bind transform](https://babeljs.io/docs/plugins/transform-function-bind/)  
+
+*Class properties transform*, *Function bind transform*, *Syntax Dynamic Import* will be used later.
 
 ```sh
 npm install @babel/plugin-proposal-object-rest-spread --save-dev
@@ -319,7 +336,6 @@ _.babelrc_
     }
   }
 }
-
 ```
 
 Test it by adding object spread into _index.js_
@@ -337,4 +353,10 @@ Test it by adding object spread into _index.js_
 //...
 ```
 
-There are many plugins and we could also use *umbrella* presets such as [babel-preset-es2015](https://babeljs.io/docs/plugins/preset-es2015/) that automatically installs a collection of transform plugins, but for this tutorial we will use only few and explicitly will install them (except for Hello World React, where we will install deps via preset).
+---
+Next
+---
+
+Linting JavaScript and CSS/SCSS.
+
+

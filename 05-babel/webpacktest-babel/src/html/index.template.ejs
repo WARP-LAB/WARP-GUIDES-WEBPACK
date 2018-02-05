@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <title><%= htmlWebpackPlugin.options.title %></title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
-  <script src="<%= htmlWebpackPlugin.files.chunks.preflight.entry %>"></script>
-  <link rel="stylesheet" type="text/css" href="<%= htmlWebpackPlugin.files.chunks.site.css %>">
+  <script><%= htmlWebpackPlugin.options.fsInlineContents['preflight.js'] %></script>
+  <style><%= htmlWebpackPlugin.options.fsInlineContents['preflight.css'] %></style>
 </head>
 <body>
   <noscript>
@@ -20,6 +20,5 @@
   <script>
     window.__TEMPLATE_DATA__ = {};
   </script>
-  <script async src="<%= htmlWebpackPlugin.files.chunks.site.entry %>"></script>
 </body>
 </html>

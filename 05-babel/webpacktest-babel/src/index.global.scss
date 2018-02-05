@@ -1,7 +1,7 @@
 @charset 'UTF-8';
 @import '~normalize.css';
-@import 'site.legacy.css';
-@import 'typography.scss';
+@import 'typography.global.scss';
+@import 'index.legacy.css';
 
 $mycolor: red;
 
@@ -29,25 +29,3 @@ body {
 
   background-image: url('./images/my-small-image.jpg');
 }
-
-/* Example of preflight CSS state machine */
-
-.noscript {
-  display: block;
-  background-color: aqua;
-}
-
-.incapable {
-  display: block;
-  background-color: olive;
-}
-
-html.noscript .incapable { display: none; }
-
-html.noscript .app { display: none; }
-
-html.incapable .app { display: none; }
-
-html.capable .incapable { display: none; }
-
-html.script .noscript { display: none; }
