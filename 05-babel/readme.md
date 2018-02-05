@@ -4,7 +4,11 @@
 # In this section
 ---
 
-* --
+* Short explanation what Babel does
+* Installing Babel
+* Module system and Tree Shaking
+* Babel env preset and polyfills
+* Babel plugins
 
 ---
 # Preflight
