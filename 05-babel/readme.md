@@ -234,14 +234,61 @@ iOS > 7
 > 0.0001%
 ```
 
+Build for development and observe console
+
+```
+@babel/preset-env: `DEBUG` option
+
+Using targets:
+{
+  "android": "4.1",
+  "chrome": "4",
+  "edge": "12",
+  "firefox": "2",
+  "ie": "5.5",
+  "ios": "3.2",
+  "safari": "3.2"
+}
+
+Using modules transform: false
+
+Using plugins:
+  transform-arrow-functions { ... }
+  transform-block-scoped-functions { ... }
+  transform-block-scoping { ... }
+  transform-classes { ... }
+  transform-computed-properties { ... }
+  transform-destructuring { ... }
+  transform-duplicate-keys { ... }
+  transform-for-of { ... }
+  transform-function-name { ... }
+  transform-literals { ... }
+  transform-object-super { ... }
+  transform-parameters { ... }
+  transform-shorthand-properties { ... }
+  transform-spread { ... }
+  transform-sticky-regex { ... }
+  transform-template-literals { ... }
+  transform-typeof-symbol { ... }
+  transform-unicode-regex { ... }
+  transform-new-target { ... }
+  transform-regenerator { ... }
+  transform-exponentiation-operator { ... }
+  transform-async-to-generator { ... }
+  transform-dotall-regex { ... }
+```
+
+
 ## Test Babel polyfills
 
 
 Build for production and inspect both building messages as well as `public/assets/index.hash.js`. Polyfills everywhere.
 
-Note that babel informs us that
+Note that babel informs us also that that
 
 ```
+Using polyfills with `usage` option:
+
 Added following polyfill:
   es6.array.find { "android":"4.4.3", "ie":"10" }
 ```
