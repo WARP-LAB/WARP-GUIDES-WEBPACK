@@ -67,9 +67,9 @@ _package.json_
 
 ## Server side
 
-Remember that this *Hello World* does not need any webserver. Opening `index.html` directly from filesystem will work just fine.
+Remember that this *Hello World* does not necessarely need any webserver. Opening `index.html` directly from filesystem will work just fine in most cases.
 
-However following sections will assume some server side because of file serving (you really should not be doing `--allow-file-access-from-files`) and to actually reflect on real development process.
+However following sections will assume some server side because of file serving (you really should not be doing `--allow-file-access-from-files`) and to actually reflect on real development process. If not using webserver paths will break.
 
 The guide is written by having directory `webpacktest-helloworld` (and in the future `webpacktest-<sectionname>`) in a directory where [*Laravel Valet*](https://laravel.com/docs/5.5/valet) is parked. *Valet* has nothing to do with *PHP* in this case, it just gives us *nginx* (that serves files from `anydirectory/public` within its park directory OOB) and *DnsMasq*, so that when `webpacktest-helloworld` directory is parked, it can be accessed via `//webpacktest-helloworld.test` domain. Although *Valet* is not requirement, it is really handy!
 
