@@ -14,7 +14,11 @@ const production = process.env.NODE_ENV === 'production';
 console.log('GLOBAL ENVIRONMENT \x1b[36m%s\x1b[0m', process.env.NODE_ENV);
 
 // ----------------
-// Output path
+// Output public path
+const outputPublicPath = 'assets/';
+
+// ----------------
+// Output fs path
 const outputPath = path.join(__dirname, 'public/assets');
 
 let config = {
@@ -27,6 +31,7 @@ let config = {
   },
   output: {
     path: outputPath,
+    publicPath: outputPublicPath,
     filename: '[name].js'
   },
   resolve: {
