@@ -180,7 +180,7 @@ config.module = {
 // OPTIMISATION
 
 config.optimization = {
-  // config.optimization.minimize = true, // can override
+  // minimize: false, // can override
   minimizer: [
     new UglifyJsPlugin({
       cache: true,
