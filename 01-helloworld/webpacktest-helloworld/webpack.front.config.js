@@ -55,7 +55,7 @@ config.module = {
             sourceMap: true
           }
         }
-      ],
+      ]
     },
     {
       test: /\.(scss)$/,
@@ -74,7 +74,7 @@ config.module = {
             sourceMap: true
           }
         }
-      ],
+      ]
     }
   ]
 };
