@@ -1,11 +1,11 @@
 'use strict';
-const path = require('path');
 const fs = require('fs');
+const path = require('path');
 const pConfig = require('./package.json');
 const webpack = require('webpack');
-const UglifyJsPlugin = require('uglifyjs-webpack-plugin'); // aliasing this back to webpack.optimize.UglifyJsPluginis is scheduled for webpack v4.0.0
+const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 const FileManagerPlugin = require('filemanager-webpack-plugin');
-const ExtractTextPlugin = require('extract-text-webpack-plugin');
+const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const HtmlWebpackHarddiskPlugin = require('html-webpack-harddisk-plugin');
 
@@ -15,35 +15,41 @@ const development = process.env.NODE_ENV === 'development';
 const testing = process.env.NODE_ENV === 'testing';
 const staging = process.env.NODE_ENV === 'staging';
 const production = process.env.NODE_ENV === 'production';
-console.log('ENVIRONMENT \x1b[36m%s\x1b[0m', process.env.NODE_ENV);
+console.log('GLOBAL ENVIRONMENT \x1b[36m%s\x1b[0m', process.env.NODE_ENV);
 
 // ----------------
 // Host, port, putput public path based on env
 let targetHost;
-let outputPublicPath;
+let outputPublicPathBuilt;
+let outputPublicPathManual;
 const protocolPrefix = pConfig.config.isWebpackDevServerHTTPS ? 'https:' : 'http:';
 const devServerPortNumber = pConfig.config.isWebpackDevServerHTTPS ? pConfig.config.portFrontendWebpackDevServerHTTPS : pConfig.config.portFrontendWebpackDevServerHTTP;
 
 if (production) {
-  outputPublicPath = `//${pConfig.config.hostProduction}${pConfig.config.pathAboveRootProduction}/assets/`;
+  outputPublicPathBuilt = `//${pConfig.config.hostProduction}${pConfig.config.pathAboveRootProduction}/assets/`;
+  outputPublicPathManual = outputPublicPathBuilt;
   targetHost = pConfig.config.hostProduction;
 } else if (staging) {
-  outputPublicPath = `//${pConfig.config.hostStaging}${pConfig.config.pathAboveRootStaging}/assets/`;
+  outputPublicPathBuilt = `//${pConfig.config.hostStaging}${pConfig.config.pathAboveRootStaging}/assets/`;
+  outputPublicPathManual = outputPublicPathBuilt;
   targetHost = pConfig.config.hostStaging;
 } else if (testing) {
-  outputPublicPath = `//${pConfig.config.hostTesting}${pConfig.config.pathAboveRootTesting}/assets/`;
+  outputPublicPathBuilt = `//${pConfig.config.hostTesting}${pConfig.config.pathAboveRootTesting}/assets/`;
+  outputPublicPathManual = outputPublicPathBuilt;
   targetHost = pConfig.config.hostTesting;
 } else {
-  outputPublicPath = `${protocolPrefix}//${pConfig.config.hostDevelopment}:${devServerPortNumber}${pConfig.config.pathAboveRootDevelopment}/assets/`;
+  outputPublicPathBuilt = `${protocolPrefix}//${pConfig.config.hostDevelopment}:${devServerPortNumber}${pConfig.config.pathAboveRootDevelopment}/assets/`;
+  outputPublicPathManual = `${protocolPrefix}//${pConfig.config.hostDevelopment}${pConfig.config.pathAboveRootDevelopment}/assets/`;
   targetHost = pConfig.config.hostDevelopment;
 }
 
 console.log('targetHost \x1b[36m%s\x1b[0m', targetHost);
-console.log('outputPublicPath \x1b[36m%s\x1b[0m', outputPublicPath);
+console.log('outputPublicPathBuilt \x1b[36m%s\x1b[0m', outputPublicPathBuilt);
+console.log('outputPublicPathManual \x1b[36m%s\x1b[0m', outputPublicPathManual);
 console.log('devServerPortNumber \x1b[36m%s\x1b[0m', devServerPortNumber);
 
 // ----------------
-// Output path
+// Output fs path
 const outputPath = path.join(__dirname, 'public/assets');
 
 // ----------------
@@ -54,6 +60,7 @@ const sourceMapType = (development) ? 'inline-source-map' : false;
 // BASE CONFIG
 
 let config = {
+  mode: development ? 'development' : 'production',
   devtool: sourceMapType,
   context: __dirname,
   entry: {
@@ -63,8 +70,8 @@ let config = {
   },
   output: {
     path: outputPath,
+    publicPath: outputPublicPathBuilt,
     filename: (development) ? '[name].js' : '[name].[chunkhash].js',
-    publicPath: outputPublicPath
   },
   resolve: {
     modules: [
@@ -77,7 +84,7 @@ let config = {
 };
 
 // ----------------
-// webpack DevServer
+// DevServer CONFIG
 
 config.devServer = {
   allowedHosts: [
@@ -96,7 +103,7 @@ config.devServer = {
   // },
 
   // lazy: true,
-  // filename: 'site.js', // used if lazy true
+  // filename: 'index.js', // used if lazy true
   headers: {
     'Access-Control-Allow-Origin': '*'
   },
@@ -104,16 +111,15 @@ config.devServer = {
   host: targetHost,
 
   // needs webpack.HotModuleReplacementPlugin()
-  hot: pConfig.config.isWebpackDevServerHot,
+  hot: true,
   // hotOnly: true
 
-  https: pConfig.config.isWebpackDevServerHTTPS
-    ? {
-      // ca: fs.readFileSync('/path/to/ca.pem'),
-      // key: fs.readFileSync('/path/to/server.key'),
-      // cert: fs.readFileSync('/path/to/server.crt')
-    }
-    : false,
+  https: false,
+  // https: {
+  //   ca: fs.readFileSync('/path/to/ca.pem'),
+  //   key: fs.readFileSync('/path/to/server.key'),
+  //   cert: fs.readFileSync('/path/to/server.crt')
+  // },
   // pfx: '/path/to/file.pfx',
   // pfxPassphrase: 'passphrase',
 
@@ -129,7 +135,7 @@ config.devServer = {
   port: devServerPortNumber,
   // proxy: {},
   // public: 'myapp.test:80',
-  publicPath: outputPublicPath,
+  publicPath: outputPublicPathBuilt,
   quiet: false,
   // socket: 'socket',
   // staticOptions: {},
@@ -151,78 +157,74 @@ config.module = {
   rules: [
     {
       test: /\.(css)$/,
-      use: ExtractTextPlugin.extract({
-        fallback: 'style-loader',
-        use: [
-          {
-            loader: 'css-loader',
-            options: {
-              minimize: false,
-              importLoaders: 2,
-              sourceMap: true
-            }
-          },
-          {
-            loader: 'postcss-loader',
-            options: {
-              sourceMap: true
-            }
-          },
-          {
-            loader: 'resolve-url-loader',
-            options: {
-              keepQuery: true
-            }
+      use: [
+        development ? 'style-loader' : MiniCssExtractPlugin.loader,
+        {
+          loader: 'css-loader',
+          options: {
+            minimize: false,
+            importLoaders: 2,
+            sourceMap: true
           }
-        ]
-      })
+        },
+        {
+          loader: 'postcss-loader',
+          options: {
+            sourceMap: true
+          }
+        },
+        {
+          loader: 'resolve-url-loader',
+          options: {
+            sourceMap: true,
+            keepQuery: true
+          }
+        }
+      ]
     },
     {
       test: /\.(scss)$/,
-      use: ExtractTextPlugin.extract({
-        fallback: 'style-loader',
-        use: [
-          {
-            loader: 'css-loader',
-            options: {
-              minimize: false,
-              importLoaders: 3,
-              sourceMap: true
-            }
-          },
-          {
-            loader: 'postcss-loader',
-            options: {
-              sourceMap: true
-            }
-          },
-          {
-            loader: 'resolve-url-loader',
-            options: {
-              keepQuery: true
-            }
-          },
-          {
-            loader: 'sass-loader',
-            options: {
-              sourceMap: true,
-              data: `$env: ${JSON.stringify(process.env.NODE_ENV || 'development')};`
-            }
+      use: [
+        development ? 'style-loader' : MiniCssExtractPlugin.loader,
+        {
+          loader: 'css-loader',
+          options: {
+            minimize: false,
+            importLoaders: 3,
+            sourceMap: true
           }
-        ]
-      })
+        },
+        {
+          loader: 'postcss-loader',
+          options: {
+            sourceMap: true
+          }
+        },
+        {
+          loader: 'resolve-url-loader',
+          options: {
+            sourceMap: true,
+            keepQuery: true
+          }
+        },
+        {
+          loader: 'sass-loader',
+          options: {
+            sourceMap: true,
+            data: `$env: ${JSON.stringify(process.env.NODE_ENV || 'development')};`
+          }
+        }
+      ]
     },
     {
       test: /\.(png|jpe?g|gif|svg)$/,
       exclude: /.-webfont\.svg$/,
       use: [
         {
-          loader: 'url-loader',
-          options: {
-            limit: 20000
-          }
+          loader: 'file-loader',
+          options: {}
         },
-        (production)
+        (!development)
           ? {
             loader: 'image-webpack-loader',
             options: {}
@@ -233,78 +235,91 @@ config.module = {
     {
       test: /\.woff2(\?v=\d+\.\d+\.\d+)?$/,
       use: [{
-        loader: 'url-loader',
-        options: {
-          limit: 10,
-          mimetype: 'application/font-woff2'
-        }
+        loader: 'file-loader',
+        options: {}
       }]
     },
     {
       test: /\.woff(\?v=\d+\.\d+\.\d+)?$/,
       use: [{
-        loader: 'url-loader',
-        options: {
-          limit: 10,
-          mimetype: 'application/font-woff'
-        }
+        loader: 'file-loader',
+        options: {}
       }]
     },
     {
       test: /\.otf(\?v=\d+\.\d+\.\d+)?$/,
       use: [{
-        loader: 'url-loader',
-        options: {
-          limit: 10,
-          mimetype: 'application/x-font-opentype' // application/font-sfnt
-        }
+        loader: 'file-loader',
+        options: {}
       }]
     },
     {
       test: /\.ttf(\?v=\d+\.\d+\.\d+)?$/,
       use: [{
-        loader: 'url-loader',
-        options: {
-          limit: 10,
-          mimetype: 'application/x-font-truetype' // application/font-sfnt
-        }
+        loader: 'file-loader',
+        options: {}
       }]
     },
     {
       test: /\.eot(\?v=\d+\.\d+\.\d+)?$/,
       use: [{
-        loader: 'url-loader',
-        options: {
-          limit: 10,
-          mimetype: 'application/vnd.ms-fontobject'
-        }
+        loader: 'file-loader',
+        options: {}
       }]
     },
     {
       test: /\.svg(\?v=\d+\.\d+\.\d+)?$/,
       use: [{
-        loader: 'url-loader',
-        options: {
-          limit: 10,
-          mimetype: 'mimetype=image/svg+xml'
-        }
+        loader: 'file-loader',
+        options: {}
       }]
     }
   ]
 };
 
 // ----------------
-// PLUGINS
+// OPTIMISATION
 
-config.plugins = []; // add new key 'plugins' of type array to config object
+config.optimization = {
+  // config.optimization.minimize = true, // can override
+  minimizer: [
+    new UglifyJsPlugin({
+      cache: true,
+      parallel: true,
+      uglifyOptions: {
+        compress: {
+          sequences: true,
+          dead_code: true,
+          conditionals: true,
+          booleans: true,
+          unused: true,
+          if_return: true,
+          join_vars: true,
+          drop_console: false,
+          warnings: true
+        },
+        ecma: 6,
+        mangle: false,
+        warnings: true,
+        output: {
+          comments: false,
+          beautify: false
+        },
+      },
+      extractComments: false,
+      sourceMap: !!sourceMapType // evaluates to bool
+    })
+  ]
+};
 
 // ----------------
-// WEBPACK DEFINE PLUGIN
-// ALWAYS
+// PLUGINS
+config.plugins = [];
 
+// ----------------
+// DefinePlugin
 config.plugins.push(new webpack.DefinePlugin({
   'process.env': {
-    // 'DEBUG': JSON.stringify(process.env.DEBUG || development),
     'NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development'),
     'BROWSER': true
   },
@@ -315,61 +330,25 @@ config.plugins.push(new webpack.DefinePlugin({
   __TESTING__: testing,
   __STAGING__: staging,
   __PRODUCTION__: production,
-  __DEVTOOLS__: development,
-  __PORT_FRONT_APP_HTTP__: pConfig.config.portFrontendAppHTTP, // JSON.stringify
-  __PORT_FRONT_APP_HTTPS__: pConfig.config.portFrontendAppHTTPS
+  __DEVTOOLS__: development
 }));
 
 // ----------------
 // Hot reloading and named modules
 
-if (development && pConfig.config.isWebpackDevServerHot) {
+if (development) {
   config.plugins.push(new webpack.HotModuleReplacementPlugin());
-  config.plugins.push(new webpack.NamedModulesPlugin());
+  // config.plugins.push(new webpack.NamedModulesPlugin()); // enabled by mode
 } else {
   config.plugins.push(new webpack.HashedModuleIdsPlugin());
 }
 
 // ----------------
-// WEBPACK BUILT IN OPTIMIZATION
-// ALWAYS
-
 // ModuleConcatenationPlugin
 config.plugins.push(new webpack.optimize.ModuleConcatenationPlugin());
 
 // ----------------
-// WEBPACK BUILT IN OPTIMIZATION
-// IN PRODUCTION
-
-if (production) {
-  config.plugins.push(new UglifyJsPlugin({
-    parallel: true,
-    uglifyOptions: {
-      compress: {
-        sequences: true,
-        dead_code: true,
-        conditionals: true,
-        booleans: true,
-        unused: true,
-        if_return: true,
-        join_vars: true,
-        drop_console: false,
-        warnings: false
-      },
-      mangle: false,
-      output: {
-        comments: false,
-        beautify: false
-      }
-    },
-    extractComments: false,
-    sourceMap: sourceMapType // evaluates to bool
-  }));
-}
-
-// ----------------
 // FileManagerPlugin
-
 config.plugins.push(new FileManagerPlugin({
   onStart: {
     copy: [
@@ -387,12 +366,16 @@ config.plugins.push(new FileManagerPlugin({
 
 // ----------------
 // HtmlWebpackPlugin
-
 config.plugins.push(new HtmlWebpackPlugin({
+  publicPathManual: outputPublicPathManual,
+  fsInlineContents: {
+    'preflight.js': fs.readFileSync(path.join(__dirname, 'src/preflight/preflight.js'), 'utf8'),
+    'preflight.css': fs.readFileSync(path.join(__dirname, 'src/preflight/preflight.css'), 'utf8')
+  },
   title: `GUIDE - ${pConfig.name}`,
   filename: path.join(__dirname, 'public/index.html'),
   template: path.join(__dirname, 'src/html/index.template.ejs'),
-  inject: 'body',
+  inject: false, // we specify manually where we want our entry outputs to be in the template
   // favicon: favicon.ico,
   hash: false,
   cache: true,
@@ -402,10 +385,6 @@ config.plugins.push(new HtmlWebpackPlugin({
   excludeChunks: [],
   xhtml: false,
   alwaysWriteToDisk: true,
-  fsInlineContents: {
-    'preflight.js': fs.readFileSync(path.join(__dirname, 'src/preflight/preflight.js'), 'utf8'),
-    'preflight.css': fs.readFileSync(path.join(__dirname, 'src/preflight/preflight.css'), 'utf8')
-  },
   minify: (development)
     ? false
     : {
@@ -422,24 +401,18 @@ config.plugins.push(new HtmlWebpackPlugin({
 config.plugins.push(new HtmlWebpackHarddiskPlugin());
 
 // ----------------
-// ExtractTextPlugin
-
-config.plugins.push(new ExtractTextPlugin({
+// MiniCssExtractPlugin
+config.plugins.push(new MiniCssExtractPlugin({
   filename: (development) ? '[name].css' : '[name].[chunkhash].css',
-  disable: development, // disable when development
-  allChunks: true
+  chunkFilename: (development) ? '[id].css' : '[id].[chunkhash].css',
 }));
 
 // ----------------
 // POSTCSS LOADER CONFIG
-// ALWAYS
-
 // defined in .postcssrc.js
 
 // ----------------
 // BROWSERSLIST CONFIG
-// ALWAYS
-
 // defined in .browserslistrc
 
 module.exports = config;
