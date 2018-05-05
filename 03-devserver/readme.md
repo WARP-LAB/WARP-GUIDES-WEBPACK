@@ -22,6 +22,10 @@ Use hot reloading when developing.
 
 ## Install
 
+### webpack-serve
+
+[This](https://github.com/webpack-contrib/webpack-serve) is future replacement for `webpack-dev-server` but it is too early to switch over yet.
+
 ### Webpack webpack-dev-server
 
 Documentation  
@@ -40,7 +44,7 @@ npm install webpack-dev-server --save-dev
 
 #### Configure public path
 
-Add `publicPath` to config and make CSS extraction conditional. 
+Set `publicPath` value conditional. 
 
 *webpack.front.config.js*
 
@@ -48,25 +52,12 @@ Add `publicPath` to config and make CSS extraction conditional.
 // ...
 
 // ----------------
-// Output public path based on env
+// Target host
 const targetHost = 'webpacktest-devserver.test';
-const outputPublicPath = production ? `//${targetHost}/assets/` : `http://${targetHost}:4000/assets/`;
 
-// ...
-
-  output: {
-    path: outputPath,
-    filename: '[name].js',
-    publicPath: outputPublicPath
-  },
-  
-// ...
-
-config.plugins.push(new ExtractTextPlugin({
-  filename: '[name].css',
-  disable: development, // disable when development
-  allChunks: true
-}));
+// ----------------
+// Output public path
+const outputPublicPath = development ? `http://${targetHost}:4000/assets/` : `//${targetHost}/assets/`;
 
 // ...  
 ```
@@ -131,7 +122,7 @@ Then use localhost as hostname as well as public path such as
 
 ```javascript
 const targetHost = 'localhost';
-const outputPublicPath = production ? `//${targetHost}:3333/assets/` : `http://${targetHost}:4000/assets/`;
+const outputPublicPath = development ? `//${targetHost}:4000/assets/` : `//${targetHost}/assets/`;
 ```
 
 here and in the future. 
@@ -146,6 +137,7 @@ Everything served through 4000 port on localhost.
   <script src="//localhost:4000/assets/preflight.js"></script>
   <link href="//localhost:4000/assets/preflight.css" rel="stylesheet" type="text/css">
   <link href="//localhost:4000/assets/index.css" rel="stylesheet" type="text/css">
+
   <script async src="//localhost:4000/assets/index.js"></script>
 ```
 
@@ -164,7 +156,7 @@ Visit [http://localhost:4000/](http://localhost:4000/) and inspect.
 
 Ask
 
-## CORS when using nginx together with webpack DevServer and Extended webpack-dev-server configuration and 
+## CORS when using nginx together with webpack DevServer and extended webpack-dev-server configuration 
 
 As you might have caught, webfonts are not loaded when visiting `http://webpacktest-devserver.test` (thus port 80) which is served by nginx as fonts are served by webpack DevServer from in-memory at `http://webpacktest-devserver.test:4000`. 80 is not 4000.
 
@@ -176,7 +168,7 @@ Let us move webpack DevServer configuration from inline commands to within `webp
 // ...
 
 // ----------------
-// webpack DevServer
+// DevServer CONFIG
 
 config.devServer = {
   allowedHosts: [
@@ -245,7 +237,7 @@ config.devServer = {
 // ...
 ```
 
-Kill revious `ctr+c`. Rerun it, observe that fonts are loading now.
+Kill revious `ctr+c`. Rerun it and observe how fonts are loading.
 
 
 ```sh
@@ -256,15 +248,7 @@ NODE_ENV=development npx webpack-dev-server \
 
 ## Setting up hot reloading
 
-Kill revious `ctr+c`. Rerun DevServer.
-
-```sh
-rm -rf $(pwd)/public/assets/** && \
-NODE_ENV=development npx webpack-dev-server \
---config=$(pwd)/webpack.front.config.js -d
-```
-
-Hardrefresh webpage.
+Kill revious. Rerun DevServer. Refresh webpage.
 
 Enter something in input field (the one that has placeholder *Text Here*) using browser.
 
@@ -300,7 +284,7 @@ config.devServer = {
 
 if (development) {
   config.plugins.push(new webpack.HotModuleReplacementPlugin());
-  config.plugins.push(new webpack.NamedModulesPlugin());
+  // config.plugins.push(new webpack.NamedModulesPlugin()); // enabled by mode
 } else {
   config.plugins.push(new webpack.HashedModuleIdsPlugin());
 }
@@ -308,15 +292,7 @@ if (development) {
 
 ## Test hot reloading
 
-Kill revious `ctr+c`. Rerun DevServer.
-
-```sh
-rm -rf $(pwd)/public/assets/** && \
-NODE_ENV=development npx webpack-dev-server \
---config=$(pwd)/webpack.front.config.js -d
-```
-
-Hardrefresh webpage.
+Kill revious `ctr+c`. Rerun DevServer. Refresh webpage.
 
 Enter something in input field (the one that has placeholder *Text Here*) using browser.
 
@@ -334,15 +310,13 @@ Now the page itself does not reload, only SCSS and text you entered in input fie
 
 Now kill `ctrl+c` devserver. 
 
-## Disabling ExtractTextPlugin for hot reloading CSS
+## Disabling MiniCssExtractPlugin for hot reloading CSS
 
 When running dev server we actually want CSS to be inlined within JavaScript so that hot reloading works better. Which will result in `404` for `assets/index.css` and FOUC, but it is ok for development.
 
-We have it already going in _webpack.config.js_ as *ExtractTextPlugin* falls back to `style-loader` when on development. Why? Because in `new ExtractTextPlugin()` config we have set `disable: development`, see in the first steps of this chapter.
+We have it already going in _webpack.config.js_ as *MiniCssExtractPlugin* falls back to `style-loader` when on development. When previously we used *ExtractTextPlugin* we had to pass `disable: development` option.
 
-Other approach can be having seperate `webpack.config.development.js`, `webpack.config.production.js`, etc. altogether to use for different ENVs.
-
-## Changing port number in `index.html` manually
+## Changing port numbers based on environment / mode in `index.html` automatically
 
 Remember that at this stage you would have to remove `4000` from assets referenced in `index.html` manually to see production results, as then all files are outputted in real filesystem and served by nginx (port `80`).  
 Or in case you are not using `nginx` you would have to serve public folder by some Node.js server at say `3333` port, thus also needing changes in `index.html`. This is stupid, right. How about building *HTML* so that it automatically sets those port numbers for us based on build target? See that in next section.
