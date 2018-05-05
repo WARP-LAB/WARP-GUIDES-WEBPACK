@@ -71,7 +71,7 @@ module.exports = (ctx) => ({
       discardComments: {
         removeAll: true
       },
-      autoprefixer: false,
+      autoprefixer: false, // we do it explicitly using autoprefixer
       zindex: false,
       normalizeUrl: false
     })
@@ -81,7 +81,7 @@ module.exports = (ctx) => ({
 
 ### Autoprefixer
 
-`autoprefixer` (browserslist) rules [should](https://github.com/postcss/autoprefixer#browsers) should be put into either `package.json` or `browserslist` (multiple filenames supported) config file ([see docs](https://github.com/ai/browserslist#packagejson)). We are going to put them in `.browserslistrc`.
+`autoprefixer` (browserslist) rules [should](https://github.com/postcss/autoprefixer#browsers) be put into either `package.json` or `browserslist` (multiple filenames supported) config file ([see docs](https://github.com/ai/browserslist#packagejson)). We are going to put them in `.browserslistrc`.
 
 Docs for autoprefixer rules found in _.postcssrc.js_ can be found [here](https://github.com/postcss/autoprefixer#options).
 
@@ -91,9 +91,7 @@ _.browserslistrc_
 
 ```
 [production]
-last 2 versions
-Explorer 10
-iOS > 7
+> 0.0001%
 
 [development]
 > 0.0001%
@@ -115,53 +113,49 @@ config.module = {
   rules: [
     {
       test: /\.(css)$/,
-      use: ExtractTextPlugin.extract({
-        fallback: 'style-loader',
-        use: [
-          {
-            loader: 'css-loader',
-            options: {
-              minimize: false,
-              importLoaders: 1,
-              sourceMap: true
-            }
-          },
-          {
-            loader: 'postcss-loader',
-            options: {
-              sourceMap: true
-            }
+      use: [
+        development ? 'style-loader' : MiniCssExtractPlugin.loader,
+        {
+          loader: 'css-loader',
+          options: {
+            minimize: false,
+            importLoaders: 1,
+            sourceMap: true
           }
-        ]
-      })
+        },
+        {
+          loader: 'postcss-loader',
+          options: {
+            sourceMap: true
+          }
+        }
+      ],
     },
     {
       test: /\.(scss)$/,
-      use: ExtractTextPlugin.extract({
-        fallback: 'style-loader',
-        use: [
-          {
-            loader: 'css-loader',
-            options: {
-              minimize: false,
-              importLoaders: 2,
-              sourceMap: true
-            }
-          },
-          {
-            loader: 'postcss-loader',
-            options: {
-              sourceMap: true
-            }
-          },
-          {
-            loader: 'sass-loader',
-            options: {
-              sourceMap: true
-            }
+      use: [
+        development ? 'style-loader' : MiniCssExtractPlugin.loader,
+        {
+          loader: 'css-loader',
+          options: {
+            minimize: false,
+            importLoaders: 2,
+            sourceMap: true
           }
-        ]
-      })
+        },
+        {
+          loader: 'postcss-loader',
+          options: {
+            sourceMap: true
+          }
+        },
+        {
+          loader: 'sass-loader',
+          options: {
+            sourceMap: true
+          }
+        }
+      ],
     }
   ]
 };
@@ -169,30 +163,22 @@ config.module = {
 // ...
 ```
 
-Run for development and inspect `public/assets/index.css`
-
-```sh
-rm -rf $(pwd)/public/assets/** && NODE_ENV=development npx webpack --config=$(pwd)/webpack.front.config.js --progress
-```
-
-Prefixes!
-
 Run for production and inspect `public/assets/index.css`
 
 ```sh
 rm -rf $(pwd)/public/assets/** && NODE_ENV=production npx webpack --config=$(pwd)/webpack.front.config.js --progress
 ```
 
-Minification!
+Prefixes and Minification!
 
 ---
 # normalize.css
 ---
 
-Always use [Normalize.css](https://necolas.github.io/normalize.css/). Although our usual *cut the mustard* at preflight enables fallback page for anything below IE11 this fallback has to look O.K.. Use Normalize.css that supports IE8+ (which is 7.x as of now.)
+Always use [Normalize.css](https://necolas.github.io/normalize.css/). Although our usual *cut the mustard* at preflight enables fallback page for anything below IE11 this fallback *has to look OK*. To use Normalize.css that supports IE8+ install version 7.0 (8.0 [dropped](https://github.com/necolas/normalize.css/blob/8.0.0/CHANGELOG.md#800-february-2-2018) less than IE10 support).
 
 ```sh
-npm install normalize.css --save-dev
+npm install normalize.css@7.0.0 --save-dev
 ```
 
 Add to _src/index.global.scss_ SCSS `@import '~normalize.css';`
@@ -202,7 +188,7 @@ We add it as a module, so we prefix it with `~`. Now you know what `resolve: { m
 Run webpack and inspect `public/assets/index.css`
 
 ```sh
-rm -rf $(pwd)/public/assets/** && NODE_ENV=development npx webpack --config=$(pwd)/webpack.front.config.js --progress
+rm -rf $(pwd)/public/assets/** && NODE_ENV=production npx webpack --config=$(pwd)/webpack.front.config.js --progress
 ```
 
 ---
@@ -213,6 +199,8 @@ As you can see we pass `sourceMap` option to our CSS related loaders. But where 
 
 Use webpack [devtool](https://webpack.js.org/configuration/devtool/) configuration.
 
+webpack *mode* sets it to *eval* in development, othervise to none OOB.
+
 Try
 
 _webpack.front.config.js_
@@ -222,7 +210,7 @@ _webpack.front.config.js_
 
 // ----------------
 // Source map conf
-const sourceMapType = (development) ? 'inline-source-map' : false;
+const sourceMapType = 'inline-source-map';
 
 // ...
 
@@ -233,25 +221,24 @@ let config = {
 
 // ...
 
-if (production) {
-  config.plugins.push(new UglifyJsPlugin({
-    // ...
-    sourceMap: sourceMapType // evaluates to bool
-  }));
-}
+    new UglifyJsPlugin({
+      // ...
+      sourceMap: !!sourceMapType
+      // ...
+    })
 
 // ...
 ```
 
-Run webpack for development and inspect last lines of `public/assets/index.js` and `public/assets/index.css`
+Run webpack and inspect `.app` class in browser's inspector, you can see original definitions in `index.global.scss`.
 
-```sh
-rm -rf $(pwd)/public/assets/** && NODE_ENV=development npx webpack --config=$(pwd)/webpack.front.config.js --progress
+Change config to have source map only when development
+
+```javascript
+const sourceMapType = (development) ? 'inline-source-map' : false;
 ```
 
-Inspect `.app` class in browser's inspector.
-
-Keep `inline-source-map` for now. It has slow performance, read more [here](https://webpack.js.org/guides/build-performance/#devtool).
+Keep `inline-source-map` for now although it has slow performance, read more [here](https://webpack.js.org/guides/build-performance/#devtool).
 
 ---
 # Make SCSS build environment aware
@@ -319,7 +306,7 @@ Put them under `src/images` directory.
 Loaders  
 [file-loader](https://github.com/webpack-contrib/file-loader)  
 [url-loader](https://github.com/webpack-contrib/url-loader)  
-[resolve-url-loader](https://github.com/bholloway/resolve-url-loader)  
+[resolve-url-loader](https://github.com/bholloway/resolve-url-loader) currently it has some issues, so it was installed from git master  
 
 `url-loader` works like the file loader, but can return a *Data Url* if the file is smaller than a limit.  
 `resolve-url-loader` is needed because we set file path in `url()` relative to the SCSS file we are working in, however webpack tries to resolve from entry point.
@@ -378,66 +365,64 @@ config.module = {
   rules: [
     {
       test: /\.(css)$/,
-      use: ExtractTextPlugin.extract({
-        fallback: 'style-loader',
-        use: [
-          {
-            loader: 'css-loader',
-            options: {
-              minimize: false,
-              importLoaders: 2,
-              sourceMap: true
-            }
-          },
-          {
-            loader: 'postcss-loader',
-            options: {
-              sourceMap: true
-            }
-          },
-          {
-            loader: 'resolve-url-loader',
-            options: {
-              keepQuery: true
-            }
+      use: [
+        development ? 'style-loader' : MiniCssExtractPlugin.loader,
+        {
+          loader: 'css-loader',
+          options: {
+            minimize: false,
+            importLoaders: 2,
+            sourceMap: true
           }
-        ]
-      })
+        },
+        {
+          loader: 'postcss-loader',
+          options: {
+            sourceMap: true
+          }
+        },
+        {
+          loader: 'resolve-url-loader',
+          options: {
+            sourceMap: true,
+            keepQuery: true
+          }
+        }
+      ]
     },
     {
       test: /\.(scss)$/,
-      use: ExtractTextPlugin.extract({
-        fallback: 'style-loader',
-        use: [
-          {
-            loader: 'css-loader',
-            options: {
-              minimize: false,
-              importLoaders: 3,
-              sourceMap: true
-            }
-          },
-          {
-            loader: 'postcss-loader',
-            options: {
-              sourceMap: true
-            }
-          },
-          {
-            loader: 'resolve-url-loader',
-            options: {
-              keepQuery: true
-            }
-          },
-          {
-            loader: 'sass-loader',
-            options: {
-              sourceMap: true,
-              data: `$env: ${JSON.stringify(process.env.NODE_ENV || 'development')};`
-            }
+      use: [
+        development ? 'style-loader' : MiniCssExtractPlugin.loader,
+        {
+          loader: 'css-loader',
+          options: {
+            minimize: false,
+            importLoaders: 3,
+            sourceMap: true
           }
-        ]
-      })
+        },
+        {
+          loader: 'postcss-loader',
+          options: {
+            sourceMap: true
+          }
+        },
+        {
+          loader: 'resolve-url-loader',
+          options: {
+            sourceMap: true,
+            keepQuery: true
+          }
+        },
+        {
+          loader: 'sass-loader',
+          options: {
+            sourceMap: true,
+            data: `$env: ${JSON.stringify(process.env.NODE_ENV || 'development')};`
+          }
+        }
+      ]
     },
     {
       test: /\.(png|jpe?g|gif)$/,
@@ -456,20 +441,8 @@ config.module = {
 // ...
 ```
 
-Run webpack and inspect `public/assets/` directory and `public/assets/index.css`
-
-```sh
-rm -rf $(pwd)/public/assets/** && NODE_ENV=development npx webpack --config=$(pwd)/webpack.front.config.js --progress
-```
-
-Notice how larger image is outputted as file while smaller image is inlined
-
-```css
-.app {
-  background-image: `url(data:image/jpeg;base64,...);
-```
-
-in CSS. Just as intended.
+Run webpack and inspect `public/assets/` directory and inspect `body` and `.app`.  
+Notice how larger image is outputted as file while smaller image is inlined as base64. Just as intended. Further we will use `file-loader` though.
 
 ---
 # Compressing images using `image-webpack-loader`
@@ -497,10 +470,8 @@ _webpack.front.config.js_
       test: /\.(png|jpe?g|gif)$/,
       use: [
         {
-          loader: 'url-loader',
-          options: {
-            limit: 20000
-          }
+          loader: 'file-loader',
+          options: {}
         },
         (!development)
           ? {
@@ -513,11 +484,7 @@ _webpack.front.config.js_
 // ...
 ```
 
-Run webpack and inspect `public/assets/` directory, how outputted image size differs from source.
-
-```sh
-rm -rf $(pwd)/public/assets/** && NODE_ENV=production npx webpack --config=$(pwd)/webpack.front.config.js --progress
-```
+Run webpack for production and inspect `public/assets/` directory, how outputted image size differs from source.
 
 ---
 # Fonts
@@ -647,7 +614,7 @@ _src/index.global.scss_
 // ...
 ```
 
-Add loaders for font files in webpack config. We can simply use `file-loader` but as an example use `url-loder` here as a reminder that there are those rare cases where base64 inlining makes sense. Anyways, we set limit so low, that no fonts will be inlined into CSS.
+Add loaders for font files in webpack config. We should use `file-loader` not `url-loder` as these should be considered *vendor space* assetsm, but this example shows mime type settings if you were to inline them.
 
 _webpack.front.config.js_
 
@@ -716,15 +683,13 @@ _webpack.front.config.js_
 // ...
 ```
 
-Run webpack and inspect `public/assets/` directory and `public/assets/index.css` as well as how it looks in browser.
+Put directory `media/fonts/spacemono` into `src/conts/`.
 
-```sh
-rm -rf $(pwd)/public/assets/** && NODE_ENV=development npx webpack --config=$(pwd)/webpack.front.config.js --progress
-```
+Run webpack and inspect `public/assets/` directory as well as how it looks in browser.
 
 ## Webpack SVG images vs SVG fonts
 
-Let us distinguish between webfonts and images. We do it by namig convention. To do so, all webfonts alaways have to be suffixed with `-webfont`. If the *bulletproof syntax* is dropped then this can be avoided.
+Let us distinguish between webfonts and images. We do it by namig convention. To do so, all svg webfonts alaways have to be suffixed with `-webfont`. If the *bulletproof syntax* is dropped then this can be ignored.
 
 _webpack.front.config.js_
 
@@ -736,12 +701,10 @@ _webpack.front.config.js_
       exclude: /.-webfont\.svg$/,
       use: [
         {
-          loader: 'url-loader',
-          options: {
-            limit: 20000
-          }
+          loader: 'file-loader',
+          options: {}
         },
-        (production)
+        (!development)
           ? {
             loader: 'image-webpack-loader',
             options: {}
@@ -780,18 +743,11 @@ _webpack.front.config.js_
 // ...
 ```
 
-_example.js_
+Example using *Three.js*
 
 ```javascript
 // ...
-  uniformTex0 = THREE.ImageUtils.loadTexture('path/to/texture.jpg');
-// ...
   shaderProg = new THREE.ShaderMaterial({
-    // ...
-    uniforms: {
-      // ...
-      inTex0: {type: 't', value: uniformTex0},
-    },
     // ...
     vertexShader: require('path/to/shader.vert'),
     fragmentShader: require('path/to/shader.frag')
@@ -814,7 +770,7 @@ _webpack.front.config.js_
     }
 ```
 
-_example.js_
+Example using *Three.js*
 
 ```javascript
 // ...

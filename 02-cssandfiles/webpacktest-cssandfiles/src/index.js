@@ -1,8 +1,8 @@
 /* global __DEVELOPMENT__ */
 'use strict';
 
-var helpers = require('./helpers/helpers.simple.js');
 require('./index.global.scss');
+var helpers = require('./helpers/helpers.simple.js');
 
 if (__DEVELOPMENT__) {
   console.log('I\'m in development!');
