@@ -97,7 +97,7 @@ _While doing edits I realised that notes should be made for some basic npm stuff
 
 ### Node.js / npm version
 
-Make sure you have latest LTS, `node` version 8.x+, `npm` version 5.2+
+Make sure you have latest LTS, `node` version 8.x+, `npm` version 5.7.1+
 
 ### Todo / notes to self
 
