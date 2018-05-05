@@ -5,7 +5,7 @@ const pConfig = require('./package.json');
 const webpack = require('webpack');
 const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 const FileManagerPlugin = require('filemanager-webpack-plugin');
-const MiniCssExtractPlugin = require("mini-css-extract-plugin");
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const HtmlWebpackHarddiskPlugin = require('html-webpack-harddisk-plugin');
 
@@ -71,7 +71,7 @@ let config = {
   output: {
     path: outputPath,
     publicPath: outputPublicPathBuilt,
-    filename: (development) ? '[name].js' : '[name].[chunkhash].js',
+    filename: (development) ? '[name].js' : '[name].[chunkhash].js'
   },
   resolve: {
     modules: [
@@ -304,7 +304,7 @@ config.optimization = {
         output: {
           comments: false,
           beautify: false
-        },
+        }
       },
       extractComments: false,
       sourceMap: !!sourceMapType // evaluates to bool
@@ -404,7 +404,7 @@ config.plugins.push(new HtmlWebpackHarddiskPlugin());
 // MiniCssExtractPlugin
 config.plugins.push(new MiniCssExtractPlugin({
   filename: (development) ? '[name].css' : '[name].[chunkhash].css',
-  chunkFilename: (development) ? '[id].css' : '[id].[chunkhash].css',
+  chunkFilename: (development) ? '[id].css' : '[id].[chunkhash].css'
 }));
 
 // ----------------

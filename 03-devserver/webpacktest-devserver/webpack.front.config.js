@@ -4,7 +4,7 @@ const pConfig = require('./package.json');
 const webpack = require('webpack');
 const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 const FileManagerPlugin = require('filemanager-webpack-plugin');
-const MiniCssExtractPlugin = require("mini-css-extract-plugin");
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 
 // ----------------
 // ENV
@@ -301,7 +301,7 @@ config.optimization = {
         output: {
           comments: false,
           beautify: false
-        },
+        }
       },
       extractComments: false,
       sourceMap: !!sourceMapType // evaluates to bool
@@ -365,7 +365,7 @@ config.plugins.push(new FileManagerPlugin({
 // MiniCssExtractPlugin
 config.plugins.push(new MiniCssExtractPlugin({
   filename: '[name].css',
-  chunkFilename: '[id].css',
+  chunkFilename: '[id].css'
 }));
 
 // ----------------
