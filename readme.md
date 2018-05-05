@@ -82,7 +82,7 @@ _While doing edits I realised that notes should be made for some basic npm stuff
 
 ### Assumptions
 
-* As of writing webpack version is 3.10.0. **Not all chapters are corrected for webpack 3.x, some are still webpack 2.x., currently working on this. webpack 4.0 is also not far from now**
+* As of writing webpack version is 4.7.0.
 * I wrote this and tested locally on macOS and used `nginx` to serve `public` directory with wildcarding routes, under `test` TLD (`webpacktest-chaptername.test` in this case). See *Hello World* for setup.
 
 ### Your task
@@ -97,7 +97,8 @@ _While doing edits I realised that notes should be made for some basic npm stuff
 
 ### Node.js / npm version
 
-Make sure you have latest LTS, `node` version 8.x+, `npm` version 5.7.1+
+Make sure you have latest LTS, basically `node` version 8.x+, `npm` version 5.7.1+  
+This tut has been tested on node 8.9.4 / npm 6.0.0.
 
 ### Todo / notes to self
 
