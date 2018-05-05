@@ -17,26 +17,32 @@ console.log('GLOBAL ENVIRONMENT \x1b[36m%s\x1b[0m', process.env.NODE_ENV);
 // ----------------
 // Host, port, putput public path based on env
 let targetHost;
-let outputPublicPath;
+let outputPublicPathBuilt;
+let outputPublicPathManual;
 const protocolPrefix = pConfig.config.isWebpackDevServerHTTPS ? 'https:' : 'http:';
 const devServerPortNumber = pConfig.config.isWebpackDevServerHTTPS ? pConfig.config.portFrontendWebpackDevServerHTTPS : pConfig.config.portFrontendWebpackDevServerHTTP;
 
 if (production) {
-  outputPublicPath = `//${pConfig.config.hostProduction}${pConfig.config.pathAboveRootProduction}/assets/`;
+  outputPublicPathBuilt = `//${pConfig.config.hostProduction}${pConfig.config.pathAboveRootProduction}/assets/`;
+  outputPublicPathManual = outputPublicPathBuilt;
   targetHost = pConfig.config.hostProduction;
 } else if (staging) {
-  outputPublicPath = `//${pConfig.config.hostStaging}${pConfig.config.pathAboveRootStaging}/assets/`;
+  outputPublicPathBuilt = `//${pConfig.config.hostStaging}${pConfig.config.pathAboveRootStaging}/assets/`;
+  outputPublicPathManual = outputPublicPathBuilt;
   targetHost = pConfig.config.hostStaging;
 } else if (testing) {
-  outputPublicPath = `//${pConfig.config.hostTesting}${pConfig.config.pathAboveRootTesting}/assets/`;
+  outputPublicPathBuilt = `//${pConfig.config.hostTesting}${pConfig.config.pathAboveRootTesting}/assets/`;
+  outputPublicPathManual = outputPublicPathBuilt;
   targetHost = pConfig.config.hostTesting;
 } else {
-  outputPublicPath = `${protocolPrefix}//${pConfig.config.hostDevelopment}:${devServerPortNumber}${pConfig.config.pathAboveRootDevelopment}/assets/`;
+  outputPublicPathBuilt = `${protocolPrefix}//${pConfig.config.hostDevelopment}:${devServerPortNumber}${pConfig.config.pathAboveRootDevelopment}/assets/`;
+  outputPublicPathManual = `${protocolPrefix}//${pConfig.config.hostDevelopment}${pConfig.config.pathAboveRootDevelopment}/assets/`;
   targetHost = pConfig.config.hostDevelopment;
 }
 
 console.log('targetHost \x1b[36m%s\x1b[0m', targetHost);
-console.log('outputPublicPath \x1b[36m%s\x1b[0m', outputPublicPath);
+console.log('outputPublicPathBuilt \x1b[36m%s\x1b[0m', outputPublicPathBuilt);
+console.log('outputPublicPathManual \x1b[36m%s\x1b[0m', outputPublicPathManual);
 console.log('devServerPortNumber \x1b[36m%s\x1b[0m', devServerPortNumber);
 
 // ----------------
@@ -61,7 +67,7 @@ let config = {
   },
   output: {
     path: outputPath,
-    publicPath: outputPublicPath,
+    publicPath: outputPublicPathBuilt,
     filename: '[name].js'
   },
   resolve: {
@@ -126,7 +132,7 @@ config.devServer = {
   port: devServerPortNumber,
   // proxy: {},
   // public: 'myapp.test:80',
-  publicPath: outputPublicPath,
+  publicPath: outputPublicPathBuilt,
   quiet: false,
   // socket: 'socket',
   // staticOptions: {},

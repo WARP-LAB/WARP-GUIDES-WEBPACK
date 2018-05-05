@@ -15,7 +15,7 @@ console.log('GLOBAL ENVIRONMENT \x1b[36m%s\x1b[0m', process.env.NODE_ENV);
 
 // ----------------
 // Output public path
-const outputPublicPath = '/assets/';
+const outputPublicPathBuilt = '/assets/';
 
 // ----------------
 // Output fs path
@@ -31,7 +31,7 @@ let config = {
   },
   output: {
     path: outputPath,
-    publicPath: outputPublicPath,
+    publicPath: outputPublicPathBuilt,
     filename: '[name].js'
   },
   resolve: {
