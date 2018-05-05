@@ -4,6 +4,8 @@
 # !!! it makes me easier to go back and forth to edit things
 package-lock.json
 
+**/public/assets/**
+
 *.jpg
 *.png
 *.gif
