@@ -1,9 +1,9 @@
 'use strict';
 const path = require('path');
 const webpack = require('webpack');
-const UglifyJsPlugin = require('uglifyjs-webpack-plugin'); // aliasing this back to webpack.optimize.UglifyJsPluginis is scheduled for webpack v4.0.0
+const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 const FileManagerPlugin = require('filemanager-webpack-plugin');
-const ExtractTextPlugin = require('extract-text-webpack-plugin');
+const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 
 // ----------------
 // ENV
@@ -11,13 +11,14 @@ const development = process.env.NODE_ENV === 'development';
 const testing = process.env.NODE_ENV === 'testing';
 const staging = process.env.NODE_ENV === 'staging';
 const production = process.env.NODE_ENV === 'production';
-console.log('ENVIRONMENT \x1b[36m%s\x1b[0m', process.env.NODE_ENV);
+console.log('GLOBAL ENVIRONMENT \x1b[36m%s\x1b[0m', process.env.NODE_ENV);
 
 // ----------------
 // Output path
 const outputPath = path.join(__dirname, 'public/assets');
 
 let config = {
+  mode: development ? 'development' : 'production',
   context: __dirname,
   entry: {
     index: [
@@ -45,55 +46,82 @@ config.module = {
   rules: [
     {
       test: /\.(css)$/,
-      use: ExtractTextPlugin.extract({
-        fallback: 'style-loader',
-        use: [
-          {
-            loader: 'css-loader',
-            options: {
-              minimize: false,
-              sourceMap: true
-            }
+      use: [
+        development ? 'style-loader' : MiniCssExtractPlugin.loader,
+        {
+          loader: 'css-loader',
+          options: {
+            minimize: false,
+            sourceMap: true
           }
-        ]
-      })
+        }
+      ],
     },
     {
       test: /\.(scss)$/,
-      use: ExtractTextPlugin.extract({
-        fallback: 'style-loader',
-        use: [
-          {
-            loader: 'css-loader',
-            options: {
-              minimize: false,
-              sourceMap: true
-            }
-          },
-          {
-            loader: 'sass-loader',
-            options: {
-              sourceMap: true
-            }
+      use: [
+        development ? 'style-loader' : MiniCssExtractPlugin.loader,
+        {
+          loader: 'css-loader',
+          options: {
+            minimize: false,
+            sourceMap: true
           }
-        ]
-      })
+        },
+        {
+          loader: 'sass-loader',
+          options: {
+            sourceMap: true
+          }
+        }
+      ],
     }
   ]
 };
 
 // ----------------
-// PLUGINS
+// OPTIMISATION
 
-config.plugins = []; // add new key 'plugins' of type array to config object
+config.optimization = {
+  // config.optimization.minimize = true, // can override
+  minimizer: [
+    new UglifyJsPlugin({
+      cache: true,
+      parallel: true,
+      uglifyOptions: {
+        compress: {
+          sequences: true,
+          dead_code: true,
+          conditionals: true,
+          booleans: true,
+          unused: true,
+          if_return: true,
+          join_vars: true,
+          drop_console: false,
+          warnings: true
+        },
+        ecma: 6,
+        mangle: false,
+        warnings: true,
+        output: {
+          comments: false,
+          beautify: false
+        },
+      },
+      extractComments: false,
+      sourceMap: false
+    })
+  ]
+};
 
 // ----------------
-// WEBPACK DEFINE PLUGIN
-// ALWAYS
+// PLUGINS
+config.plugins = [];
 
+// ----------------
+// DefinePlugin
 config.plugins.push(new webpack.DefinePlugin({
   'process.env': {
-    // 'DEBUG': JSON.stringify(process.env.DEBUG || development),
     'NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development'),
     'BROWSER': true
   },
@@ -108,45 +136,11 @@ config.plugins.push(new webpack.DefinePlugin({
 }));
 
 // ----------------
-// WEBPACK BUILT IN OPTIMIZATION
-// ALWAYS
-
 // ModuleConcatenationPlugin
 config.plugins.push(new webpack.optimize.ModuleConcatenationPlugin());
 
 // ----------------
-// WEBPACK BUILT IN OPTIMIZATION
-// IN PRODUCTION
-
-if (production) {
-  config.plugins.push(new UglifyJsPlugin({
-    parallel: true,
-    uglifyOptions: {
-      compress: {
-        sequences: true,
-        dead_code: true,
-        conditionals: true,
-        booleans: true,
-        unused: true,
-        if_return: true,
-        join_vars: true,
-        drop_console: false,
-        warnings: false
-      },
-      mangle: false,
-      output: {
-        comments: false,
-        beautify: false
-      }
-    },
-    extractComments: false,
-    sourceMap: false
-  }));
-}
-
-// ----------------
 // FileManagerPlugin
-
 config.plugins.push(new FileManagerPlugin({
   onStart: {
     copy: [
@@ -163,12 +157,10 @@ config.plugins.push(new FileManagerPlugin({
 }));
 
 // ----------------
-// ExtractTextPlugin
-
-config.plugins.push(new ExtractTextPlugin({
+// MiniCssExtractPlugin
+config.plugins.push(new MiniCssExtractPlugin({
   filename: '[name].css',
-  disable: false, // always enabled for now
-  allChunks: true
+  chunkFilename: '[id].css',
 }));
 
 module.exports = config;

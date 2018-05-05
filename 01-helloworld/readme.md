@@ -93,6 +93,7 @@ Install webpack and save to dev dependencies
 
 ```sh
 npm install webpack --save-dev
+npm install webpack-cli --save-dev
 ```
 
 ## First configuration
@@ -110,6 +111,7 @@ const path = require('path');
 const outputPath = path.join(__dirname, 'public/assets');
 
 let config = {
+  mode: 'development',
   context: __dirname,
   entry: {
     index: [
@@ -200,9 +202,11 @@ You can change this behaviour if output `filename: '[name].js'` is set to `filen
 But don't do that, let your entry point key name define the output name.  
 Think of what would happen if you had multiple entry points (just like in a real world scenario). How would you manage filenames then if output file would not somehow depend on entry point, but would be always constant? Also later on when we get to chunking up webpack one entry point will produce multiple outputs.
 
-## Webpack environments (`NODE_ENV`)
+## Webpack mode and environments (`NODE_ENV`)
 
-When running webpack we should specify what environment we are building it for. Let us assume simple 4-tier. We will do this by specifying environment via `NODE_ENV`. This assumes development on macOS, which is officially certified as compliant with the Unix 03 / POSIX standard, or other BSD/*nix. But if one has to switch back and forth between POSIX and MSW while working on project, then using [cross-env](https://www.npmjs.com/package/cross-env) is a must!
+webpack 4 [introduced modes](https://medium.com/webpack/webpack-4-mode-and-optimization-5423a6bc597a).
+
+However, when running webpack we should specify what environment we are building it for as usually it is 4-tier. We will do this by specifying environment via `NODE_ENV`. This assumes development on macOS, which is officially certified as compliant with the Unix 03 / POSIX standard, or other BSD/*nix. But if one has to switch back and forth between POSIX and MSW while working on project, then using [cross-env](https://www.npmjs.com/package/cross-env) is a must!
 
 Examples of passing NODE_ENV to webpack:
 
@@ -224,10 +228,32 @@ const development = process.env.NODE_ENV === 'development';
 const testing = process.env.NODE_ENV === 'testing';
 const staging = process.env.NODE_ENV === 'staging';
 const production = process.env.NODE_ENV === 'production';
-console.log('ENVIRONMENT \x1b[36m%s\x1b[0m', process.env.NODE_ENV);
+console.log('GLOBAL ENVIRONMENT \x1b[36m%s\x1b[0m', process.env.NODE_ENV);
 
 // ...
+
+mode: development ? 'development' : 'production',
+
+// ...
+
 ```
+
+Run webpack, specify `NODE_ENV` value
+
+*production*
+
+```sh
+rm -rf $(pwd)/public/assets/** && NODE_ENV=production npx webpack --config=$(pwd)/webpack.front.config.js --progress
+```
+
+*development*
+
+```sh
+rm -rf $(pwd)/public/assets/** && NODE_ENV=development npx webpack --config=$(pwd)/webpack.front.config.js --progress
+```
+
+Inspect the outputted `assets/index.js` in both cases.
+
 
 ---
 # Requiring JS
@@ -265,10 +291,13 @@ Build and observe.
 
 ## Webpack minimise JavaScript
 
-For JavaScript minimisation we should use webpack built in plugin [uglifyjs-webpack-plugin](https://webpack.js.org/plugins/uglifyjs-webpack-plugin/).  
+If you built webpack for production then you already saw that minimisation in action as setting `mode` to production autoenables *UglifyJsPlugin* [see docs](https://webpack.js.org/concepts/mode/).
 
-As of writing we should not use aliased `webpack.optimize.UglifyJsPlugin` (as per docs we can use the alias again when webpack 4.0 comes out), but install and require `uglifyjs` manually.  
-This plugin once could minify only ES5, but now it supports ES6+. `uglifyjs-webpack-plugin` is now based on `uglify-es` (which in turn is the result of previosusly so called *UglifyJS harmony branch*)
+On production webpack sets `optimization.minimize: true` and `optimization.minimizer: new UglifyJsPlugin()` with some defaults.
+
+But what if it has defaults we migth want to change? For example defaults dont drop console calls (note that here we will also explicitly keep it for debug purposes). We just pass our custom constructed object to `optimization.minimizer`.
+
+For JavaScript minimisation we can use webpack plugin [uglifyjs-webpack-plugin](https://webpack.js.org/plugins/uglifyjs-webpack-plugin/). It is uses [UglifyJS 3](https://github.com/mishoo/UglifyJS2) under the hood and thus supports ES6+ (the plugin is now based on `uglify-es` (which in turn is the result of previosusly so called *UglifyJS harmony branch*)).
 
 Options for `compress` key can be [found here](http://lisperator.net/uglifyjs/compress)  
 Other keys [here](https://github.com/webpack-contrib/uglifyjs-webpack-plugin#options)
@@ -284,63 +313,47 @@ _webpack.front.config.js_
 ```javascript
 // ...
 
-const UglifyJsPlugin = require('uglifyjs-webpack-plugin'); // aliasing this back to webpack.optimize.UglifyJsPluginis is scheduled for webpack v4.0.0
+const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 
 // ...
 
 // ----------------
-// PLUGINS
+// OPTIMISATION
 
-config.plugins = []; // add new key 'plugins' of type array to config object
-
-// ----------------
-// WEBPACK BUILT IN OPTIMIZATION
-// IN PRODUCTION
-
-if (production) {
-  config.plugins.push(new UglifyJsPlugin({
-    parallel: true,
-    uglifyOptions: {
-      compress: {
-        sequences: true,
-        dead_code: true,
-        conditionals: true,
-        booleans: true,
-        unused: true,
-        if_return: true,
-        join_vars: true,
-        drop_console: false,
-        warnings: false
+config.optimization = {
+  // config.optimization.minimize = true, // can override
+  minimizer: [
+    new UglifyJsPlugin({
+      cache: true,
+      parallel: true,
+      uglifyOptions: {
+        compress: {
+          sequences: true,
+          dead_code: true,
+          conditionals: true,
+          booleans: true,
+          unused: true,
+          if_return: true,
+          join_vars: true,
+          drop_console: false,
+          warnings: true
+        },
+        ecma: 6,
+        mangle: false,
+        warnings: true,
+        output: {
+          comments: false,
+          beautify: false
+        },
       },
-      mangle: false,
-      output: {
-        comments: false,
-        beautify: false
-      }
-    },
-    extractComments: false,
-    sourceMap: false
-  }));
-}
+      extractComments: false,
+      sourceMap: false
+    })
+  ]
+};
 
 // ...
 ```
-
-Run webpack, specify `NODE_ENV` value
-
-*production*
-
-```sh
-rm -rf $(pwd)/public/assets/** && NODE_ENV=production npx webpack --config=$(pwd)/webpack.front.config.js --progress
-```
-
-*development*
-
-```sh
-rm -rf $(pwd)/public/assets/** && NODE_ENV=development npx webpack --config=$(pwd)/webpack.front.config.js --progress
-```
-
-Inspect the outputted `assets/index.js` in both cases.
 
 ## Manually copy files over to destination
 
@@ -360,6 +373,10 @@ _webpack.front.config.js_
 // ...
 const FileManagerPlugin = require('filemanager-webpack-plugin');
 // ...
+
+// ----------------
+// PLUGINS
+config.plugins = [];
 
 // ----------------
 // FileManagerPlugin
@@ -384,8 +401,6 @@ config.plugins.push(new FileManagerPlugin({
 _src/preflight/preflight.js_
 
 ```javascript
-'use strict';
-
 // PREFILIGHT HAS TO STAY ES3 COMPATIBLE
 // Inline in head.
 // This will pause HTML parsing and execute immediately.
@@ -442,9 +457,9 @@ Run webpack
 rm -rf $(pwd)/public/assets/** && NODE_ENV=production npx webpack --config=$(pwd)/webpack.front.config.js --progress
 ```
 
-The files are in `public/assets` directory. Open `index.html` in the browser, preflight JS does it's job of renaming classnames and prefligt CSS does it's job of of hiding that `Incabable :(` message.
+The files are in `public/assets` directory. Open page in the browser, preflight JS does it's job of renaming classnames and prefligt CSS does it's job of of hiding that `Incabable :(` message.
 
-The sole reason for preflight is to use some ES3 code without any polyfills (in production actualy preflight script is inlined in template) that can execute on *any* browser for detecting very very basic browser features, including JavaScript support, in order to set if the webapp can be run at all. It is not about which features to enable, *preflight is not modernizr*. Granual feature detection and fallbacks can be done in actual app code using *Modernzr*.
+The sole reason for preflight is to use some ES3 code without any polyfills (in production actualy preflight script is inlined in template) that can execute on *any* browser for detecting very very very basic browser features, including JavaScript support, in order to set if the webapp can be run at all. It is not about which features to enable, granual feature detection and fallbacks can be done in actual app code using tools such as *Modernzr*.
 
 ## Note on cssnext
 
@@ -470,27 +485,27 @@ Loaders & documentation
 [https://github.com/webpack-contrib/css-loader](https://github.com/webpack-contrib/css-loader)  
 [https://github.com/webpack-contrib/sass-loader](https://github.com/webpack-contrib/sass-loader)  
 
-Plugins & documentation  
-[extract-text-webpack-plugin](https://github.com/webpack/extract-text-webpack-plugin), more docs at 
-[webpack site](https://webpack.js.org/plugins/extract-text-webpack-plugin/)  
+Until webpack 4 [extract-text-webpack-plugin](https://github.com/webpack/extract-text-webpack-plugin), [webpack docs](https://webpack.js.org/plugins/extract-text-webpack-plugin/) was (and still is) way to go. However now we should use [mini-css-extract-plugin](https://github.com/webpack-contrib/mini-css-extract-plugin) as it is future proof.
 
-`extract-text-webpack-plugin` moves every `require('style.css')` within JavaScript that is spilled out in chunks into a separate CSS output file. So your styles are not inlined into the JavaScript (which would be kind of default webpack way without this plugin), but separate in a CSS file `entryPointKeyName.css`.
+`mini-css-extract-plugin` extracts required CSS within JavaScript into separate files. Thus your styles are not inlined into the JavaScript (which would be kind of default webpack way without this plugin), but separate in a CSS file `entryPointKeyName.css` (and even chunked).
 
 ```sh
 npm install style-loader --save-dev
 npm install css-loader --save-dev
 npm install sass-loader --save-dev
-npm install extract-text-webpack-plugin --save-dev
+npm install mini-css-extract-plugin --save-dev
 ```
+
+Set `mini-css-extract-plugin` to extract CSS if `!development`.
 
 _webpack.front.config.js_
 
 ```javascript
 'use strict';
 const path = require('path');
-const UglifyJsPlugin = require('uglifyjs-webpack-plugin'); // aliasing this back to webpack.optimize.UglifyJsPluginis is scheduled for webpack v4.0.0
+const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 const FileManagerPlugin = require('filemanager-webpack-plugin');
-const ExtractTextPlugin = require('extract-text-webpack-plugin');
+const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 
 // ----------------
 // ENV
@@ -498,15 +513,14 @@ const development = process.env.NODE_ENV === 'development';
 const testing = process.env.NODE_ENV === 'testing';
 const staging = process.env.NODE_ENV === 'staging';
 const production = process.env.NODE_ENV === 'production';
-console.log('ENVIRONMENT \x1b[36m%s\x1b[0m', process.env.NODE_ENV);
+console.log('GLOBAL ENVIRONMENT \x1b[36m%s\x1b[0m', process.env.NODE_ENV);
 
 // ----------------
 // Output path
 const outputPath = path.join(__dirname, 'public/assets');
 
-// ----------------
-// BASE CONFIG
 let config = {
+  mode: development ? 'development' : 'production',
   context: __dirname,
   entry: {
     index: [
@@ -534,81 +548,80 @@ config.module = {
   rules: [
     {
       test: /\.(css)$/,
-      use: ExtractTextPlugin.extract({
-        fallback: 'style-loader',
-        use: [
-          {
-            loader: 'css-loader',
-            options: {
-              minimize: false,
-              sourceMap: true
-            }
+      use: [
+        development ? 'style-loader' : MiniCssExtractPlugin.loader,
+        {
+          loader: 'css-loader',
+          options: {
+            minimize: false,
+            sourceMap: true
           }
-        ]
-      })
+        }
+      ],
     },
     {
       test: /\.(scss)$/,
-      use: ExtractTextPlugin.extract({
-        fallback: 'style-loader',
-        use: [
-          {
-            loader: 'css-loader',
-            options: {
-              minimize: false,
-              sourceMap: true
-            }
-          },
-          {
-            loader: 'sass-loader',
-            options: {
-              sourceMap: true
-            }
+      use: [
+        development ? 'style-loader' : MiniCssExtractPlugin.loader,
+        {
+          loader: 'css-loader',
+          options: {
+            minimize: false,
+            sourceMap: true
           }
-        ]
-      })
+        },
+        {
+          loader: 'sass-loader',
+          options: {
+            sourceMap: true
+          }
+        }
+      ],
     }
   ]
 };
 
 // ----------------
-// PLUGINS
+// OPTIMISATION
 
-config.plugins = []; // add new key 'plugins' of type arrat to config object
+config.optimization = {
+  // config.optimization.minimize = true, // can override
+  minimizer: [
+    new UglifyJsPlugin({
+      cache: true,
+      parallel: true,
+      uglifyOptions: {
+        compress: {
+          sequences: true,
+          dead_code: true,
+          conditionals: true,
+          booleans: true,
+          unused: true,
+          if_return: true,
+          join_vars: true,
+          drop_console: false,
+          warnings: true
+        },
+        ecma: 6,
+        mangle: false,
+        warnings: true,
+        output: {
+          comments: false,
+          beautify: false
+        },
+      },
+      extractComments: false,
+      sourceMap: false
+    })
+  ]
+};
 
 // ----------------
-// WEBPACK BUILT IN OPTIMIZATION
-// IN PRODUCTION
-
-if (production) {
-  config.plugins.push(new UglifyJsPlugin({
-    parallel: true,
-    uglifyOptions: {
-      compress: {
-        sequences: true,
-        dead_code: true,
-        conditionals: true,
-        booleans: true,
-        unused: true,
-        if_return: true,
-        join_vars: true,
-        drop_console: false,
-        warnings: false
-      },
-      mangle: false,
-      output: {
-        comments: false,
-        beautify: false
-      }
-    },
-    extractComments: false,
-    sourceMap: false
-  }));
-}
+// PLUGINS
+config.plugins = [];
 
 // ----------------
 // FileManagerPlugin
-
 config.plugins.push(new FileManagerPlugin({
   onStart: {
     copy: [
@@ -625,12 +638,10 @@ config.plugins.push(new FileManagerPlugin({
 }));
 
 // ----------------
-// ExtractTextPlugin
-
-config.plugins.push(new ExtractTextPlugin({
+// MiniCssExtractPlugin
+config.plugins.push(new MiniCssExtractPlugin({
   filename: '[name].css',
-  disable: false, // always enabled for now
-  allChunks: true
+  chunkFilename: '[id].css',
 }));
 
 module.exports = config;
@@ -704,9 +715,6 @@ const webpack = require('webpack');
 // ...
 
 // ----------------
-// WEBPACK BUILT IN OPTIMIZATION
-// ALWAYS
-
 // ModuleConcatenationPlugin
 config.plugins.push(new webpack.optimize.ModuleConcatenationPlugin());
 
@@ -746,12 +754,9 @@ _webpack.front.config.js_
 // ...
 
 // ----------------
-// WEBPACK DEFINE PLUGIN
-// ALWAYS
-
+// DefinePlugin
 config.plugins.push(new webpack.DefinePlugin({
   'process.env': {
-    // 'DEBUG': JSON.stringify(process.env.DEBUG || development),
     'NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development'),
     'BROWSER': true
   },
@@ -764,6 +769,7 @@ config.plugins.push(new webpack.DefinePlugin({
   __PRODUCTION__: production,
   __DEVTOOLS__: development
 }));
+
 
 // ...
 ```
@@ -794,11 +800,6 @@ if (false) {
   console.log('I\'m in development!'); // <--this is unreachable, so remove it
 }
 ```
----
-# OccurrenceOrderPlugin
----
-
-It would also belong to *Hello World* basic webpack setup, but it is now [enabled by default](https://webpack.js.org/guides/migrating/#occurrenceorderplugin-is-now-on-by-default).
 
 ---
 # Next

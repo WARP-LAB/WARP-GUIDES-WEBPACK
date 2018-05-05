@@ -1,5 +1,3 @@
-'use strict';
-
 // PREFILIGHT HAS TO STAY ES3 COMPATIBLE
 // Inline in head.
 // This will pause HTML parsing and execute immediately.
