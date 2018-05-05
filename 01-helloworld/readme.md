@@ -108,7 +108,7 @@ const path = require('path');
 
 // ----------------
 // Output public path
-const outputPublicPath = 'assets/';
+const outputPublicPath = '/assets/';
 
 // ----------------
 // Output fs path
@@ -522,7 +522,7 @@ console.log('GLOBAL ENVIRONMENT \x1b[36m%s\x1b[0m', process.env.NODE_ENV);
 
 // ----------------
 // Output public path
-const outputPublicPath = 'assets/';
+const outputPublicPath = '/assets/';
 
 // ----------------
 // Output fs path
