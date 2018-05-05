@@ -2,10 +2,17 @@
 <html lang="en" class="noscript incapable">
 <head>
   <meta charset="utf-8">
-  <title><%= htmlWebpackPlugin.options.title %></title>
+  <title><%= htmlWebpackPlugin.options.title || 'Webpack Test'%></title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+  <!--
+  <script src="<%= htmlWebpackPlugin.options.publicPathManual %>preflight.js"></script>
+  <link href="<%= htmlWebpackPlugin.options.publicPathManual %>preflight.css" rel="stylesheet" type="text/css">
+  -->
   <script><%= htmlWebpackPlugin.options.fsInlineContents['preflight.js'] %></script>
   <style><%= htmlWebpackPlugin.options.fsInlineContents['preflight.css'] %></style>
+  <% for (var css in htmlWebpackPlugin.files.css) { %>
+    <link href="<%= htmlWebpackPlugin.files.css[css] %>" rel="stylesheet" type="text/css">
+  <% } %>
 </head>
 <body>
   <noscript>
@@ -20,5 +27,8 @@
   <script>
     window.__TEMPLATE_DATA__ = {};
   </script>
+  <% for (var chunk in htmlWebpackPlugin.files.chunks) { %>
+    <script async src="<%= htmlWebpackPlugin.files.chunks[chunk].entry %>"></script>
+  <% } %>
 </body>
 </html>
