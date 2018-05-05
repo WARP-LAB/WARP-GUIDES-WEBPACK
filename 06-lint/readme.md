@@ -18,7 +18,7 @@ Use existing `webpacktest-babel` code base from previous guide stage. Either wor
 # ESLint
 ---
 
-Apart from writing modern JavaScript you will have to obey syntax rules as well as formatting rules. Oh well.
+Apart from writing modern JavaScript you will have to obey syntax rules as well as formating rules. Oh well.
 
 ## ESLint
 
@@ -52,7 +52,9 @@ We will be coding and linting our code against [**JavaScript Standard Style**](h
 
 However we will not be using [*pure standard*](https://standardjs.com), but sharable config version of it - [ESLint Shareable Config for JavaScript Standard Style](https://github.com/feross/eslint-config-standard)
 
-**We will be using semicolons [whatever they say](https://www.youtube.com/watch?v=gsfbh17Ax9I), end of story.**
+**Whatever they say - we will be using semicolons; end of story.**
+
+Basically we will be creating our own [JavaScript Semi-Standard Style](https://www.npmjs.com/package/semistandard) from scratch, plus some more *sprinkles on top*.
 
 Install ESLint plugins that are needed for our current state of code complexity. Basically plugins listed below are demanded (peer dependencies) by [eslint-config-standard](https://github.com/standard/eslint-config-standard#usage) that we will be using, see below.
 
@@ -121,9 +123,8 @@ module.exports = {
     "import/extensions": [0, {"js": "always", "json": "always"}] // https://github.com/benmosher/eslint-plugin-import/blob/master/docs/rules/extensions.md
   }
 };
-
-
 ```
+
 For base ESLINT (ES2015 - ES6)
 
 * Parser option syntax is discussed in [ESlint Language Options](https://eslint.org/docs/user-guide/migrating-to-2.0.0#language-options).
@@ -219,7 +220,7 @@ Add linting also to your (S)CSS.
 
 ## Webpack stylelint
 
-Stylelint is tricky, so stylelint errors are not allowed to abort building process. More often than not it is even disabled in webpack config and used only in editor as guidance.
+Stylelint is tricky, so stylelint errors are not allowed to abort building process. It is even disabled in webpack config and used only in editor as guidance.
 
 Install [Stylelint](https://stylelint.io)
 
@@ -331,6 +332,13 @@ module.exports = {
 
 ```
 
+Add also `.stylelintignore` to ignore compiled CSS (note that currently *Atom* ignores `.stylelintignore`, meh)
+
+```
+public/**
+static/**
+```
+
 Add plugin to _webpack.config.js_
 
 ```javascript
@@ -341,21 +349,21 @@ const StyleLintPlugin = require('stylelint-webpack-plugin'); // eslint-disable-l
 // ...
 
 // ----------------
-// StyleLint CONFIG
-
+// StyleLint
 config.plugins.push(new StyleLintPlugin({
   configFile: '.stylelintrc.js',
-  emitErrors: true,
-  failOnError: false,
+  emitErrors: false, // emit warnings instead of errors, continue building
+  failOnError: false, // do not throw fatal, continue building
   files: ['**/*.s?(a|c)ss'],
   lintDirtyModulesOnly: false,
   syntax: 'scss',
-  quiet: false
+  quiet: false // error output to the console
 }));
 
 // ...
 ```
 
+With this config build will not fail on S(C)SS errors, only warn about them.
 
 In _src/index.global.scss_ do something questionable, like incorrect (S)CSS
 
@@ -365,7 +373,7 @@ yolo {
 }
 ```
 
-Build the project for development, observe how build fails with
+Build the project for development, observe how build contains warnings
 
 ```
 WARNING in
@@ -375,27 +383,7 @@ src/index.global.scss
  34:16  ✖  Expected a trailing semicolon             declaration-block-trailing-semicolon
 ```
 
-Make build not fail on S(C)SS errors by setting
-
-```javascript
-// ...
-config.plugins.push(new StyleLintPlugin({
-// ...
-    emitErrors: false,
-// ...
-}));
-```
-
-which will make them as warnings, but build will continue.
-
-Add also `.stylelintignore` to ignore compiled CSS
-
-```
-public/**
-static/**
-```
-
-Note that currently Atom ignores `.stylelintignore`, meh.
+At any point you can disable *StyleLintPlugin* in webpack config and run it just time to time.
 
 ## stylelint in text editors
 
