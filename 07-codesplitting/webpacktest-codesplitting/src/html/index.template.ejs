@@ -2,23 +2,85 @@
 <html lang="en" class="noscript incapable">
 <head>
   <meta charset="utf-8">
-  <title><%= htmlWebpackPlugin.options.title %></title>
+  <title><%= htmlWebpackPlugin.options.title || 'Webpack Test'%></title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+  <!--
+  <script src="<%= htmlWebpackPlugin.options.publicPathManual %>preflight.js"></script>
+  <link href="<%= htmlWebpackPlugin.options.publicPathManual %>preflight.css" rel="stylesheet" type="text/css">
+  -->
   <script><%= htmlWebpackPlugin.options.fsInlineContents['preflight.js'] %></script>
   <style><%= htmlWebpackPlugin.options.fsInlineContents['preflight.css'] %></style>
+
+  <!-- CSS LOGIC -->
+  <%
+  // GET CSS ARRAY IDS THAT SHOULD BE INLINED
+
+  const cssIdxToInline = [];
+
+  if ('inlineCSSRegex' in htmlWebpackPlugin.options) {
+    for (let cssIdx in htmlWebpackPlugin.files.css) {
+      // Get path of this file
+      const fullPublicPath = htmlWebpackPlugin.files.css[cssIdx];
+      // For all inlineCSSRegex specified in HtmlWebpackPlugin check for match
+      // We allow regex to find in full public path, not just filename, as it may be handy
+      for (let rIdx in htmlWebpackPlugin.options.inlineCSSRegex) {
+        const regExp = new RegExp(htmlWebpackPlugin.options.inlineCSSRegex[rIdx]);
+        if (regExp.test(fullPublicPath)) {
+          if (!cssIdxToInline.includes(cssIdx)) {
+            cssIdxToInline.push(cssIdx);
+          }
+          break; // break on first, but sometimes maybe scan all?
+        }
+      }
+    }
+  }
+  %>
+
+  <% for (let cssIdx in htmlWebpackPlugin.files.css) {
+    // INLINE CSS
+    // If this cssIdx is not in cssIdxToInline, then skip
+    if (!cssIdxToInline.includes(cssIdx)) {
+      continue;
+    }
+    // Get path of this file
+    const fullPublicPath = htmlWebpackPlugin.files.css[cssIdx];
+    // Get filename
+    const fileName = /[^/]*$/.exec(fullPublicPath)[0];
+    // Get source
+    const source = compilation.assets[fileName].source();
+    // Echo source in style tags
+  %>
+    <style>
+      <%= source %>
+    </style>
+  <% } %>
+
+  <% for (let cssIdx in htmlWebpackPlugin.files.css) {
+    // LINK CSS
+    // If this cssIdx is in cssIdxToInline, then skip
+    if (cssIdxToInline.includes(cssIdx)) {
+      continue;
+    }
+  %>
+    <link href="<%= htmlWebpackPlugin.files.css[cssIdx] %>" rel="stylesheet" type="text/css">
+  <% } %>
+  <!-- // CSS LOGIC -->
+
 </head>
 <body>
-  <noscript>
-    <div class="noscript">
-      Lynx FTW!
-    </div>
-  </noscript>
-  <div class="incapable">
-    Incapable :(
-  </div>
   <div class="app"></div>
   <script>
     window.__TEMPLATE_DATA__ = {};
   </script>
+
+  <% for (let item in htmlWebpackPlugin.options.scripts) { %><%
+      if (typeof item === 'string' || item instanceof String) { item = { src: item, type: 'text/javascript' } } %>
+    <script<% for (let key in item) { %> <%= key %>="<%= item[key] %>"<% } %>></script>
+  <% } %>
+
+  <% for (let chunk in htmlWebpackPlugin.files.chunks) { %>
+    <script src="<%= htmlWebpackPlugin.files.chunks[chunk].entry %>"></script>
+  <% } %>
+
 </body>
 </html>
