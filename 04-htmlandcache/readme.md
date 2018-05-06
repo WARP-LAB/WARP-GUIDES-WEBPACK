@@ -68,6 +68,7 @@ npm install html-webpack-harddisk-plugin --save-dev
 Many template engines [are supported](https://github.com/jantimon/html-webpack-plugin/blob/master/docs/template-option.md).
 
 Let us just use built in *lodash* (underscore) template markup.
+Here is link to [html-webpack-template](https://github.com/jaketrent/html-webpack-template/blob/master/index.ejs) to give you idea what data gets exposed.
 
 ## Configure
 
