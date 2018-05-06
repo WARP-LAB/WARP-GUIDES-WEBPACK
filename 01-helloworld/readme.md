@@ -27,6 +27,7 @@ webpacktest-basic
 │   ├── fonts
 │   ├── helpers
 │   │   ├── helpers.lazy.js
+│   │   ├── helpers.lazy.scss
 │   │   └── helpers.simple.js
 │   ├── html
 │   │   └── index.template.ejs
