@@ -102,8 +102,7 @@ This tut has been tested on node 8.9.4 / npm 6.0.0.
 
 ### Todo / notes to self
 
-* [DllPlugin](https://webpack.js.org/plugins/dll-plugin/) as alternative to *CommonsChunkPlugin*
-* Should we use [*PreloadWebpackPlugin*](https://github.com/GoogleChrome/preload-webpack-plugin) if [*ScriptExtHtmlWebpackPlugin*](https://github.com/numical/script-ext-html-webpack-plugin) that we already use has this functionality?
 * Extend more on `index.html` (or any other template, evern *PHP*) building via [*HtmlWebpackPlugin*](https://www.npmjs.com/package/html-webpack-plugin) - talk about plugins.
-* Progressive webapp stuff
-* Maybe discuss how *webpack-dev-server* can be launched via API (that is some separate file to launch server - `server.dev.js` containing `new WebpackDevServer()`).
+* TTFMP stuff
+* PWA stuff
+* Maybe discuss how *webpack-dev-server* can be launched via API
