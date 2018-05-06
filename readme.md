@@ -56,16 +56,16 @@ _While doing edits I realised that notes should be made for some basic npm stuff
 * Analysing the built product by webpack
 * The issue that code splitting solves
 * Code splitting setup
-* Different approaches - common, vendor, runtime (manifest) chunks
+* Different approaches - vendor, shared, runtime chunks
 * Keeping the chunkhashes under control for caching
 * Lazy loading, naming lazy loaded chunks
-* Inlining runtime (manifest)
+* Inlining runtime and JS/CSS generally
 
-### 8. React.js
+### X. React.js
 
 * Out of date, will be revisited
 
-### 9. CSS modules
+### X. CSS modules
 
 * Out of date, will be revisited
 
