@@ -45,7 +45,7 @@ _While doing edits I realised that notes should be made for some basic npm stuff
 ### 4. HTML building, asset injecting and inlining, cache busting
 
 * Building HTML
-* Cache busting by using hases
+* Cache busting by using hashes
 * Inlining static assets in HTML using read from disk
 * Minify HTML including inlined stuff
 
