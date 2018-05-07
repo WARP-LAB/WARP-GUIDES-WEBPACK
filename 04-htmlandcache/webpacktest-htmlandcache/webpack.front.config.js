@@ -11,46 +11,57 @@ const HtmlWebpackHarddiskPlugin = require('html-webpack-harddisk-plugin');
 
 // ----------------
 // ENV
-const development = process.env.NODE_ENV === 'development';
+// bit manual mangling as we cannot trust process.env.NODE_ENV to be set
+let tierName;
+let development = process.env.NODE_ENV === 'development';
 const testing = process.env.NODE_ENV === 'testing';
 const staging = process.env.NODE_ENV === 'staging';
 const production = process.env.NODE_ENV === 'production';
-console.log('GLOBAL ENVIRONMENT \x1b[36m%s\x1b[0m', process.env.NODE_ENV);
+if (production) {
+  tierName = 'production';
+} else if (staging) {
+  tierName = 'staging';
+} else if (testing) {
+  tierName = 'testing';
+} else {
+  tierName = 'development';
+  development = true; // fall back to development
+}
 
 // ----------------
 // Host, port, putput public path based on env
-let targetHost;
-let outputPublicPathBuilt;
-let outputPublicPathManual;
-const protocolPrefix = pConfig.config.isWebpackDevServerHTTPS ? 'https:' : 'http:';
-const devServerPortNumber = pConfig.config.isWebpackDevServerHTTPS ? pConfig.config.portFrontendWebpackDevServerHTTPS : pConfig.config.portFrontendWebpackDevServerHTTP;
+let targetAppProtocolPrefix = ''; // explicitly set protocol, protocol-relative URLs are now considered an anti-pattern
+let targetAppHost; // hostname
+let targetAppPortSuffix; // if some custom port is specified, set suffix
+let targetAppUrlFull; // app root URL (with custom port, if exists), usually domain root, but can be subdirectory
+let targetAppUrlNoPort; // app root URL without any port designation
+const targetAppBuildUrlDir = 'assets/';
 
-if (production) {
-  outputPublicPathBuilt = `//${pConfig.config.hostProduction}${pConfig.config.pathAboveRootProduction}/assets/`;
-  outputPublicPathManual = outputPublicPathBuilt;
-  targetHost = pConfig.config.hostProduction;
-} else if (staging) {
-  outputPublicPathBuilt = `//${pConfig.config.hostStaging}${pConfig.config.pathAboveRootStaging}/assets/`;
-  outputPublicPathManual = outputPublicPathBuilt;
-  targetHost = pConfig.config.hostStaging;
-} else if (testing) {
-  outputPublicPathBuilt = `//${pConfig.config.hostTesting}${pConfig.config.pathAboveRootTesting}/assets/`;
-  outputPublicPathManual = outputPublicPathBuilt;
-  targetHost = pConfig.config.hostTesting;
-} else {
-  outputPublicPathBuilt = `${protocolPrefix}//${pConfig.config.hostDevelopment}:${devServerPortNumber}${pConfig.config.pathAboveRootDevelopment}/assets/`;
-  outputPublicPathManual = `${protocolPrefix}//${pConfig.config.hostDevelopment}${pConfig.config.pathAboveRootDevelopment}/assets/`;
-  targetHost = pConfig.config.hostDevelopment;
+let outputPublicPathBuilt; // ULR to built assets
+let outputPublicPathNoPort; // ULR to built assets, but without any port designation
+
+// we can use tierName to set stuff at once
+if (!pConfig.config.useProtocolRelativeUrls) {
+  targetAppProtocolPrefix = pConfig.config.tiers[tierName].tls ? 'https:' : 'http:';
 }
+targetAppHost = pConfig.config.tiers[tierName].host;
+targetAppPortSuffix = (pConfig.config.tiers[tierName].port) ? `:${pConfig.config.tiers[tierName].port}` : '';
+targetAppUrlFull = `${targetAppProtocolPrefix}//${pConfig.config.tiers[tierName].sub}${pConfig.config.tiers[tierName].host}${targetAppPortSuffix}/${pConfig.config.tiers[tierName].appPathAboveRoot}`;
+targetAppUrlNoPort = `${targetAppProtocolPrefix}//${pConfig.config.tiers[tierName].sub}${pConfig.config.tiers[tierName].host}/${pConfig.config.tiers[tierName].appPathAboveRoot}`;
+outputPublicPathBuilt = `${targetAppUrlFull}${targetAppBuildUrlDir}`;
+outputPublicPathNoPort = `${targetAppUrlNoPort}${targetAppBuildUrlDir}`;
 
-console.log('targetHost \x1b[36m%s\x1b[0m', targetHost);
-console.log('outputPublicPathBuilt \x1b[36m%s\x1b[0m', outputPublicPathBuilt);
-console.log('outputPublicPathManual \x1b[36m%s\x1b[0m', outputPublicPathManual);
-console.log('devServerPortNumber \x1b[36m%s\x1b[0m', devServerPortNumber);
+console.log('\x1b[42m\x1b[30m                                                               \x1b[0m');
+console.log('\x1b[44m%s\x1b[0m -> \x1b[36m%s\x1b[0m', 'TIER', tierName);
+console.log('\x1b[44m%s\x1b[0m -> \x1b[36m%s\x1b[0m', 'targetAppHost', targetAppHost);
+console.log('\x1b[44m%s\x1b[0m -> \x1b[36m%s\x1b[0m', 'targetAppUrlFull', targetAppUrlFull);
+console.log('\x1b[44m%s\x1b[0m -> \x1b[36m%s\x1b[0m', 'outputPublicPathBuilt', outputPublicPathBuilt);
+console.log('\x1b[44m%s\x1b[0m -> \x1b[36m%s\x1b[0m', 'outputPublicPathNoPort', outputPublicPathNoPort);
+console.log('\x1b[42m\x1b[30m                                                               \x1b[0m');
 
 // ----------------
 // Output fs path
-const outputPath = path.join(__dirname, 'public/assets');
+const outputFsPath = path.join(__dirname, 'public/assets');
 
 // ----------------
 // Source map conf
@@ -69,7 +80,7 @@ let config = {
     ]
   },
   output: {
-    path: outputPath,
+    path: outputFsPath,
     publicPath: outputPublicPathBuilt,
     filename: (development) ? '[name].js' : '[name].[chunkhash].js'
   },
@@ -108,18 +119,19 @@ config.devServer = {
     'Access-Control-Allow-Origin': '*'
   },
   historyApiFallback: true,
-  host: targetHost,
+  host: targetAppHost,
 
   // needs webpack.HotModuleReplacementPlugin()
-  hot: true,
+  hot: pConfig.config.webpackDevServer.hot,
   // hotOnly: true
 
-  https: false,
-  // https: {
-  //   ca: fs.readFileSync('/path/to/ca.pem'),
-  //   key: fs.readFileSync('/path/to/server.key'),
-  //   cert: fs.readFileSync('/path/to/server.crt')
-  // },
+  https: pConfig.config.tiers.development.tls
+    ? {
+      ca: fs.readFileSync(`${require('os').homedir()}/.valet/CA/LaravelValetCASelfSigned.pem`),
+      key: fs.readFileSync(`${require('os').homedir()}/.valet/Certificates/${targetAppHost}.key`),
+      cert: fs.readFileSync(`${require('os').homedir()}/.valet/Certificates/${targetAppHost}.crt`)
+    }
+    : false,
   // pfx: '/path/to/file.pfx',
   // pfxPassphrase: 'passphrase',
 
@@ -132,7 +144,7 @@ config.devServer = {
     warnings: false,
     errors: true
   },
-  port: devServerPortNumber,
+  port: pConfig.config.tiers.development.port,
   // proxy: {},
   // public: 'myapp.test:80',
   publicPath: outputPublicPathBuilt,
@@ -143,10 +155,10 @@ config.devServer = {
   useLocalIp: false,
 
   before (app) {
-    console.log('Webpack devserver middlewres before');
+    console.log('Webpack devserver middleware before');
   },
   after (app) {
-    console.log('Webpack devserver middlewres after');
+    console.log('Webpack devserver middleware after');
   }
 };
 
@@ -354,7 +366,7 @@ config.plugins.push(new FileManagerPlugin({
     copy: [
       // {
       //   source: path.join(__dirname, 'src/preflight/*.{js,css}'),
-      //   destination: outputPath
+      //   destination: outputFsPath
       // }
     ],
     move: [],
@@ -367,7 +379,7 @@ config.plugins.push(new FileManagerPlugin({
 // ----------------
 // HtmlWebpackPlugin
 config.plugins.push(new HtmlWebpackPlugin({
-  publicPathManual: outputPublicPathManual,
+  outputPublicPathNoPort,
   fsInlineContents: {
     'preflight.js': fs.readFileSync(path.join(__dirname, 'src/preflight/preflight.js'), 'utf8'),
     'preflight.css': fs.readFileSync(path.join(__dirname, 'src/preflight/preflight.css'), 'utf8')

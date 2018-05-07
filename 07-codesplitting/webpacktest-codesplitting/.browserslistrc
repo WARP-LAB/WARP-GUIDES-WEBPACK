@@ -1,9 +1,7 @@
-[production]
+[production staging testing]
 last 2 versions
 Explorer 10
 iOS > 7
 
 [development]
-last 2 versions
-Explorer 10
-iOS > 7
+> 0.0001%

@@ -19,7 +19,7 @@ const outputPublicPathBuilt = '/assets/';
 
 // ----------------
 // Output fs path
-const outputPath = path.join(__dirname, 'public/assets');
+const outputFsPath = path.join(__dirname, 'public/assets');
 
 // ----------------
 // Source map conf
@@ -35,7 +35,7 @@ let config = {
     ]
   },
   output: {
-    path: outputPath,
+    path: outputFsPath,
     publicPath: outputPublicPathBuilt,
     filename: '[name].js'
   },
@@ -243,7 +243,7 @@ config.plugins.push(new FileManagerPlugin({
     copy: [
       {
         source: path.join(__dirname, 'src/preflight/*.{js,css}'),
-        destination: outputPath
+        destination: outputFsPath
       }
     ],
     move: [],

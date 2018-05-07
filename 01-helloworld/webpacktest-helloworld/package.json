@@ -6,6 +6,10 @@
   "author": "kroko",
   "license": "MIT",
   "private": true,
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "guide:clean": "rm -rf $(pwd)/public/assets/* && rm -rf $(pwd)/node_modules && rm -rf $(pwd)/package-lock.json"
+  },
   "devDependencies": {
     "css-loader": "^0.28.11",
     "filemanager-webpack-plugin": "^1.0.26",

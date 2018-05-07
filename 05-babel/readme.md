@@ -67,7 +67,7 @@ Note, that currently Babel Loader for babel 7.x is also beta.
 npm install "babel-loader@^8.0.0-beta" --save-dev
 ```
 
-Now specify loader for JavaScript files within the *rules*. Exclude `node_modules` as they *should be* transpiled already. Exclude `src/preflight/preflight.js` as by it's role/definition it should never contain anything newer than ES3 (however buildinh system will never pick it up anyways, as it is not *imported* in our entry or its children). Let us disable also cache which will help us observe behaviour down the line.
+Now specify loader for JavaScript files within the *rules*. Exclude `node_modules` as they *should be* transpiled already. Exclude `src/preflight/preflight.js` as by it's role/definition it should never contain anything newer than ES3 (however building system will never pick it up anyways, as it is not *imported* in our entry or its children). Let us disable also cache which will help us observe behaviour down the line.
 
 _webpack.front.config.js_
 
@@ -132,7 +132,7 @@ export function helperB () {
 }
 ```
 
-For a moment you can disable `UglifyJsPlugin` by forcing `minimize: false` in `optimization` object. Build it for production. 
+For a moment you can disable `UglifyJsPlugin` by forcing `minimize: false` in `optimization` object. Build it for testing tier. 
 
 ```javascript
 config.optimization = {
@@ -142,7 +142,7 @@ config.optimization = {
 ```
 
 ```sh
-npm run build:front:prod
+npm run build:front:test
 ``` 
 
 Inspect how array function, `const` and template string got compiled to ES5 so that browsers can understand it.
@@ -163,7 +163,7 @@ Just as Babel says - *Use next generation JavaScript, today.*
 
 ## Tree shaking
 
-Reenable `UglifyJsPlugin`. Build project production and look for `I am simple helper A` and `I am simple helper B` in compiled `assets/index.hash.js`.  
+Reenable `UglifyJsPlugin`. Build project testing and look for `I am simple helper A` and `I am simple helper B` in compiled `assets/index.hash.js`.  
 
 `helperB` is present although we explicitly imported and used only `helperA` in `index.js` (make sure that you have `drop_console: false` in `uglifyOptions`).
 
@@ -187,7 +187,7 @@ In order for Babel to support it edit _.babelrc_
 
 By setting `{ "modules": false }` we tell Babel not to compile our ES2015 modules found in our code to Common.js modules (default value for `modules` is `commonjs`, see [docs](https://github.com/babel/babel/tree/master/packages/babel-preset-env#modules)). Webpack understands ES2015 modules syntax (static structure) which is what allows it to do tree shaking. And we need `UglifyJsPlugin` in the end to remove the dead code.
 
-Build it again for productions. Observe that `helperB` is not to be found in the built product. Horray!
+Build it again for testing. Observe that `helperB` is not to be found in the built product. Hooray!
 
 ## Babel polyfill
 
@@ -222,7 +222,7 @@ Add needed keys to _.babelrc_
 
 ## Test Babel polyfills
 
-Add something that needs polifill on older browsers in _index.js_, such as `Array.prototype.find`
+Add something that needs polyfill on older browsers in _index.js_, such as `Array.prototype.find`
 
 ```javascript
   // Test Array.find polyfill
@@ -236,7 +236,7 @@ Add something that needs polifill on older browsers in _index.js_, such as `Arra
 and let *.browserslistrc* hold support for IE10
 
 ```
-[production]
+[production staging testing]
 last 2 versions
 Explorer 10
 iOS >= 7
@@ -278,7 +278,7 @@ Using polyfills with `usage` option:
 
 Note that babel informs us about `es6.array.find` as expected - [comapt table](https://kangax.github.io/compat-table/es6/#test-Array.prototype_methods_Array.prototype.find_a_href=_https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/find_title=_MDN_documentation_img_src=_../mdn.png_alt=_MDN_(Mozilla_Development_Network)_logo_width=_15_height=_13_/_/a_nbsp;) shows that *Array.prototype.find* is not present in IE and AN 4.4.3 (you have to check obsolete platforms).
 
-For for a moment change `.browserslistrc` production targets to `last 1 Chrome version` and bserve the difference.
+For for a moment change `.browserslistrc` nondevelopment tier targets to `last 1 Chrome version` and bserve the difference.
 
 ## Other polyfills
 

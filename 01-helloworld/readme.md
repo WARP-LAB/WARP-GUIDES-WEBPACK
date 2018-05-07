@@ -12,6 +12,14 @@
 # Preflight
 ---
 
+
+## OS requirements
+
+This assumes development on macOS, which is Unix 03 / POSIX standard, or some nice BSD/* nix platform that is excellent for web development.  
+masOS specific stuff here basically is [*Homebrew*](https://brew.sh) and [*Laravel Valet*](https://github.com/laravel/valet). The first is just package manager and the second can be substituted by installing *nginx* and *dnsmasq* to serve local static files, plus it seems that there is also [Valet Linux](https://github.com/cpriego/valet-linux).   
+If you are on pure MSW, my first and last suggestion is using MSW as just host for *nix* virtual machine. This tut does not include any need for databases. I bet somebody has written *Medium* article that web development on MSW rocks.  
+Btw, if one has to switch back and forth between POSIX and MSW while working on project, then using [cross-env](https://www.npmjs.com/package/cross-env) is a must.   
+
 ## Set up basic dir structure
 
 Crate master directory and set files tree up like this (`tree -a .`).  
@@ -42,6 +50,7 @@ webpacktest-basic
 │   ├── section.global.scss
 │   ├── section.js
 │   ├── section.local.scss
+│   ├── sw.js
 │   └── typography.global.scss
 └── webpack.front.config.js
 ```
@@ -50,7 +59,7 @@ Leave `webpack.front.config.js`, javascript, EJS and CSS/SCSS files empty for no
 
 ## npm
 
-Either leave `package.json` out and generate it using `npm init` or put simpe template `package.json` in place / [manually fill in](https://docs.npmjs.com/files/package.json) bare minimum yourself.
+Either leave `package.json` out and generate it using `npm init` or put simple template `package.json` in place / [manually fill in](https://docs.npmjs.com/files/package.json) bare minimum yourself.
 
 _package.json_
 
@@ -68,11 +77,13 @@ _package.json_
 
 ## Server side
 
-Remember that this *Hello World* does not necessarely need any webserver. Opening `index.html` directly from filesystem will work just fine in most cases.
+Remember that this *Hello World* does not necessarily need any webserver. Opening `index.html` directly from filesystem will work just fine in most cases.
 
-However following sections will assume some server side because of file serving (you really should not be doing `--allow-file-access-from-files`) and to actually reflect on real development process. If not using webserver paths will break.
+But that's it. All further sections will assume some server side static file serving to actually reflect on real development process. If not using webserver paths will break.
 
-The guide is written by having directory `webpacktest-helloworld` (and in the future `webpacktest-<sectionname>`) in a directory where [*Laravel Valet*](https://laravel.com/docs/5.5/valet) is parked. *Valet* has nothing to do with *PHP* in this case, it just gives us *nginx* (that serves files from `anydirectory/public` within its park directory OOB) and *DnsMasq*, so that when `webpacktest-helloworld` directory is parked, it can be accessed via `//webpacktest-helloworld.test` domain. Although *Valet* is not requirement, it is really handy!
+The guide is written by having directory `webpacktest-helloworld` (and in the future `webpacktest-<sectionname>`) in a directory where *Laravel Valet* is [*parked*](https://laravel.com/docs/5.6/valet#the-park-command).  
+*Valet* has nothing to do with *PHP* in this case. It just gives us *nginx* (that serves files from `anydirectory/public` within its park directory OOB) and *DnsMasq*, so that all directories within *park* are automatically served as `directoryname.tldofyourchoice`.  
+When we put `webpacktest-helloworld` directory in *Valet park* directory, it can be accessed via `//webpacktest-helloworld.test` domain, *nginx* will automatically serve `webpacktest-helloworld/public`. Although *Valet* is not requirement and you can craft your own stuff, it is really handy!
 
 Options
 
@@ -113,7 +124,7 @@ const outputPublicPathBuilt = '/assets/';
 
 // ----------------
 // Output fs path
-const outputPath = path.join(__dirname, 'public/assets');
+const outputFsPath = path.join(__dirname, 'public/assets');
 
 let config = {
   mode: 'development',
@@ -124,7 +135,7 @@ let config = {
     ]
   },
   output: {
-    path: outputPath,
+    path: outputFsPath,
     publicPath: outputPublicPathBuilt,
     filename: '[name].js'
   },
@@ -168,7 +179,7 @@ module.exports = config;
   <script>
     window.__TEMPLATE_DATA__ = {};
   </script>
-  <script async src="./assets/index.js"></script>
+  <script src="./assets/index.js"></script>
 </body>
 </html>
 ```
@@ -192,7 +203,7 @@ rm -rf $(pwd)/public/assets/** && $(pwd)/node_modules/webpack/bin/webpack.js --c
 
 Inspect `public/assets` directory. Open `index.html` directly in the browser from filesystem.
 
-Further below instead of accessing local `node_modules` bin manually, we will use [`npx`](https://github.com/zkat/npx)
+Further below instead of accessing local `node_modules` bin manually, we will use [`npx`](https://github.com/zkat/npx) (and later we will introduce *npm scripts*).
 
 Notice, that entry point __key names__ dictate what will be the outputted __filename__ in `./public/assets`. That is, you can change key name and real file name to whatever, i.e.,
 
@@ -206,15 +217,15 @@ and you will get `myBundle.js` in `./public/assets` (later you will see that CSS
 
 You can change this behaviour if output `filename: '[name].js'` is set to `filename: 'someConstantName.js'`.  
 But don't do that, let your entry point key name define the output name.  
-Think of what would happen if you had multiple entry points (just like in a real world scenario). How would you manage filenames then if output file would not somehow depend on entry point, but would be always constant? Also later on when we get to chunking up webpack one entry point will produce multiple outputs.
+Think of what would happen if you had multiple entry points (just like in a real world scenario). How would you manage filenames then if output file would not somehow depend on entry point, but would be always constant? Also later on when we get to chunking up webpack one entry point will produce multiple outputs as wel lazy loaded stuff...
 
-## Webpack mode and environments (`NODE_ENV`)
+## Webpack mode, deploy tiers and environments (`NODE_ENV`)
 
 webpack 4 [introduced modes](https://medium.com/webpack/webpack-4-mode-and-optimization-5423a6bc597a).
 
-However, when running webpack we should specify what environment we are building it for as usually it is 4-tier. We will do this by specifying environment via `NODE_ENV`. This assumes development on macOS, which is officially certified as compliant with the Unix 03 / POSIX standard, or other BSD/*nix. But if one has to switch back and forth between POSIX and MSW while working on project, then using [cross-env](https://www.npmjs.com/package/cross-env) is a must!
+However, when running webpack we should specify what environment we are building it for, usually it is 4-tier. We will do this by specifying environment via `NODE_ENV`.
 
-Examples of passing NODE_ENV to webpack:
+Examples of passing `NODE_ENV` depicting tier to webpack:
 
 ```sh
 NODE_ENV=development npx webpack --config=$(pwd)/webpack.front.config.js --progress
@@ -244,12 +255,14 @@ mode: development ? 'development' : 'production',
 
 ```
 
+As you can see in this guide we will put webpack in [*development mode*](https://webpack.js.org/concepts/mode/) when in development tier and in *production mode* when in any of nondevelopment tiers. *Testing* tier throughout this guide can be considered as production tier, just served locally.
+
 Run webpack, specify `NODE_ENV` value
 
-*production*
+*testing*
 
 ```sh
-rm -rf $(pwd)/public/assets/** && NODE_ENV=production npx webpack --config=$(pwd)/webpack.front.config.js --progress
+rm -rf $(pwd)/public/assets/** && NODE_ENV=testing npx webpack --config=$(pwd)/webpack.front.config.js --progress
 ```
 
 *development*
@@ -297,13 +310,13 @@ Build and observe.
 
 ## Webpack minimise JavaScript
 
-If you built webpack for production then you already saw that minimisation in action as setting `mode` to production autoenables *UglifyJsPlugin* [see docs](https://webpack.js.org/concepts/mode/).
+If you built webpack for testing tier then you already saw that minimisation in action as setting `mode` to production autoenables *UglifyJsPlugin* [see docs](https://webpack.js.org/concepts/mode/).
 
-On production webpack sets `optimization.minimize: true` and `optimization.minimizer: new UglifyJsPlugin()` with some defaults.
+On production mode webpack sets `optimization.minimize: true` and `optimization.minimizer: new UglifyJsPlugin()` with some defaults.
 
 But what if it has defaults we migth want to change? For example defaults dont drop console calls (note that here we will also explicitly keep it for debug purposes). We just pass our custom constructed object to `optimization.minimizer`.
 
-For JavaScript minimisation we can use webpack plugin [uglifyjs-webpack-plugin](https://webpack.js.org/plugins/uglifyjs-webpack-plugin/). It is uses [UglifyJS 3](https://github.com/mishoo/UglifyJS2) under the hood and thus supports ES6+ (the plugin is now based on `uglify-es` (which in turn is the result of previosusly so called *UglifyJS harmony branch*)).
+For JavaScript minimisation we can use webpack plugin [uglifyjs-webpack-plugin](https://webpack.js.org/plugins/uglifyjs-webpack-plugin/). It is uses [UglifyJS 3](https://github.com/mishoo/UglifyJS2) under the hood and thus supports ES6+ (the plugin is now based on `uglify-es` (which in turn is the result of previously so called *UglifyJS harmony branch*)).
 
 Options for `compress` key can be [found here](http://lisperator.net/uglifyjs/compress)  
 Other keys [here](https://github.com/webpack-contrib/uglifyjs-webpack-plugin#options)
@@ -392,7 +405,7 @@ config.plugins.push(new FileManagerPlugin({
     copy: [
       {
         source: path.join(__dirname, 'src/preflight/*.{js,css}'),
-        destination: outputPath
+        destination: outputFsPath
       }
     ],
     move: [],
@@ -420,7 +433,7 @@ document.documentElement.className = document.documentElement.className.replace(
 // ############################################################
 // Change incapable to capable.
 // Normally we try to deploy stuff that works on ES5-ish browsers.
-// That means normaly IE11+, but sometimes even down to IE9, although that denies usage of many nice tools.
+// That means normally IE11+, but sometimes even down to IE9, although that denies usage of many nice tools.
 // As example this CTM will inform us via CSS state machine that we are IE10+.
 if ('visibilityState' in document) {
   document.documentElement.className = document.documentElement.className.replace(/\bincapable\b/, 'capable');
@@ -460,12 +473,12 @@ html.script .noscript { display: none; }
 Run webpack
 
 ```sh
-rm -rf $(pwd)/public/assets/** && NODE_ENV=production npx webpack --config=$(pwd)/webpack.front.config.js --progress
+rm -rf $(pwd)/public/assets/** && NODE_ENV=testing npx webpack --config=$(pwd)/webpack.front.config.js --progress
 ```
 
 The files are in `public/assets` directory. Open page in the browser, preflight JS does it's job of renaming classnames and prefligt CSS does it's job of of hiding that `Incabable :(` message.
 
-The sole reason for preflight is to use some ES3 code without any polyfills (in production actualy preflight script is inlined in template) that can execute on *any* browser for detecting very very very basic browser features, including JavaScript support, in order to set if the webapp can be run at all. It is not about which features to enable, granual feature detection and fallbacks can be done in actual app code using tools such as *Modernzr*.
+The sole reason for preflight is to use some ES3 code without any polyfills (in real production actually preflight script is inlined in template) that can execute on *any* browser for detecting very very very basic browser features, including JavaScript support, in order to set if the webapp can be run at all. It is not about which features to enable, granular feature detection and fallbacks can be done in actual app code using tools such as *Modernzr*.
 
 ## Note on cssnext
 
@@ -527,7 +540,7 @@ const outputPublicPathBuilt = '/assets/';
 
 // ----------------
 // Output fs path
-const outputPath = path.join(__dirname, 'public/assets');
+const outputFsPath = path.join(__dirname, 'public/assets');
 
 let config = {
   mode: development ? 'development' : 'production',
@@ -538,7 +551,7 @@ let config = {
     ]
   },
   output: {
-    path: outputPath,
+    path: outputFsPath,
     publicPath: outputPublicPathBuilt,
     filename: '[name].js'
   },
@@ -638,7 +651,7 @@ config.plugins.push(new FileManagerPlugin({
     copy: [
       {
         source: path.join(__dirname, 'src/preflight/*.{js,css}'),
-        destination: outputPath
+        destination: outputFsPath
       }
     ],
     move: [],
@@ -701,15 +714,17 @@ $mycolor: red;
 }
 ```
 
-Run webpack and inspect `public/assets/index.css`
+Run webpack for testing tier and inspect `public/assets/index.css`
 
 ```sh
-rm -rf $(pwd)/public/assets/** && NODE_ENV=development npx webpack --config=$(pwd)/webpack.front.config.js --progress
+rm -rf $(pwd)/public/assets/** && NODE_ENV=testing npx webpack --config=$(pwd)/webpack.front.config.js --progress
 ```
 
 SCSS and CSS is compiled and spit out in a file under `public/assets` named the same as the entry point key of the JavaScript from which SCSS was included in the first place. See how `index.legacy.css` was compiled into the output.
 
 And *Hello World* in browser now has colours!
+
+**Remember that if you ran for development tier then CSS would be actually inlined in `public/assets/index.js` and no `public/assets/index.css` would be generated.**
 
 ---
 # Scope hoisting w/ ModuleConcatenationPlugin
@@ -798,10 +813,10 @@ if (true) {
 }
 ```
 
-Build for production and inspect outputted file at `public/assets.index.js`
+Build for testing tier and inspect outputted file at `public/assets.index.js`
 
 ```sh
-rm -rf $(pwd)/public/assets/** && NODE_ENV=production npx webpack --config=$(pwd)/webpack.front.config.js --progress
+rm -rf $(pwd)/public/assets/** && NODE_ENV=testing npx webpack --config=$(pwd)/webpack.front.config.js --progress
 ```
 
 no `'I\'m in development!'` can be found because we told UglifyYS to remove unreachable code.

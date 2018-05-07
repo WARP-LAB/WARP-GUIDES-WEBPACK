@@ -41,7 +41,7 @@ npm install cssnano --save-dev
 
 ### Notes
 
-It is [recommended](https://github.com/postcss/postcss-loader#plugins) to use seperate `postcssrc.js` file. All possible filenames and formats (JSON, YAML, JS) are discussed [here](https://github.com/michael-ciniawsky/postcss-load-config)
+It is [recommended](https://github.com/postcss/postcss-loader#plugins) to use separate `postcssrc.js` file. All possible filenames and formats (JSON, YAML, JS) are discussed [here](https://github.com/michael-ciniawsky/postcss-load-config)
 
 We could minify CSS using [css-loader](https://github.com/webpack-contrib/css-loader#minimize) (that uses `cssnano` under the hood), but let us do separate pass for minification via PostCSS ecosystem (using same `cssnano`). Let us keep CSS processing in as few places as possible.
 
@@ -90,12 +90,14 @@ We will target super old browsers to see the result. Add new file at project roo
 _.browserslistrc_
 
 ```
-[production]
+[production staging testing]
 > 0.0001%
 
 [development]
 > 0.0001%
 ```
+
+We make use of [browserslist environments](https://github.com/browserslist/browserslist#environments).
 
 ### `postcss-loader`
 
@@ -163,10 +165,10 @@ config.module = {
 // ...
 ```
 
-Run for production and inspect `public/assets/index.css`
+Run for testing and inspect `public/assets/index.css`
 
 ```sh
-rm -rf $(pwd)/public/assets/** && NODE_ENV=production npx webpack --config=$(pwd)/webpack.front.config.js --progress
+rm -rf $(pwd)/public/assets/** && NODE_ENV=testing npx webpack --config=$(pwd)/webpack.front.config.js --progress
 ```
 
 Prefixes and Minification!
@@ -188,7 +190,7 @@ We add it as a module, so we prefix it with `~`. Now you know what `resolve: { m
 Run webpack and inspect `public/assets/index.css`
 
 ```sh
-rm -rf $(pwd)/public/assets/** && NODE_ENV=production npx webpack --config=$(pwd)/webpack.front.config.js --progress
+rm -rf $(pwd)/public/assets/** && NODE_ENV=testing npx webpack --config=$(pwd)/webpack.front.config.js --progress
 ```
 
 ---
@@ -199,7 +201,7 @@ As you can see we pass `sourceMap` option to our CSS related loaders. But where 
 
 Use webpack [devtool](https://webpack.js.org/configuration/devtool/) configuration.
 
-webpack *mode* sets it to *eval* in development, othervise to none OOB.
+webpack *mode* sets it to *eval* in *development mode*, otherwise to none OOB.
 
 Try
 
@@ -232,7 +234,7 @@ let config = {
 
 Run webpack and inspect `.app` class in browser's inspector, you can see original definitions in `index.global.scss`.
 
-Change config to have source map only when development
+Change config to have source map only when development tier
 
 ```javascript
 const sourceMapType = (development) ? 'inline-source-map' : false;
@@ -292,7 +294,7 @@ $paragarphColor: black;
 }
 ```
 
-Build for *development* and *production*, note the difference in browser.
+Build for *development* and *testing* tiers, note the difference in browser.
 
 ---
 # Loading files
@@ -484,7 +486,7 @@ _webpack.front.config.js_
 // ...
 ```
 
-Run webpack for production and inspect `public/assets/` directory, how outputted image size differs from source.
+Run webpack for testing and inspect `public/assets/` directory, how outputted image size differs from source.
 
 ---
 # Fonts
@@ -614,7 +616,7 @@ _src/index.global.scss_
 // ...
 ```
 
-Add loaders for font files in webpack config. We should use `file-loader` not `url-loder` as these should be considered *vendor space* assetsm, but this example shows mime type settings if you were to inline them.
+Add loaders for font files in webpack config. We should use `file-loader` not `url-loder` as these should be considered *vendor space* assets, but this example shows mime type settings if you were to inline them.
 
 _webpack.front.config.js_
 
@@ -683,13 +685,13 @@ _webpack.front.config.js_
 // ...
 ```
 
-Put directory `media/fonts/spacemono` into `src/conts/`.
+Put directory `media/fonts/spacemono` into `src/fonts/`.
 
 Run webpack and inspect `public/assets/` directory as well as how it looks in browser.
 
 ## Webpack SVG images vs SVG fonts
 
-Let us distinguish between webfonts and images. We do it by namig convention. To do so, all svg webfonts alaways have to be suffixed with `-webfont`. If the *bulletproof syntax* is dropped then this can be ignored.
+Let us distinguish between webfonts and images. We do it by naming convention. To do so, all svg webfonts alaways have to be suffixed with `-webfont`. If the *bulletproof syntax* is dropped then this can be ignored.
 
 _webpack.front.config.js_
 

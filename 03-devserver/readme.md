@@ -39,7 +39,7 @@ npm install webpack-dev-server --save-dev
 
 ## Basic setup
 
-### Assuming you are testing this locally via `test` TLD using nginx as described in *Hello World*
+### Assuming you are working on this locally via `test` TLD using nginx as described in *Hello World*
 
 
 #### Configure public path
@@ -53,11 +53,11 @@ Set `publicPath` value conditional.
 
 // ----------------
 // Target host
-const targetHost = 'webpacktest-devserver.test';
+const targetAppHost = 'webpacktest-devserver.test';
 
 // ----------------
 // Output public path
-const outputPublicPathBuilt = development ? `http://${targetHost}:4000/assets/` : `//${targetHost}/assets/`;
+const outputPublicPathBuilt = development ? `http://${targetAppHost}:4000/assets/` : `//${targetAppHost}/assets/`;
 
 // ...  
 ```
@@ -92,14 +92,14 @@ Manually change your HTML too for now.
   <script>
     window.__TEMPLATE_DATA__ = {};
   </script>
-  <script async src="//webpacktest-devserver.test:4000/assets/index.js"></script>
+  <script src="//webpacktest-devserver.test:4000/assets/index.js"></script>
 </body>
 </html>
 ```
 
 #### Run devserver
 
-If using Valet then `index.html`is already served by nginx through named host
+If using Valet then `index.html` is already served by nginx through named host
 
 ```sh
 rm -rf $(pwd)/public/assets/** && \
@@ -110,9 +110,9 @@ NODE_ENV=development npx webpack-dev-server --config=$(pwd)/webpack.front.config
 
 Visit [http://webpacktest-devserver.test/](http://webpacktest-devserver.test/) and inspect.
 
-### If you are testing this using `localhost` having Node.js server (or even if you are using nginx, you should try this).
+### If you are working using `localhost` having Node.js server (or even if you are using nginx, you should try this).
 
-Then here is quick intro how to do this. Note that further everything will be explained as if it was served by nginx (both for development and production builds), however this should get you started how and where to replace `namedhost.test` with `localhost` as well as difference in port settings (for development builds).
+Then here is quick intro how to do this. Note that further everything will be explained as if it was served by nginx (both for development and testing tier builds), however this should get you started how and where to replace `namedhost.test` with `localhost` as well as difference in port settings (for development builds).
 
 #### Configure public path
 
@@ -121,8 +121,8 @@ Then use localhost as hostname as well as public path such as
 *webpack.front.config.js*
 
 ```javascript
-const targetHost = 'localhost';
-const outputPublicPathBuilt = development ? `//${targetHost}:4000/assets/` : `//${targetHost}/assets/`;
+const targetAppHost = 'localhost';
+const outputPublicPathBuilt = development ? `//${targetAppHost}:4000/assets/` : `//${targetAppHost}/assets/`;
 ```
 
 here and in the future. 
@@ -192,7 +192,7 @@ config.devServer = {
     'Access-Control-Allow-Origin': '*'
   },
   historyApiFallback: true,
-  host: targetHost,
+  host: targetAppHost,
 
   // needs webpack.HotModuleReplacementPlugin()
   hot: false,
@@ -200,9 +200,9 @@ config.devServer = {
 
   https: false,
   // https: {
-  //   ca: fs.readFileSync('/path/to/ca.pem'),
-  //   key: fs.readFileSync('/path/to/server.key'),
-  //   cert: fs.readFileSync('/path/to/server.crt')
+  //   ca: fs.readFileSync(`${require('os').homedir()}/.valet/CA/LaravelValetCASelfSigned.pem`),
+  //   key: fs.readFileSync(`${require('os').homedir()}/.valet/Certificates/${targetAppHost}.key`),
+  //   cert: fs.readFileSync(`${require('os').homedir()}/.valet/Certificates/${targetAppHost}.crt`)
   // },
   // pfx: '/path/to/file.pfx',
   // pfxPassphrase: 'passphrase',
@@ -227,17 +227,17 @@ config.devServer = {
   useLocalIp: false,
 
   before (app) {
-    console.log('Webpack devserver middlewres before');
+    console.log('Webpack devserver middleware before');
   },
   after (app) {
-    console.log('Webpack devserver middlewres after');
+    console.log('Webpack devserver middleware after');
   }
 };
 
 // ...
 ```
 
-Kill revious `ctr+c`. Rerun it and observe how fonts are loading.
+Kill previous `ctr+c`. Rerun it and observe how fonts are loading.
 
 
 ```sh
@@ -248,7 +248,7 @@ NODE_ENV=development npx webpack-dev-server \
 
 ## Setting up hot reloading
 
-Kill revious. Rerun DevServer. Refresh webpage.
+Kill previous. Rerun DevServer. Refresh webpage.
 
 Enter something in input field (the one that has placeholder *Text Here*) using browser.
 
@@ -286,13 +286,14 @@ if (development) {
   config.plugins.push(new webpack.HotModuleReplacementPlugin());
   // config.plugins.push(new webpack.NamedModulesPlugin()); // enabled by mode
 } else {
-  config.plugins.push(new webpack.HashedModuleIdsPlugin());
+  // config.plugins.push(new webpack.HashedModuleIdsPlugin());
+  // config.plugins.push(new webpack.NamedModulesPlugin());
 }
 ```
 
 ## Test hot reloading
 
-Kill revious `ctr+c`. Rerun DevServer. Refresh webpage.
+Kill previous `ctr+c`. Rerun DevServer. Refresh webpage.
 
 Enter something in input field (the one that has placeholder *Text Here*) using browser.
 
@@ -318,7 +319,7 @@ We have it already going in _webpack.config.js_ as *MiniCssExtractPlugin* falls 
 
 ## Changing port numbers based on environment / mode in `index.html` automatically
 
-Remember that at this stage you would have to remove `4000` from assets referenced in `index.html` manually to see production results, as then all files are outputted in real filesystem and served by nginx (port `80`).  
+Remember that at this stage you would have to remove `4000` from assets referenced in `index.html` manually to see testing results, as then all files are outputted in real filesystem and served by nginx (port `80`).  
 Or in case you are not using `nginx` you would have to serve public folder by some Node.js server at say `3333` port, thus also needing changes in `index.html`. This is stupid, right. How about building *HTML* so that it automatically sets those port numbers for us based on build target? See that in next section.
 
 ---
@@ -334,8 +335,8 @@ We
 
 By doing so
 
-* `npm run build:front:dev` to run development
-* `npm run build:front:prod` to run production  
+* `npm run build:front:dev` to run development tier
+* `npm run build:front:test` to run testing tier (which in this case sets webpack to *production mode*, but still on local machine)
 
 Check source of this section to see
 

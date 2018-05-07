@@ -59,7 +59,7 @@ if (!development) {
 In reality you would probably attach this analysis to something like `testing`, but let us do `!development` here.
 
 ```sh
-npm run build:front:prod
+npm run build:front:test
 ```
 
 Console will output
@@ -181,12 +181,12 @@ In real world we would be updating our app as time goes. Whenever app code is up
 
 If we split our monolithic output into vendor code say  *vendor.chunkhash.js* and kept our actual app code into *index.chunkhash.js* and *section.chunkhash.js* then on new app version user would only have to download the new app part (assuming that vendor code has really stayed the same).
 
-Note thet this applies also if we had only one entry point, even then we should split code into stuff that does not change or does so rarely and our actual ever updated app code.
+Note that this applies also if we had only one entry point, even then we should split code into stuff that does not change or does so rarely and our actual ever updated app code.
 
 
 We are going to use [SplitChunksPlugin](https://webpack.js.org/plugins/split-chunks-plugin/) to extract common dependencies that are used by multiple entry points into separate output.  
 
-This might include both 3rd pary vendor code as well as our own helpers.
+This might include both 3rd party vendor code as well as our own helpers.
 
 ## Approach 1. Shared code chunk
 
@@ -264,7 +264,7 @@ Build again. *Webpack Bundle Analyzer* reports that
 * *index.chunkhash.js* includes *helperA* and app
 * *section.chunkhash.js* includes *helperA*, *String.endsWith* and app code
 
-As expected - *sharedcode* holds everyting that is found in *node_modules* and nothing more.
+As expected - *sharedcode* holds everything that is found in *node_modules* and nothing more.
 
 Offtopic: you can make *helpers* to be *vendors*. If some project needs a set of static functions, pack it as node module. There is no need to publish it to npm registry, just *npm install* it from git, or even local directory. As a reminder - [npm package can be lot of things](https://docs.npmjs.com/cli/install).
 
@@ -455,7 +455,7 @@ config.plugins.push(new MiniCssExtractPlugin({
 
 ```
 
-It is unadvisable to use IDs for CSS file chunk names as ID changes altghough the code for specific chunk has not changed (you can try it by lazy loading stuff at different places within the app for N times or adding new webpack entries).
+It is unadvisable to use IDs for CSS file chunk names as ID changes although the code for specific chunk has not changed (you can try it by lazy loading stuff at different places within the app for N times or adding new webpack entries).
 
 ---
 # Dynamic lazy imports
@@ -512,7 +512,7 @@ import(/* webpackChunkName: "helpers.lazy" */ './helpers/helpers.lazy.js').then(
 });
 ```
 
-Build the project and note console log output. As of webpack 4 lazy imported chunk names are fixed and no need to expicitly push `webpack.NamedChunksPlugin()`.
+Build the project and note console log output. As of webpack 4 lazy imported chunk names are fixed and no need to explicitly push `webpack.NamedChunksPlugin()`.
 
 ---
 # Inlining chunked JS and CSS
@@ -581,4 +581,4 @@ By using current webpack 4 tools on first visit we can get fast first paint with
 # Next
 ---
 
-We will look about some webpack plugins for getting started with TTFMP and PWA.
+We will look about some webpack plugins for getting started with PWA.

@@ -7,22 +7,40 @@
   "license": "MIT",
   "private": true,
   "config": {
-    "portFrontendMainHTTP": 80,
-    "portFrontendMainHTTPS": 443,
-    "portFrontendAppHTTP": 3000,
-    "portFrontendAppHTTPS": 3001,
-    "portFrontendWebpackDevServerHTTP": 4000,
-    "portFrontendWebpackDevServerHTTPS": 4001,
-    "isWebpackDevServerHTTPS": false,
-    "isWebpackDevServerHot": true,
-    "hostDevelopment": "webpacktest-babel.test",
-    "pathAboveRootDevelopment": "",
-    "hostTesting": "webpacktest-babel.test",
-    "pathAboveRootTesting": "",
-    "hostStaging": "webpacktest-babel.test",
-    "pathAboveRootStaging": "",
-    "hostProduction": "webpacktest-babel.test",
-    "pathAboveRootProduction": ""
+    "useProtocolRelativeUrls": false,
+    "webpackDevServer": {
+      "hot": true
+    },
+    "tiers": {
+      "development": {
+        "host": "webpacktest-babel.test",
+        "sub": "",
+        "tls": false,
+        "port": "4000",
+        "appPathAboveRoot": ""
+      },
+      "testing": {
+        "host": "webpacktest-babel.test",
+        "sub": "",
+        "tls": false,
+        "port": "",
+        "appPathAboveRoot": ""
+      },
+      "staging": {
+        "host": "stageserver.tld",
+        "sub": "",
+        "tls": true,
+        "port": "",
+        "appPathAboveRoot": ""
+      },
+      "production": {
+        "host": "publicapp.tld",
+        "sub": "",
+        "tls": true,
+        "port": "",
+        "appPathAboveRoot": ""
+      }
+    }
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -36,7 +54,8 @@
     "screen:stop": "screen -S $npm_package_name -X quit 2>/dev/null || :",
     "fly:front:testing": "echo \"Flightplan is out of sope for this tut\" && exit 0",
     "fly:front:staging": "echo \"Flightplan is out of sope for this tut\" && exit 0",
-    "fly:front:production": "echo \"Flightplan is out of sope for this tut\" && exit 0"
+    "fly:front:production": "echo \"Flightplan is out of sope for this tut\" && exit 0",
+    "guide:clean": "npm run clean:assets && rm -rf $(pwd)/node_modules && rm -rf $(pwd)/package-lock.json"
   },
   "devDependencies": {
     "@babel/core": "^7.0.0-beta.46",
