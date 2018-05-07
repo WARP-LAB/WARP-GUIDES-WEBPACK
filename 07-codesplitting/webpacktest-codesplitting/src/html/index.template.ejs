@@ -72,15 +72,8 @@
   <script>
     window.__TEMPLATE_DATA__ = {};
   </script>
-
-  <% for (let item in htmlWebpackPlugin.options.scripts) { %><%
-      if (typeof item === 'string' || item instanceof String) { item = { src: item, type: 'text/javascript' } } %>
-    <script<% for (let key in item) { %> <%= key %>="<%= item[key] %>"<% } %>></script>
-  <% } %>
-
   <% for (let chunk in htmlWebpackPlugin.files.chunks) { %>
     <script src="<%= htmlWebpackPlugin.files.chunks[chunk].entry %>"></script>
   <% } %>
-
 </body>
 </html>

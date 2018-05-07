@@ -86,7 +86,7 @@ _src/index.template.ejs_
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
   <script src="<%= htmlWebpackPlugin.options.publicPathManual %>preflight.js"></script>
   <link href="<%= htmlWebpackPlugin.options.publicPathManual %>preflight.css" rel="stylesheet" type="text/css">
-  <% for (var css in htmlWebpackPlugin.files.css) { %>
+  <% for (let css in htmlWebpackPlugin.files.css) { %>
     <link href="<%= htmlWebpackPlugin.files.css[css] %>" rel="stylesheet" type="text/css">
   <% } %>
 </head>
@@ -103,8 +103,8 @@ _src/index.template.ejs_
   <script>
     window.__TEMPLATE_DATA__ = {};
   </script>
-  <% for (var chunk in htmlWebpackPlugin.files.chunks) { %>
-    <script async src="<%= htmlWebpackPlugin.files.chunks[chunk].entry %>"></script>
+  <% for (let chunk in htmlWebpackPlugin.files.chunks) { %>
+    <script src="<%= htmlWebpackPlugin.files.chunks[chunk].entry %>"></script>
   <% } %>
 </body>
 </html>
@@ -177,7 +177,7 @@ Till now HTML always referenced to `index.js|css`. This is bad as those files in
 Currently when building HTML (and previously when doing *manual* `index.html`) the built output looks something like this
 
 ```html
-  <script async src="//webpacktest-htmlandcache.test/assets/index.js"></script>
+  <script src="//webpacktest-htmlandcache.test/assets/index.js"></script>
 ```
 
 Include chunk-specific hash in the filename for JavaScript and CSS. In development we can leave the hash out as we would develop and test site with caching off in web browser anyways (see Chrome settings *Disable cache (while Dev Tools is open)*).
@@ -210,7 +210,7 @@ Observe outputted filenames in *assets* directory.
 Observe that built `index.html` correctly references them.
 
 ```html
-  <script async src="//webpacktest-htmlandcache.test/assets/index.1d945ec34689702b7722.js"></script>
+  <script src="//webpacktest-htmlandcache.test/assets/index.1d945ec34689702b7722.js"></script>
 ```
 
 Imagine if we would be still using selfmade `index.html`, how quite imposibble it would be to track those outputted hashnames and manually reenter themn in `index.html`.

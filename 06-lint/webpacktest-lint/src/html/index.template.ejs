@@ -10,7 +10,7 @@
   -->
   <script><%= htmlWebpackPlugin.options.fsInlineContents['preflight.js'] %></script>
   <style><%= htmlWebpackPlugin.options.fsInlineContents['preflight.css'] %></style>
-  <% for (var css in htmlWebpackPlugin.files.css) { %>
+  <% for (let css in htmlWebpackPlugin.files.css) { %>
     <link href="<%= htmlWebpackPlugin.files.css[css] %>" rel="stylesheet" type="text/css">
   <% } %>
 </head>
@@ -27,8 +27,8 @@
   <script>
     window.__TEMPLATE_DATA__ = {};
   </script>
-  <% for (var chunk in htmlWebpackPlugin.files.chunks) { %>
-    <script async src="<%= htmlWebpackPlugin.files.chunks[chunk].entry %>"></script>
+  <% for (let chunk in htmlWebpackPlugin.files.chunks) { %>
+    <script src="<%= htmlWebpackPlugin.files.chunks[chunk].entry %>"></script>
   <% } %>
 </body>
 </html>
