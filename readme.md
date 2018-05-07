@@ -13,8 +13,16 @@ _While doing edits I realised that notes should be made for some basic npm stuff
 
 ### 1. webpack says *Hello World*
 
-* Basics
+* OS requirements
+* Project structure
+* 4-tier system
+* Basic config
+* Loading JavaScript
+* Minimising JavaScript
+* Copying files from source to public without compiling
+* Loading CSS and SCSS
 * Scope hoisting
+* Define plugin
 * Notes on other loaders
 
 ### 2. Extra CSS, PostCSS settings and file loading
@@ -22,21 +30,24 @@ _While doing edits I realised that notes should be made for some basic npm stuff
 * PostCSS
 * Bootstrapping CSS with *normalize.css*
 * CSS source maps
-* Font loading
-* Image loading and compression
+* Making SCSS tier aware
+* Image loading
+* Image compressing
+* Font loading (example for old bulletproof syntax)
 
 ### 3. webpack DevServer and hot reloading
 
 * webpack DevServer setup
+* CORS
 * making it hot
-* npm config and scripts
+* Introducing npm scripts and config example
 
 ### 4. HTML building, asset injecting and inlining, cache busting
 
 * Building HTML
-* Cache busting
-* Inlining assets in HTML
-* Minify HTML
+* Cache busting by using hases
+* Inlining static assets in HTML using read from disk
+* Minify HTML including inlined stuff
 
 ### 5. Babel
 
@@ -44,22 +55,27 @@ _While doing edits I realised that notes should be made for some basic npm stuff
 * Installing Babel
 * Module system and Tree Shaking
 * Babel env preset and polyfills
+* browserslist and Babel
+* Other polyfills and shims
 * Babel plugins
 
 ### 6. Linting JavaScript and SCSS/CSS
 
 * ESlint
+* JavaScript Standard Style with ;
 * stylelint
 
 ### 7. Analysing bundle and code chunk splitting
 
 * Analysing the built product by webpack
 * The issue that code splitting solves
+* Introducing extra entry point
+* Introducing lazy loading
 * Code splitting setup
-* Different approaches - vendor, shared, runtime chunks
+* Different approaches - common, vendor, runtime (manifest) chunks
 * Keeping the chunkhashes under control for caching
 * Lazy loading, naming lazy loaded chunks
-* Inlining runtime and JS/CSS generally
+* Inlining runtime (manifest)
 
 ### X. React.js
 

@@ -6,6 +6,8 @@
 
 * Analysing the built product by webpack
 * The issue that code splitting solves
+* Introducing extra entry point
+* Introducing lazy loading
 * Code splitting setup
 * Different approaches - common, vendor, runtime (manifest) chunks
 * Keeping the chunkhashes under control for caching

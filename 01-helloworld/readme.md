@@ -4,8 +4,16 @@
 # In this section
 ---
 
-* Basics
+* OS requirements
+* Project structure
+* 4-tier system
+* Basic config
+* Loading JavaScript
+* Minimising JavaScript
+* Copying files from source to public without compiling
+* Loading CSS and SCSS
 * Scope hoisting
+* Define plugin
 * Notes on other loaders
 
 ---
@@ -727,24 +735,10 @@ And *Hello World* in browser now has colours!
 **Remember that if you ran for development tier then CSS would be actually inlined in `public/assets/index.js` and no `public/assets/index.css` would be generated.**
 
 ---
-# Scope hoisting w/ ModuleConcatenationPlugin
+# Scope hoisting and module concatenation
 ---
 
-This should belong to *Hello World* as it is so important when using webpack. [Read here](https://webpack.js.org/plugins/module-concatenation-plugin/).
-
-_webpack.front.config.js_
-
-```javascript
-// ...
-const webpack = require('webpack');
-
-// ...
-
-// ----------------
-// ModuleConcatenationPlugin
-config.plugins.push(new webpack.optimize.ModuleConcatenationPlugin());
-
-```
+This should belong to *Hello World* as the princuple is so important when using webpack. [Read here](https://webpack.js.org/plugins/module-concatenation-plugin/). As of webpack 4 it is by default on when in *production mode* [optimization.concatenateModules](https://medium.com/webpack/webpack-4-mode-and-optimization-5423a6bc597a).
 
 ---
 # Define plugin

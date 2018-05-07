@@ -7,8 +7,10 @@
 * PostCSS
 * Bootstrapping CSS with *normalize.css*
 * CSS source maps
-* Font loading
-* Image loading and compression
+* Making SCSS tier aware
+* Image loading
+* Image compressing
+* Font loading (example for old bulletproof syntax)
 
 ---
 # Prefligt

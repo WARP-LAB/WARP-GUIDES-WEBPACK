@@ -8,6 +8,8 @@
 * Installing Babel
 * Module system and Tree Shaking
 * Babel env preset and polyfills
+* browserslist and Babel
+* Other polyfills and shims
 * Babel plugins
 
 ---
@@ -282,7 +284,7 @@ For for a moment change `.browserslistrc` nondevelopment tier targets to `last 1
 
 ## Other polyfills
 
-The underlaying [core-js](https://github.com/zloirock/core-js) does not care about DOM polyfills. So as an example add one extra to deal with is `classList` as it is not [fully implemented in IE11](http://caniuse.com/#search=classList). There might be others!
+The underlaying [core-js](https://github.com/zloirock/core-js) does not care about DOM polyfills. So as an example add one extra to deal with is `classList` as it is not [fully implemented in IE11](http://caniuse.com/#search=classList). There are others down the line (say [whatwg-fetch](https://github.com/github/fetch))!
 
 ```
 npm install classlist-polyfill --save-dev

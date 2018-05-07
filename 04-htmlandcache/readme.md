@@ -5,9 +5,9 @@
 ---
 
 * Building HTML
-* Cache busting
+* Cache busting by using hases
 * Inlining static assets in HTML using read from disk
-* Minify HTML
+* Minify HTML including inlined stuff
 
 ---
 # Prefligt

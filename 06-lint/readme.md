@@ -6,6 +6,7 @@
 ---
 
 * ESlint
+* JavaScript Standard Style with ;
 * stylelint
 
 ---
