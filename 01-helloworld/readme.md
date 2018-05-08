@@ -169,6 +169,8 @@ module.exports = config;
 <head>
   <meta charset="utf-8">
   <title>My Title</title>
+  <meta name="description" content="Webpack Guide">
+  <meta name="keywords" content="webpack,guide">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
   <script src="./assets/preflight.js"></script>
   <link href="./assets/preflight.css" rel="stylesheet" type="text/css">

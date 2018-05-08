@@ -83,6 +83,8 @@ _src/index.template.ejs_
 <head>
   <meta charset="utf-8">
   <title><%= htmlWebpackPlugin.options.title || 'Webpack Test' %></title>
+  <meta name="description" content="Webpack Guide">
+  <meta name="keywords" content="webpack,guide">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
   <script src="<%= htmlWebpackPlugin.options.outputPublicPathNoPort %>preflight.js"></script>
   <link href="<%= htmlWebpackPlugin.options.outputPublicPathNoPort %>preflight.css" rel="stylesheet" type="text/css">
