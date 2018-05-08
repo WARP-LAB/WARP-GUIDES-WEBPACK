@@ -17,7 +17,8 @@ const myArrowFunction = () => {
   const div = document.querySelector('.app');
   const {today} = greetings;
   div.innerHTML = `<h1>${today}</h1><p>Lorem ipsum.</p>`;
-  div.innerHTML += `<input type="text" name="testtext" placeholder="Text Here">`;
+  div.innerHTML += `<label for="textfield">Enter your text</label>`;
+  div.innerHTML += `<input id="textfield" type="text" name="testtext" placeholder="Text Here">`;
   div.classList.add('some-class');
   console.log('Hello JS!');
   helperA();

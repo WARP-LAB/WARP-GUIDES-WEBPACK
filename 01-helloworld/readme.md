@@ -201,7 +201,9 @@ _src/index.js_
 ```javascript
 'use strict';
 var div = document.querySelector('.app');
-div.innerHTML = '<h1>Hello JS</h1><p>Lorem ipsum.</p><input type="text" name="testtext" placeholder="Text Here">';
+div.innerHTML = '<h1>Hello JS</h1><p>Lorem ipsum.</p>';
+div.innerHTML += '<label for="textfield">Enter your text</label>';
+div.innerHTML += '<input id="textfield" type="text" name="testtext" placeholder="Text Here">';
 console.log('Hello JS!');
 ```
 
@@ -311,7 +313,9 @@ Edit *index.js*
 var helpers = require('./helpers/helpers.simple.js');
 
 var div = document.querySelector('.app');
-div.innerHTML = '<h1>Hello JS</h1><p>Lorem ipsum.</p><input type="text" name="testtext" placeholder="Text Here">';
+div.innerHTML = '<h1>Hello JS</h1><p>Lorem ipsum.</p>';
+div.innerHTML += '<label for="textfield">Enter your text</label>';
+div.innerHTML += '<input id="textfield" type="text" name="testtext" placeholder="Text Here">';
 console.log('Hello JS!');
 helpers.helperA();
 ```
@@ -690,7 +694,9 @@ var helpers = require('./helpers/helpers.simple.js');
 require('./index.global.scss');
 
 var div = document.querySelector('.app');
-div.innerHTML = '<h1>Hello JS</h1><p>Lorem ipsum.</p><input type="text" name="testtext" placeholder="Text Here">';
+div.innerHTML = '<h1>Hello JS</h1><p>Lorem ipsum.</p>';
+div.innerHTML += '<label for="textfield">Enter your text</label>';
+div.innerHTML += '<input id="textfield" type="text" name="testtext" placeholder="Text Here">';
 console.log('Hello JS!');
 helpers.helperA();
 ```
@@ -760,7 +766,9 @@ if (__DEVELOPMENT__) {
 }
 
 var div = document.querySelector('.app');
-div.innerHTML = '<h1>Hello JS</h1><p>Lorem ipsum.</p><input type="text" name="testtext" placeholder="Text Here">';
+div.innerHTML = '<h1>Hello JS</h1><p>Lorem ipsum.</p>';
+div.innerHTML += '<label for="textfield">Enter your text</label>';
+div.innerHTML += '<input id="textfield" type="text" name="testtext" placeholder="Text Here">';
 console.log('Hello JS!');
 helpers.helperA();
 ```
