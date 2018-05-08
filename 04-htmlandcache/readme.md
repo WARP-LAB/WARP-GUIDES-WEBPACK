@@ -101,7 +101,7 @@ _src/index.template.ejs_
   <div class="incapable">
     Incapable :(
   </div>
-  <div class="app"></div>
+  <div class="app"> Loading... </div>
   <script>
     window.__TEMPLATE_DATA__ = {};
   </script>
