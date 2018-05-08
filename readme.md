@@ -77,6 +77,15 @@ _While doing edits I realised that notes should be made for some basic npm stuff
 * Lazy loading, naming lazy loaded chunks
 * Inlining runtime (manifest)
 
+### 8. PWA and TTFMP
+
+* Enable TLS
+* Setting up basic structure for PWA
+* *manifest.json*
+* Service Worker and offline caching
+* preload fonts and images
+* preload async chunks
+
 ### X. React.js
 
 * Out of date, will be revisited
@@ -94,6 +103,8 @@ _While doing edits I realised that notes should be made for some basic npm stuff
 * Then we set up system so that we can code in at least ES6/ES2015 as well as check our code ([Babel](https://babeljs.io), [ESLint](http://eslint.org)).
 * We add polyfills that we get out of the box from Babel.
 * As a sidestep we look how to enable linter for text editors.
+* Analyzing and splitting chunks.
+* Notes in PWAs.
 * Finally we add [React.js](https://facebook.github.io/react/) and [CSS Modules](https://github.com/css-modules/css-modules) in the mix, needed loaders and configuration.
 
 ### Assumptions
