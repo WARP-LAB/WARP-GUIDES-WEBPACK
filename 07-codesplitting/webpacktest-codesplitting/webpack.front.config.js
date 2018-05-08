@@ -552,14 +552,14 @@ config.plugins.push(new HtmlWebpackPlugin({
     'preflight.js': fs.readFileSync(path.join(__dirname, 'src/preflight/preflight.js'), 'utf8'),
     'preflight.css': fs.readFileSync(path.join(__dirname, 'src/preflight/preflight.css'), 'utf8')
   },
-  title: `GUIDE - ${pConfig.name}`,
-  filename: path.join(__dirname, 'public/index.html'),
-  template: path.join(__dirname, 'src/html/index.template.ejs'),
-  inject: false, // 'body'
   // inlineCSSRegex: (development) ? []
   //   : [
   //     '.css$'
   //   ],
+  title: `GUIDE - ${pConfig.name}`,
+  filename: path.join(__dirname, 'public/index.html'),
+  template: path.join(__dirname, 'src/html/index.template.ejs'),
+  inject: false, // 'body'
   // favicon: favicon.ico,
   hash: false,
   cache: true,
