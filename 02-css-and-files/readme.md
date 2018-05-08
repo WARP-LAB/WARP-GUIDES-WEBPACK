@@ -528,6 +528,7 @@ _src/fonts/spacemono-definition.global.scss_
     url('./spacemono/spacemono-bold-webfont.svg#space_monobold') format('svg');
   font-weight: 700;
   font-style: normal;
+  font-display: swap;
 }
 
 @font-face {
@@ -541,6 +542,7 @@ _src/fonts/spacemono-definition.global.scss_
     url('./spacemono/spacemono-bolditalic-webfont.svg#space_monobold_italic') format('svg');
   font-weight: 700;
   font-style: italic;
+  font-display: swap;
 }
 
 @font-face {
@@ -554,6 +556,7 @@ _src/fonts/spacemono-definition.global.scss_
     url('./spacemono/spacemono-regular-webfont.svg#space_monoregular') format('svg');
   font-weight: 400;
   font-style: normal;
+  font-display: swap;
 }
 
 @font-face {
@@ -567,6 +570,7 @@ _src/fonts/spacemono-definition.global.scss_
     url('./spacemono/spacemono-italic-webfont.svg#space_monoitalic') format('svg');
   font-weight: 400;
   font-style: italic;
+  font-display: swap;
 }
 ```
 
