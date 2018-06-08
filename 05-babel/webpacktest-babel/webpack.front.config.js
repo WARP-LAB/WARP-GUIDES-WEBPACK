@@ -126,7 +126,7 @@ config.devServer = {
   hot: pConfig.config.webpackDevServer.hot,
   // hotOnly: true
 
-  https: pConfig.config.tiers.development.tls
+  https: development && pConfig.config.tiers.development.tls
     ? {
       ca: fs.readFileSync(`${require('os').homedir()}/.valet/CA/LaravelValetCASelfSigned.pem`),
       key: fs.readFileSync(`${require('os').homedir()}/.valet/Certificates/${targetAppHost}.key`),
