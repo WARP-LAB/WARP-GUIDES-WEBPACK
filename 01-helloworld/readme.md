@@ -787,7 +787,7 @@ _webpack.front.config.js_
 // DefinePlugin
 config.plugins.push(new webpack.DefinePlugin({
   'process.env': {
-    'NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development'),
+    'NODE_ENV': (development) ? JSON.stringify('development') : JSON.stringify('production'),
     'BROWSER': true
   },
   __CLIENT__: true,
@@ -803,6 +803,19 @@ config.plugins.push(new webpack.DefinePlugin({
 
 // ...
 ```
+
+Note that `process.env.NODE_ENV` gets treatment where it is switched back to either `development` or `production`. The reason is that many packages (*React* is a good example) uses this *define* in their code to do something like
+
+```javascript
+if (process.env.NODE_ENV === 'development') {
+  // do not optimize library, compile it for better debugging
+} else {
+  // optimize library, strip out all debugging stuff
+}
+```
+
+Meanwhile in our own code we still can use four tier targeting using `__TIER_NAME__` just as in the example above.
+
 
 Build for development and inspect console output as well as outputted file at `public/assets.index.js`
 

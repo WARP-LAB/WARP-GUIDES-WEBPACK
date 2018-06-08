@@ -62,7 +62,7 @@ Webpack devserver should automatically pick up our certificates
 // ..
 config.devServer = {
   // ..
-  https: pConfig.config.tiers.development.tls
+  https: development && pConfig.config.tiers.development.tls
     ? {
       ca: fs.readFileSync(`${require('os').homedir()}/.valet/CA/LaravelValetCASelfSigned.pem`),
       key: fs.readFileSync(`${require('os').homedir()}/.valet/Certificates/${targetAppHost}.key`),
