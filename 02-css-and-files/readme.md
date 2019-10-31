@@ -22,7 +22,7 @@ Use existing `webpacktest-helloworld` code base from previous guide stage. Eithe
 # PostCSS
 ---
 
-One does not simply... don't use PostCSS. [Use plugins!](https://cdn.meme.am/instances/500x/68322636.jpg)
+One does not simply... don't use PostCSS.
 
 ### Loader and plugins
 
@@ -43,9 +43,9 @@ npm install cssnano --save-dev
 
 ### Notes
 
-It is [recommended](https://github.com/postcss/postcss-loader#plugins) to use separate `postcssrc.js` file. All possible filenames and formats (JSON, YAML, JS) are discussed [here](https://github.com/michael-ciniawsky/postcss-load-config)
+It is [recommended](https://github.com/postcss/postcss-loader#plugins) to use separate `.postcssrc.js` file. All possible filenames and formats (JSON, YAML, JS) are discussed [here](https://github.com/michael-ciniawsky/postcss-load-config).
 
-We could minify CSS using [css-loader](https://github.com/webpack-contrib/css-loader#minimize) (that uses `cssnano` under the hood), but let us do separate pass for minification via PostCSS ecosystem (using same `cssnano`). Let us keep CSS processing in as few places as possible.
+We will minify CSS using a separate pass via PostCSS ecosystem (using same `cssnano`). Let us keep CSS processing in as few places as possible.
 
 ### PostCSS configuration file
 
@@ -122,7 +122,6 @@ config.module = {
         {
           loader: 'css-loader',
           options: {
-            minimize: false,
             importLoaders: 1,
             sourceMap: true
           }
@@ -142,7 +141,6 @@ config.module = {
         {
           loader: 'css-loader',
           options: {
-            minimize: false,
             importLoaders: 2,
             sourceMap: true
           }
@@ -173,16 +171,16 @@ Run for testing and inspect `public/assets/index.css`
 rm -rf $(pwd)/public/assets/** && NODE_ENV=testing npx webpack --config=$(pwd)/webpack.front.config.js --progress
 ```
 
-Prefixes and Minification!
+Prefixes for `flex` and `transform`!
 
 ---
 # normalize.css
 ---
 
-Always use [Normalize.css](https://necolas.github.io/normalize.css/). Although our usual *cut the mustard* at preflight enables fallback page for anything below IE11 this fallback *has to look OK*. To use Normalize.css that supports IE8+ install version 7.0 (8.0 [dropped](https://github.com/necolas/normalize.css/blob/8.0.0/CHANGELOG.md#800-february-2-2018) less than IE10 support).
+Use [Normalize.css](https://necolas.github.io/normalize.css/). Although our usual *cut the mustard* at preflight enables fallback page for anything below IE11 *the fallback has to be readbale*. There are alternatives such as [sanitize.css](https://github.com/csstools/sanitize.css) and [modern-normalize](https://github.com/sindresorhus/modern-normalize).
 
 ```sh
-npm install normalize.css@7.0.0 --save-dev
+npm install normalize.css --save-dev
 ```
 
 Add to _src/index.global.scss_ SCSS `@import '~normalize.css';`
@@ -199,13 +197,13 @@ rm -rf $(pwd)/public/assets/** && NODE_ENV=testing npx webpack --config=$(pwd)/w
 # Webpack CSS source maps
 ---
 
-As you can see we pass `sourceMap` option to our CSS related loaders. But where are the source maps, no inline or map files are present, when inspecting `.app` class in browser's devtools it references to compiled `index.css`, not `index.global.scss` which is the actual *source*.
+As you can see we pass `sourceMap` option to our CSS related loaders. But where are the source maps? No inline or map files are present, when inspecting `.app` class in browser's devtools - it references to compiled `index.css`, not `index.global.scss` which is the actual *source*.
 
 Use webpack [devtool](https://webpack.js.org/configuration/devtool/) configuration.
 
 webpack *mode* sets it to *eval* in *development mode*, otherwise to none OOB.
 
-Try
+Add source map logic also to TerserPlugin and [PostCSS pipe](https://github.com/postcss/postcss/blob/master/docs/source-maps.md#postcss-and-source-maps)
 
 _webpack.front.config.js_
 
@@ -225,24 +223,49 @@ let config = {
 
 // ...
 
-    new UglifyJsPlugin({
+    new TerserPlugin({
       // ...
       sourceMap: !!sourceMapType
       // ...
+    })
+    
+    // ...
+    
+    new OptimizeCSSAssetsPlugin({
+      cssProcessorOptions: {
+        map: sourceMapType === false ? false :
+        sourceMapType.includes('inline') ?
+        {
+          inline: true,
+        } :
+        {
+          inline: false,
+          annotation: true
+        }
+      }
     })
 
 // ...
 ```
 
-Run webpack and inspect `.app` class in browser's inspector, you can see original definitions in `index.global.scss`.
+Run webpack for testing and inspect `.app` class in browser's inspector, you can see original definitions in `index.global.scss`.
 
-Change config to have source map only when development tier
+Run webpack for testing with external map file.
+
+
+_webpack.front.config.js_
+
+```javascript
+const sourceMapType = 'inline-source-map';
+```
+
+Eventually shange config to have source map only when using development tier and have it inlined
 
 ```javascript
 const sourceMapType = (development) ? 'inline-source-map' : false;
 ```
 
-Keep `inline-source-map` for now although it has slow performance, read more [here](https://webpack.js.org/guides/build-performance/#devtool).
+Keep `inline-source-map` for now although it has slowes build & rebuild performance, read more [here](https://webpack.js.org/guides/build-performance/#devtool) and [here](https://webpack.js.org/configuration/devtool/).
 
 ---
 # Make SCSS build environment aware
@@ -258,7 +281,7 @@ _webpack.front.config.js_
             loader: 'sass-loader',
             options: {
               sourceMap: true,
-              data: `$env: ${JSON.stringify(process.env.NODE_ENV || 'development')};`
+              prependData: `$env: ${JSON.stringify(process.env.NODE_ENV || 'development')};`
             }
           }
 // ...
@@ -272,6 +295,8 @@ _index.global.scss_
 @charset 'UTF-8';
 @import '~normalize.css';
 @import 'index.legacy.css';
+
+// This is example of SCSS
 
 $mycolor: red;
 
@@ -310,7 +335,7 @@ Put them under `src/images` directory.
 Loaders  
 [file-loader](https://github.com/webpack-contrib/file-loader)  
 [url-loader](https://github.com/webpack-contrib/url-loader)  
-[resolve-url-loader](https://github.com/bholloway/resolve-url-loader) currently it has some issues, so it was installed from git master  
+[resolve-url-loader](https://github.com/bholloway/resolve-url-loader)
 
 `url-loader` works like the file loader, but can return a *Data Url* if the file is smaller than a limit.  
 `resolve-url-loader` is needed because we set file path in `url()` relative to the SCSS file we are working in, however webpack tries to resolve from entry point.
@@ -329,6 +354,8 @@ _src/index.global.scss_
 @charset 'UTF-8';
 @import '~normalize.css';
 @import 'index.legacy.css';
+
+// This is example of SCSS
 
 $mycolor: red;
 
@@ -374,7 +401,6 @@ config.module = {
         {
           loader: 'css-loader',
           options: {
-            minimize: false,
             importLoaders: 2,
             sourceMap: true
           }
@@ -459,7 +485,7 @@ Loader
 [image-webpack-loader](https://github.com/tcoopman/image-webpack-loader)  
 
 ```sh
-brew install automake libtool libpng
+# if using macOS: brew install automake libtool libpng
 npm install image-webpack-loader --save-dev
 ```
 
@@ -500,9 +526,9 @@ This example uses bulletproof syntax although [you can retire it](https://www.za
 
 Convert TTF/OTF to all webwonts (WOFF, WOFF2, EOT, SVG) in building process. Font squirrel online generator is good enough [Font Squirrel Generator](https://www.fontsquirrel.com/tools/webfont-generator), or use [fontplop](https://github.com/matthewgonzalez/fontplop)
 
-All webfonts should end with `*-webfont.ext` in their filename.
+All webfonts should end with `*-webfont.ext` in their filename for following examples.
 
-See `media` directory in this repo!
+See `media` directory in this repo.
 
 ## Packing & loading
 
@@ -654,7 +680,7 @@ _webpack.front.config.js_
         loader: 'url-loader',
         options: {
           limit: 10,
-          mimetype: 'application/x-font-opentype' // application/font-sfnt
+          mimetype: 'application/x-font-opentype'
         }
       }]
     },
@@ -664,7 +690,7 @@ _webpack.front.config.js_
         loader: 'url-loader',
         options: {
           limit: 10,
-          mimetype: 'application/x-font-truetype' // application/font-sfnt
+          mimetype: 'application/x-font-truetype'
         }
       }]
     },
@@ -695,6 +721,56 @@ Put directory `media/fonts/spacemono` into `src/fonts/`.
 
 Run webpack and inspect `public/assets/` directory as well as how it looks in browser.
 
+Switch to file-loader
+
+_webpack.front.config.js_
+
+```javascript
+    {
+      test: /\.woff2(\?v=\d+\.\d+\.\d+)?$/,
+      use: [{
+        loader: 'file-loader',
+        options: {}
+      }]
+    },
+    {
+      test: /\.woff(\?v=\d+\.\d+\.\d+)?$/,
+      use: [{
+        loader: 'file-loader',
+        options: {}
+      }]
+    },
+    {
+      test: /\.otf(\?v=\d+\.\d+\.\d+)?$/,
+      use: [{
+        loader: 'file-loader',
+        options: {}
+      }]
+    },
+    {
+      test: /\.ttf(\?v=\d+\.\d+\.\d+)?$/,
+      use: [{
+        loader: 'file-loader',
+        options: {}
+      }]
+    },
+    {
+      test: /\.eot(\?v=\d+\.\d+\.\d+)?$/,
+      use: [{
+        loader: 'file-loader',
+        options: {}
+      }]
+    },
+    {
+      test: /\.svg(\?v=\d+\.\d+\.\d+)?$/,
+      use: [{
+        loader: 'file-loader',
+        options: {}
+      }]
+    }
+```
+
+
 ## Webpack SVG images vs SVG fonts
 
 Let us distinguish between webfonts and images. We do it by naming convention. To do so, all svg webfonts alaways have to be suffixed with `-webfont`. If the *bulletproof syntax* is dropped then this can be ignored.
@@ -722,72 +798,6 @@ _webpack.front.config.js_
     },
 
 //...
-```
-
----
-# GLSL shader file loading
----
-
-We write our shaders in separate files and build them within app.
-
-There are two loaders that we have used, both work.
-
-[webpack-glsl-loader](https://github.com/grieve/webpack-glsl-loader)
-
-```sh
-npm install webpack-glsl-loader --save-dev
-```
-
-_webpack.front.config.js_
-
-```javascript
-// ...
-
-    {
-      test: /\.(glsl|frag|vert)$/,
-      use: 'webpack-glsl-loader'
-    }
-
-// ...
-```
-
-Example using *Three.js*
-
-```javascript
-// ...
-  shaderProg = new THREE.ShaderMaterial({
-    // ...
-    vertexShader: require('path/to/shader.vert'),
-    fragmentShader: require('path/to/shader.frag')
-  });
-// ...
-```
-
-[phaser-glsl-loader](https://github.com/the-simian/phaser-glsl-loader)
-
-```sh
-npm install phaser-glsl-loader --save-dev
-```
-
-_webpack.front.config.js_
-
-```javascript
-    {
-      test: /\.(glsl|frag|vert)$/,
-      use: 'phaser-glsl-loader'
-    }
-```
-
-Example using *Three.js*
-
-```javascript
-// ...
-  shaderProg = new THREE.ShaderMaterial({
-    // ...
-    vertexShader: require('path/to/shader.vert').join('\n'),
-    fragmentShader: require('path/to/shader.frag').join('\n')
-  });
-// ...
 ```
 
 ---

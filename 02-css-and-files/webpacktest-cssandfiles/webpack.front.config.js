@@ -1,9 +1,10 @@
 'use strict';
 const path = require('path');
 const webpack = require('webpack');
-const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
+const TerserPlugin = require('terser-webpack-plugin');
 const FileManagerPlugin = require('filemanager-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin');
 
 // ----------------
 // ENV
@@ -25,6 +26,8 @@ const outputFsPath = path.join(__dirname, 'public/assets');
 // Source map conf
 const sourceMapType = (development) ? 'inline-source-map' : false;
 
+// ----------------
+// Config
 let config = {
   mode: development ? 'development' : 'production',
   devtool: sourceMapType,
@@ -61,7 +64,6 @@ config.module = {
         {
           loader: 'css-loader',
           options: {
-            minimize: false,
             importLoaders: 2,
             sourceMap: true
           }
@@ -79,7 +81,7 @@ config.module = {
             keepQuery: true
           }
         }
-      ]
+      ],
     },
     {
       test: /\.(scss)$/,
@@ -88,7 +90,6 @@ config.module = {
         {
           loader: 'css-loader',
           options: {
-            minimize: false,
             importLoaders: 3,
             sourceMap: true
           }
@@ -110,10 +111,10 @@ config.module = {
           loader: 'sass-loader',
           options: {
             sourceMap: true,
-            data: `$env: ${JSON.stringify(process.env.NODE_ENV || 'development')};`
+            prependData: `$env: ${JSON.stringify(process.env.NODE_ENV || 'development')};`
           }
         }
-      ]
+      ],
     },
     {
       test: /\.(png|jpe?g|gif|svg)$/,
@@ -180,33 +181,55 @@ config.module = {
 // OPTIMISATION
 
 config.optimization = {
-  // minimize: false, // can override
+  minimize: true, // can override
   minimizer: [
-    new UglifyJsPlugin({
+    new TerserPlugin({
+      test: /\.js(\?.*)?$/i,
+      // include: '',
+      // exclude: '',
+      chunkFilter: (chunk) => {
+        return true;
+      },
       cache: true,
+      // cacheKeys: (defaultCacheKeys, file) => {},
       parallel: true,
-      uglifyOptions: {
-        compress: {
-          sequences: true,
-          dead_code: true,
-          conditionals: true,
-          booleans: true,
-          unused: true,
-          if_return: true,
-          join_vars: true,
-          drop_console: false,
-          warnings: true
-        },
-        ecma: 6,
-        mangle: false,
-        warnings: true,
-        output: {
-          comments: false,
-          beautify: false
-        }
+      sourceMap: !!sourceMapType,
+      // minify: (file, sourceMap) => {},
+      warningsFilter: (warning, source, file) => {
+        return true;
       },
       extractComments: false,
-      sourceMap: !!sourceMapType // evaluates to bool
+      terserOptions: {
+        ecma: undefined,
+        warnings: true,
+        parse: {},
+        compress: {},
+        mangle: false,
+        module: false,
+        output: {
+          comments: false
+        },
+        sourceMap: false,
+        toplevel: false,
+        nameCache: null,
+        ie8: false,
+        keep_classnames: undefined,
+        keep_fnames: false,
+        safari10: false
+      }
+    }),
+    new OptimizeCSSAssetsPlugin({
+      cssProcessorOptions: {
+        map: sourceMapType === false ? false :
+        sourceMapType.includes('inline') ?
+        {
+          inline: true,
+        } :
+        {
+          inline: false,
+          annotation: true
+        }
+      }
     })
   ]
 };
@@ -234,7 +257,8 @@ config.plugins.push(new webpack.DefinePlugin({
 
 // ----------------
 // ModuleConcatenationPlugin
-config.plugins.push(new webpack.optimize.ModuleConcatenationPlugin());
+// By default this plugin is already enabled in production mode
+// config.plugins.push(new webpack.optimize.ModuleConcatenationPlugin());
 
 // ----------------
 // FileManagerPlugin
@@ -257,7 +281,7 @@ config.plugins.push(new FileManagerPlugin({
 // MiniCssExtractPlugin
 config.plugins.push(new MiniCssExtractPlugin({
   filename: '[name].css',
-  chunkFilename: '[id].css'
+  chunkFilename: '[id].css',
 }));
 
 // ----------------

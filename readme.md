@@ -109,7 +109,7 @@ _While doing edits I realised that notes should be made for some basic npm stuff
 
 ### Assumptions
 
-* As of writing webpack version is 4.7.0.
+* As of writing webpack version is 4.41.2.
 * I wrote this and tested locally on macOS and used `nginx` to serve `public` directory with wildcarding routes, under `test` TLD (`webpacktest-chaptername.test` in this case). See *Hello World* for setup.
 
 ### Your task
