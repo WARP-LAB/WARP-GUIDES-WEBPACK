@@ -89,7 +89,7 @@ Remember that this *Hello World* does not necessarily need any webserver. Openin
 
 But that's it. All further sections will assume some server side static file serving to actually reflect on real development process. If not using webserver paths will break.
 
-The guide is written by having directory `webpacktest-helloworld` (and in the future `webpacktest-<sectionname>`) in a directory where *Laravel Valet* is [*parked*](https://laravel.com/docs/5.6/valet#the-park-command).  
+The guide is written by having directory `webpacktest-helloworld` (and in the future `webpacktest-<sectionname>`) in a directory where *Laravel Valet* is [*parked*](https://laravel.com/docs/6.x/valet#the-park-command).  
 *Valet* has nothing to do with *PHP* in this case. It just gives us *nginx* (that serves files from `anydirectory/public` within its park directory OOB) and *DnsMasq*, so that all directories within *park* are automatically served as `directoryname.tldofyourchoice`.  
 When we put `webpacktest-helloworld` directory in *Valet park* directory, it can be accessed via `//webpacktest-helloworld.test` domain, *nginx* will automatically serve `webpacktest-helloworld/public`. Although *Valet* is not requirement and you can craft your own stuff, it is really handy!
 
@@ -134,6 +134,8 @@ const outputPublicPathBuilt = '/assets/';
 // Output fs path
 const outputFsPath = path.join(__dirname, 'public/assets');
 
+// ----------------
+// Config
 let config = {
   mode: 'development',
   context: __dirname,
@@ -221,11 +223,11 @@ Notice, that entry point __key names__ dictate what will be the outputted __file
 
 ```javascript
 entry: {
-  myBundle: './src/whatever.js'
+  myBundleName: './src/whatever.js'
 },
 ```
 
-and you will get `myBundle.js` in `./public/assets` (later you will see that CSS that is imported through JavaScript also will be named as the entry point name, i.e., `./public/assets/myBundle.css`).
+and you will get `myBundleName.js` in `./public/assets` (later you will see that CSS that is imported through JavaScript also will be named as the entry point name, i.e., `./public/assets/myBundleName.css`).
 
 You can change this behaviour if output `filename: '[name].js'` is set to `filename: 'someConstantName.js'`.  
 But don't do that, let your entry point key name define the output name.  
@@ -290,8 +292,6 @@ Inspect the outputted `assets/index.js` in both cases.
 # Requiring JS
 ---
 
-Just as we required CSS
-
 Edit `src/helpers/helpers.simple.js`
  
 ```javascript
@@ -324,21 +324,17 @@ Build and observe.
 
 ## Webpack minimise JavaScript
 
-If you built webpack for testing tier then you already saw that minimisation in action as setting `mode` to production autoenables *UglifyJsPlugin* [see docs](https://webpack.js.org/concepts/mode/).
+If you built webpack for testing tier then you already saw that minimisation in action as setting `mode` to production autoenables *TerserPlugin* (previously it was *UglifyJsPlugin*), [see docs](https://webpack.js.org/concepts/mode/). In other words, on production mode webpack sets `optimization.minimize: true` and `optimization.minimizer: new TerserPlugin({})` with some defaults.
 
-On production mode webpack sets `optimization.minimize: true` and `optimization.minimizer: new UglifyJsPlugin()` with some defaults.
+But what if it has defaults we migth want to change? We just pass our custom constructed object to `optimization.minimizer`.
 
-But what if it has defaults we migth want to change? For example defaults dont drop console calls (note that here we will also explicitly keep it for debug purposes). We just pass our custom constructed object to `optimization.minimizer`.
-
-For JavaScript minimisation we can use webpack plugin [uglifyjs-webpack-plugin](https://webpack.js.org/plugins/uglifyjs-webpack-plugin/). It is uses [UglifyJS 3](https://github.com/mishoo/UglifyJS2) under the hood and thus supports ES6+ (the plugin is now based on `uglify-es` (which in turn is the result of previously so called *UglifyJS harmony branch*)).
-
-Options for `compress` key can be [found here](http://lisperator.net/uglifyjs/compress)  
-Other keys [here](https://github.com/webpack-contrib/uglifyjs-webpack-plugin#options)
+`TerserPlugin` keys can be found [here](https://webpack.js.org/plugins/terser-webpack-plugin/)  
+Options for `terserOptions` key can be found [here](https://github.com/terser/terser#minify-options)  
 
 Install plugin
 
 ```sh
-npm install uglifyjs-webpack-plugin --save-dev
+npm install terser-webpack-plugin --save-dev
 ```
 
 _webpack.front.config.js_
@@ -346,7 +342,7 @@ _webpack.front.config.js_
 ```javascript
 // ...
 
-const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
+const TerserPlugin = require('terser-webpack-plugin');
 
 // ...
 
@@ -354,33 +350,42 @@ const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 // OPTIMISATION
 
 config.optimization = {
-  // config.optimization.minimize = true, // can override
+  minimize: true, // can override
   minimizer: [
-    new UglifyJsPlugin({
+    new TerserPlugin({
+      test: /\.js(\?.*)?$/i,
+      // include: '',
+      // exclude: '',
+      chunkFilter: (chunk) => {
+        return true;
+      },
       cache: true,
+      // cacheKeys: (defaultCacheKeys, file) => {},
       parallel: true,
-      uglifyOptions: {
-        compress: {
-          sequences: true,
-          dead_code: true,
-          conditionals: true,
-          booleans: true,
-          unused: true,
-          if_return: true,
-          join_vars: true,
-          drop_console: false,
-          warnings: true
-        },
-        ecma: 6,
-        mangle: false,
-        warnings: true,
-        output: {
-          comments: false,
-          beautify: false
-        },
+      sourceMap: false,
+      // minify: (file, sourceMap) => {},
+      warningsFilter: (warning, source, file) => {
+        return true;
       },
       extractComments: false,
-      sourceMap: false
+      terserOptions: {
+        ecma: undefined,
+        warnings: true,
+        parse: {},
+        compress: {},
+        mangle: false,
+        module: false,
+        output: {
+          comments: false
+        },
+        sourceMap: false,
+        toplevel: false,
+        nameCache: null,
+        ie8: false,
+        keep_classnames: undefined,
+        keep_fnames: false,
+        safari10: false
+      }
     })
   ]
 };
@@ -390,11 +395,11 @@ config.optimization = {
 
 ## Manually copy files over to destination
 
-Our `index.html` file has `preflight.js` and `preflight.css` referenced in the head. But they are not present in output directory after building webpack, thus opening `index.html` directly in the browser from filesystem will greet *Hello World*, but checking console we will probably show `404` for those assets (and also *index.css*, but more on that later as we currently have no CSS at all).
+Our `index.html` file has `preflight.js` and `preflight.css` referenced in the head. But they are not present in output directory after building webpack, thus remdering `index.html` will greet with *Hello World*, but checking console we will probably show `404` for those assets (and also *index.css*, but more on that later as we currently have no CSS at all).
 
 Let us consider these assets as a special case where we want to avoid any webpack stuff to be attached to it (runtime and manifest, more on that later). What do I mean by webpack stuff? Build the project once again for development (no minimising) and inspect `public/assets/index.js`. *That webpack stuff.*
 
-From the current tools that are available one approach would be to use `copy-webpack-plugin` which is quite popular (and you can use it for this purpose), however we will be using `filemanager-webpack-plugin` as *filemanager* allows specifying actions that are executed both before and/or after webpack begins the bundling process.
+From the current tools that are available one approach would be to use [`copy-webpack-plugin`](https://github.com/webpack-contrib/copy-webpack-plugin) which is quite popular (and you can use it for this purpose), however we will be using [`filemanager-webpack-plugin`](https://github.com/gregnb/filemanager-webpack-plugin) as *filemanager* allows specifying actions that are executed both before and/or after webpack begins the bundling process.
 
 ```sh
 npm install filemanager-webpack-plugin --save-dev
@@ -447,7 +452,7 @@ document.documentElement.className = document.documentElement.className.replace(
 // ############################################################
 // Change incapable to capable.
 // Normally we try to deploy stuff that works on ES5-ish browsers.
-// That means normally IE11+, but sometimes even down to IE9, although that denies usage of many nice tools.
+// That means normally IE11+, but sometimes even down to IE9.
 // As example this CTM will inform us via CSS state machine that we are IE10+.
 if ('visibilityState' in document) {
   document.documentElement.className = document.documentElement.className.replace(/\bincapable\b/, 'capable');
@@ -514,11 +519,12 @@ npm install node-sass --save-dev
 We need a bunch of webpack loaders to get that `index.css` working that is 404'ed when running our `index.html`.
 
 Loaders & documentation  
-[https://github.com/webpack-contrib/style-loader](https://github.com/webpack-contrib/style-loader)  
-[https://github.com/webpack-contrib/css-loader](https://github.com/webpack-contrib/css-loader)  
-[https://github.com/webpack-contrib/sass-loader](https://github.com/webpack-contrib/sass-loader)  
+[style-loader](https://github.com/webpack-contrib/style-loader)  
+[css-loader](https://github.com/webpack-contrib/css-loader)  
+[sass-loader](https://github.com/webpack-contrib/sass-loader)  
+[optimize-css-assets-webpack-plugin](https://github.com/NMFR/optimize-css-assets-webpack-plugin)  
 
-Until webpack 4 [extract-text-webpack-plugin](https://github.com/webpack/extract-text-webpack-plugin), [webpack docs](https://webpack.js.org/plugins/extract-text-webpack-plugin/) was (and still is) way to go. However now we should use [mini-css-extract-plugin](https://github.com/webpack-contrib/mini-css-extract-plugin) as it is future proof.
+Until webpack 4 [extract-text-webpack-plugin](https://github.com/webpack/extract-text-webpack-plugin) ([webpack docs](https://webpack.js.org/plugins/extract-text-webpack-plugin/)) was way to go. However now we should use [mini-css-extract-plugin](https://github.com/webpack-contrib/mini-css-extract-plugin) as it is future proof. Previously minification could be handled by `css-loader`, now `optimize-css-assets-webpack-plugin` is needed.
 
 `mini-css-extract-plugin` extracts required CSS within JavaScript into separate files. Thus your styles are not inlined into the JavaScript (which would be kind of default webpack way without this plugin), but separate in a CSS file `entryPointKeyName.css` (and even chunked).
 
@@ -527,6 +533,7 @@ npm install style-loader --save-dev
 npm install css-loader --save-dev
 npm install sass-loader --save-dev
 npm install mini-css-extract-plugin --save-dev
+npm install optimize-css-assets-webpack-plugin --save-dev
 ```
 
 Set `mini-css-extract-plugin` to extract CSS if `!development`.
@@ -536,9 +543,10 @@ _webpack.front.config.js_
 ```javascript
 'use strict';
 const path = require('path');
-const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
+const TerserPlugin = require('terser-webpack-plugin');
 const FileManagerPlugin = require('filemanager-webpack-plugin');
-const MiniCssExtractPlugin = require("mini-css-extract-plugin");
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin');
 
 // ----------------
 // ENV
@@ -556,6 +564,8 @@ const outputPublicPathBuilt = '/assets/';
 // Output fs path
 const outputFsPath = path.join(__dirname, 'public/assets');
 
+// ----------------
+// Config
 let config = {
   mode: development ? 'development' : 'production',
   context: __dirname,
@@ -591,7 +601,6 @@ config.module = {
         {
           loader: 'css-loader',
           options: {
-            minimize: false,
             sourceMap: true
           }
         }
@@ -604,7 +613,6 @@ config.module = {
         {
           loader: 'css-loader',
           options: {
-            minimize: false,
             sourceMap: true
           }
         },
@@ -623,33 +631,45 @@ config.module = {
 // OPTIMISATION
 
 config.optimization = {
-  // config.optimization.minimize = true, // can override
+  minimize: true, // can override
   minimizer: [
-    new UglifyJsPlugin({
+    new TerserPlugin({
+      test: /\.js(\?.*)?$/i,
+      // include: '',
+      // exclude: '',
+      chunkFilter: (chunk) => {
+        return true;
+      },
       cache: true,
+      // cacheKeys: (defaultCacheKeys, file) => {},
       parallel: true,
-      uglifyOptions: {
-        compress: {
-          sequences: true,
-          dead_code: true,
-          conditionals: true,
-          booleans: true,
-          unused: true,
-          if_return: true,
-          join_vars: true,
-          drop_console: false,
-          warnings: true
-        },
-        ecma: 6,
-        mangle: false,
-        warnings: true,
-        output: {
-          comments: false,
-          beautify: false
-        },
+      sourceMap: false,
+      // minify: (file, sourceMap) => {},
+      warningsFilter: (warning, source, file) => {
+        return true;
       },
       extractComments: false,
-      sourceMap: false
+      terserOptions: {
+        ecma: undefined,
+        warnings: true,
+        parse: {},
+        compress: {},
+        mangle: false,
+        module: false,
+        output: {
+          comments: false
+        },
+        sourceMap: false,
+        toplevel: false,
+        nameCache: null,
+        ie8: false,
+        keep_classnames: undefined,
+        keep_fnames: false,
+        safari10: false
+      }
+    }),
+    new OptimizeCSSAssetsPlugin({
+      //
     })
   ]
 };
@@ -720,6 +740,8 @@ _src/index.global.scss_
 
 @import 'index.legacy.css';
 
+// This is example of SCSS
+
 $mycolor: red;
 
 .app {
@@ -783,6 +805,10 @@ _webpack.front.config.js_
 ```javascript
 // ...
 
+const webpack = require('webpack');
+
+// ...
+
 // ----------------
 // DefinePlugin
 config.plugins.push(new webpack.DefinePlugin({
@@ -836,7 +862,7 @@ Build for testing tier and inspect outputted file at `public/assets.index.js`
 rm -rf $(pwd)/public/assets/** && NODE_ENV=testing npx webpack --config=$(pwd)/webpack.front.config.js --progress
 ```
 
-no `'I\'m in development!'` can be found because we told UglifyYS to remove unreachable code.
+no `'I\'m in development!'` can be found because define plugin works (and Terser removes unreachable code).
 
 ```javascript
 if (false) {

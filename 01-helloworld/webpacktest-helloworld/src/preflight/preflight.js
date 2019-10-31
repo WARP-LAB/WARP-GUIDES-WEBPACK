@@ -11,7 +11,7 @@ document.documentElement.className = document.documentElement.className.replace(
 // ############################################################
 // Change incapable to capable.
 // Normally we try to deploy stuff that works on ES5-ish browsers.
-// That means normaly IE11+, but sometimes even down to IE9, although that denies usage of many nice tools.
+// That means normally IE11+, but sometimes even down to IE9.
 // As example this CTM will inform us via CSS state machine that we are IE10+.
 if ('visibilityState' in document) {
   document.documentElement.className = document.documentElement.className.replace(/\bincapable\b/, 'capable');

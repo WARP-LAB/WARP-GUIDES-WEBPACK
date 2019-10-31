@@ -1,9 +1,10 @@
 'use strict';
 const path = require('path');
 const webpack = require('webpack');
-const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
+const TerserPlugin = require('terser-webpack-plugin');
 const FileManagerPlugin = require('filemanager-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin');
 
 // ----------------
 // ENV
@@ -21,6 +22,8 @@ const outputPublicPathBuilt = '/assets/';
 // Output fs path
 const outputFsPath = path.join(__dirname, 'public/assets');
 
+// ----------------
+// Config
 let config = {
   mode: development ? 'development' : 'production',
   context: __dirname,
@@ -56,11 +59,10 @@ config.module = {
         {
           loader: 'css-loader',
           options: {
-            minimize: false,
             sourceMap: true
           }
         }
-      ]
+      ],
     },
     {
       test: /\.(scss)$/,
@@ -69,7 +71,6 @@ config.module = {
         {
           loader: 'css-loader',
           options: {
-            minimize: false,
             sourceMap: true
           }
         },
@@ -79,7 +80,7 @@ config.module = {
             sourceMap: true
           }
         }
-      ]
+      ],
     }
   ]
 };
@@ -88,33 +89,45 @@ config.module = {
 // OPTIMISATION
 
 config.optimization = {
-  // minimize: false, // can override
+  minimize: true, // can override
   minimizer: [
-    new UglifyJsPlugin({
+    new TerserPlugin({
+      test: /\.js(\?.*)?$/i,
+      // include: '',
+      // exclude: '',
+      chunkFilter: (chunk) => {
+        return true;
+      },
       cache: true,
+      // cacheKeys: (defaultCacheKeys, file) => {},
       parallel: true,
-      uglifyOptions: {
-        compress: {
-          sequences: true,
-          dead_code: true,
-          conditionals: true,
-          booleans: true,
-          unused: true,
-          if_return: true,
-          join_vars: true,
-          drop_console: false,
-          warnings: true
-        },
-        ecma: 6,
-        mangle: false,
-        warnings: true,
-        output: {
-          comments: false,
-          beautify: false
-        }
+      sourceMap: false,
+      // minify: (file, sourceMap) => {},
+      warningsFilter: (warning, source, file) => {
+        return true;
       },
       extractComments: false,
-      sourceMap: false
+      terserOptions: {
+        ecma: undefined,
+        warnings: true,
+        parse: {},
+        compress: {},
+        mangle: false,
+        module: false,
+        output: {
+          comments: false
+        },
+        sourceMap: false,
+        toplevel: false,
+        nameCache: null,
+        ie8: false,
+        keep_classnames: undefined,
+        keep_fnames: false,
+        safari10: false
+      }
+    }),
+    new OptimizeCSSAssetsPlugin({
+      //
     })
   ]
 };
@@ -141,10 +154,6 @@ config.plugins.push(new webpack.DefinePlugin({
 }));
 
 // ----------------
-// ModuleConcatenationPlugin
-config.plugins.push(new webpack.optimize.ModuleConcatenationPlugin());
-
-// ----------------
 // FileManagerPlugin
 config.plugins.push(new FileManagerPlugin({
   onStart: {
@@ -165,7 +174,7 @@ config.plugins.push(new FileManagerPlugin({
 // MiniCssExtractPlugin
 config.plugins.push(new MiniCssExtractPlugin({
   filename: '[name].css',
-  chunkFilename: '[id].css'
+  chunkFilename: '[id].css',
 }));
 
 module.exports = config;
