@@ -257,8 +257,9 @@ config.plugins.push(new webpack.DefinePlugin({
 
 // ----------------
 // ModuleConcatenationPlugin
-// By default this plugin is already enabled in production mode
-// config.plugins.push(new webpack.optimize.ModuleConcatenationPlugin());
+if (!development) {
+  // config.plugins.push(new webpack.optimize.ModuleConcatenationPlugin()); // enabled in production mode by default https://webpack.js.org/configuration/mode/
+}
 
 // ----------------
 // FileManagerPlugin

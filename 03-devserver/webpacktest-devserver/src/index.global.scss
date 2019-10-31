@@ -3,6 +3,8 @@
 @import 'typography.global.scss';
 @import 'index.legacy.css';
 
+// This is example of SCSS
+
 $mycolor: red;
 
 $paragarphColor: black;
@@ -20,7 +22,7 @@ body {
 .app {
   background-color: $mycolor;
   display: flex;
-  transform: translateY(50px);
+  transform: translateY(70px);
   height: 200px;
 
   p {

@@ -13,7 +13,8 @@
 # Prefligt
 ---
 
-Use existing `webpacktest-cssandfiles` code base from previous guide stage. Either work on top of it or just make a copy. The directory now is called `webpacktest-devserver`. Make changes in `package.json` name field. Don't forget `npm install`.
+Use existing `webpacktest-cssandfiles` code base from previous guide stage. Either work on top of it or just make a copy. The directory now is called `webpacktest-devserver`. Make changes in `package.json` name field. Don't forget `npm install`.  
+Copy `images` to `src` and `spacemono` to `src/fonts` from `media`.
 
 ---
 # Webpack DevServer
@@ -22,10 +23,6 @@ Use existing `webpacktest-cssandfiles` code base from previous guide stage. Eith
 Use hot reloading when developing.
 
 ## Install
-
-### webpack-serve
-
-[This](https://github.com/webpack-contrib/webpack-serve) is future replacement for `webpack-dev-server` but it is too early to switch over yet.
 
 ### Webpack webpack-dev-server
 
@@ -54,11 +51,11 @@ Set `publicPath` value conditional.
 
 // ----------------
 // Target host
-const targetAppHost = 'webpacktest-devserver.test';
+const targetAppHostname = 'webpacktest-devserver.test';
 
 // ----------------
 // Output public path
-const outputPublicPathBuilt = development ? `http://${targetAppHost}:4000/assets/` : `//${targetAppHost}/assets/`;
+const outputPublicPathWithPort = development ? `http://${targetAppHostname}:4000/assets/` : `//${targetAppHostname}/assets/`;
 
 // ...  
 ```
@@ -124,8 +121,8 @@ Then use localhost as hostname as well as public path such as
 *webpack.front.config.js*
 
 ```javascript
-const targetAppHost = 'localhost';
-const outputPublicPathBuilt = development ? `//${targetAppHost}:4000/assets/` : `//${targetAppHost}/assets/`;
+const targetAppHostname = 'localhost';
+const outputPublicPathWithPort = development ? `//${targetAppHostname}:4000/assets/` : `//${targetAppHostname}/assets/`;
 ```
 
 here and in the future. 
@@ -172,7 +169,6 @@ Let us move webpack DevServer configuration from inline commands to within `webp
 
 // ----------------
 // DevServer CONFIG
-
 config.devServer = {
   allowedHosts: [
     '.test',
@@ -195,7 +191,7 @@ config.devServer = {
     'Access-Control-Allow-Origin': '*'
   },
   historyApiFallback: true,
-  host: targetAppHost,
+  host: targetAppHostname,
 
   // needs webpack.HotModuleReplacementPlugin()
   hot: false,
@@ -204,8 +200,8 @@ config.devServer = {
   https: false,
   // https: {
   //   ca: fs.readFileSync(`${require('os').homedir()}/.valet/CA/LaravelValetCASelfSigned.pem`),
-  //   key: fs.readFileSync(`${require('os').homedir()}/.valet/Certificates/${targetAppHost}.key`),
-  //   cert: fs.readFileSync(`${require('os').homedir()}/.valet/Certificates/${targetAppHost}.crt`)
+  //   key: fs.readFileSync(`${require('os').homedir()}/.valet/Certificates/${targetAppHostname}.key`),
+  //   cert: fs.readFileSync(`${require('os').homedir()}/.valet/Certificates/${targetAppHostname}.crt`)
   // },
   // pfx: '/path/to/file.pfx',
   // pfxPassphrase: 'passphrase',
@@ -222,7 +218,7 @@ config.devServer = {
   port: 4000,
   // proxy: {},
   // public: 'myapp.test:80',
-  publicPath: outputPublicPathBuilt,
+  publicPath: outputPublicPathWithPort,
   quiet: false,
   // socket: 'socket',
   // staticOptions: {},
@@ -284,7 +280,6 @@ config.devServer = {
 
 // ----------------
 // Hot reloading and named modules
-
 if (development) {
   config.plugins.push(new webpack.HotModuleReplacementPlugin());
   // config.plugins.push(new webpack.NamedModulesPlugin()); // enabled by mode
@@ -310,7 +305,7 @@ _src/index.global.scss_
 
 and save file.
 
-Now the page itself does not reload, only SCSS and text you entered in input field is still there. *State* is kept! Hot!
+Now the page itself does not reload, only SCSS. And text you entered in input field is still there. *State* is kept! Hot!
 
 Now kill `ctrl+c` devserver. 
 
@@ -318,12 +313,11 @@ Now kill `ctrl+c` devserver.
 
 When running dev server we actually want CSS to be inlined within JavaScript so that hot reloading works better. Which will result in `404` for `assets/index.css` and FOUC, but it is ok for development.
 
-We have it already going in _webpack.config.js_ as *MiniCssExtractPlugin* falls back to `style-loader` when on development. When previously we used *ExtractTextPlugin* we had to pass `disable: development` option.
+We have it already going in _webpack.config.js_ as *MiniCssExtractPlugin* falls back to `style-loader` when on development.
 
 ## Changing port numbers based on environment / mode in `index.html` automatically
 
-Remember that at this stage you would have to remove `4000` from assets referenced in `index.html` manually to see testing results, as then all files are outputted in real filesystem and served by nginx (port `80`).  
-Or in case you are not using `nginx` you would have to serve public folder by some Node.js server at say `3333` port, thus also needing changes in `index.html`. This is stupid, right. How about building *HTML* so that it automatically sets those port numbers for us based on build target? See that in next section.
+Remember that at this stage you would have to remove `4000` from assets referenced in `index.html` manually to see testing results, as then all files are outputted in real filesystem and served by nginx (port `80`). This is inconvenient. How about building *HTML* so that it automatically sets those port numbers for us based on build target? See that in next section.
 
 ---
 # Use npm `scripts`!
@@ -351,4 +345,4 @@ Check source of this section to see
 # Next
 ---
 
-Dynamic HTML building will cover how HTML building can and should be automated.
+Dynamic HTML building will cover how HTML building could be automated.
