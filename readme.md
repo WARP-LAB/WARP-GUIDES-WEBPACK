@@ -124,8 +124,8 @@ _While doing edits I realised that notes should be made for some basic npm stuff
 
 ### Node.js / npm version
 
-Make sure you have latest LTS, basically `node` version 8.x+, `npm` version 5.7.1+  
-This tut has been tested on node 8.9.4 / npm 6.0.0.
+Make sure you have latest LTS, at least `node` version 8.x+, `npm` version 5.7.1+  
+This tut has been tested on node 12.13.0 / npm 6.12.0.
 
 ### Todo / notes to self
 
