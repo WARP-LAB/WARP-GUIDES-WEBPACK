@@ -3,9 +3,10 @@ const fs = require('fs');
 const path = require('path');
 const pConfig = require('./package.json');
 const webpack = require('webpack');
-const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
+const TerserPlugin = require('terser-webpack-plugin');
 const FileManagerPlugin = require('filemanager-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const HtmlWebpackHarddiskPlugin = require('html-webpack-harddisk-plugin');
 
@@ -31,31 +32,32 @@ if (production) {
 // ----------------
 // Host, port, putput public path based on env
 let targetAppProtocolPrefix = ''; // explicitly set protocol, protocol-relative URLs are now considered an anti-pattern
-let targetAppHost; // hostname
+let targetAppHostname; // hostname
 let targetAppPortSuffix; // if some custom port is specified, set suffix
-let targetAppUrlFull; // app root URL (with custom port, if exists), usually domain root, but can be subdirectory
+let targetAppUrlWithPort; // app root URL (with custom port, if exists), usually domain root, but can be subdirectory
 let targetAppUrlNoPort; // app root URL without any port designation
 const targetAppBuildUrlDir = 'assets/';
 
-let outputPublicPathBuilt; // ULR to built assets
+let outputPublicPathWithPort; // ULR to built assets
 let outputPublicPathNoPort; // ULR to built assets, but without any port designation
 
 // we can use tierName to set stuff at once
 if (!pConfig.config.useProtocolRelativeUrls) {
   targetAppProtocolPrefix = pConfig.config.tiers[tierName].tls ? 'https:' : 'http:';
 }
-targetAppHost = pConfig.config.tiers[tierName].host;
+targetAppHostname = pConfig.config.tiers[tierName].fqdn;
 targetAppPortSuffix = (pConfig.config.tiers[tierName].port) ? `:${pConfig.config.tiers[tierName].port}` : '';
-targetAppUrlFull = `${targetAppProtocolPrefix}//${pConfig.config.tiers[tierName].sub}${pConfig.config.tiers[tierName].host}${targetAppPortSuffix}/${pConfig.config.tiers[tierName].appPathAboveRoot}`;
-targetAppUrlNoPort = `${targetAppProtocolPrefix}//${pConfig.config.tiers[tierName].sub}${pConfig.config.tiers[tierName].host}/${pConfig.config.tiers[tierName].appPathAboveRoot}`;
-outputPublicPathBuilt = `${targetAppUrlFull}${targetAppBuildUrlDir}`;
+targetAppUrlWithPort = `${targetAppProtocolPrefix}//${pConfig.config.tiers[tierName].fqdn}${targetAppPortSuffix}/${pConfig.config.tiers[tierName].appPathAboveRoot}`;
+targetAppUrlNoPort = `${targetAppProtocolPrefix}//${pConfig.config.tiers[tierName].fqdn}/${pConfig.config.tiers[tierName].appPathAboveRoot}`;
+outputPublicPathWithPort = `${targetAppUrlWithPort}${targetAppBuildUrlDir}`;
 outputPublicPathNoPort = `${targetAppUrlNoPort}${targetAppBuildUrlDir}`;
 
 console.log('\x1b[42m\x1b[30m                                                               \x1b[0m');
 console.log('\x1b[44m%s\x1b[0m -> \x1b[36m%s\x1b[0m', 'TIER', tierName);
-console.log('\x1b[44m%s\x1b[0m -> \x1b[36m%s\x1b[0m', 'targetAppHost', targetAppHost);
-console.log('\x1b[44m%s\x1b[0m -> \x1b[36m%s\x1b[0m', 'targetAppUrlFull', targetAppUrlFull);
-console.log('\x1b[44m%s\x1b[0m -> \x1b[36m%s\x1b[0m', 'outputPublicPathBuilt', outputPublicPathBuilt);
+console.log('\x1b[44m%s\x1b[0m -> \x1b[36m%s\x1b[0m', 'targetAppHostname', targetAppHostname);
+console.log('\x1b[44m%s\x1b[0m -> \x1b[36m%s\x1b[0m', 'targetAppUrlWithPort', targetAppUrlWithPort);
+console.log('\x1b[44m%s\x1b[0m -> \x1b[36m%s\x1b[0m', 'targetAppUrlNoPort', targetAppUrlNoPort);
+console.log('\x1b[44m%s\x1b[0m -> \x1b[36m%s\x1b[0m', 'outputPublicPathWithPort', outputPublicPathWithPort);
 console.log('\x1b[44m%s\x1b[0m -> \x1b[36m%s\x1b[0m', 'outputPublicPathNoPort', outputPublicPathNoPort);
 console.log('\x1b[42m\x1b[30m                                                               \x1b[0m');
 
@@ -69,7 +71,6 @@ const sourceMapType = (development) ? 'inline-source-map' : false;
 
 // ----------------
 // BASE CONFIG
-
 let config = {
   mode: development ? 'development' : 'production',
   devtool: sourceMapType,
@@ -81,8 +82,8 @@ let config = {
   },
   output: {
     path: outputFsPath,
-    publicPath: outputPublicPathBuilt,
-    filename: (development) ? '[name].js' : '[name].[chunkhash].js'
+    publicPath: outputPublicPathWithPort,
+    filename: (development) ? '[name].js' : '[name].[chunkhash].js',
   },
   resolve: {
     modules: [
@@ -96,7 +97,6 @@ let config = {
 
 // ----------------
 // DevServer CONFIG
-
 config.devServer = {
   allowedHosts: [
     '.test',
@@ -119,7 +119,7 @@ config.devServer = {
     'Access-Control-Allow-Origin': '*'
   },
   historyApiFallback: true,
-  host: targetAppHost,
+  host: targetAppHostname,
 
   // needs webpack.HotModuleReplacementPlugin()
   hot: pConfig.config.webpackDevServer.hot,
@@ -128,8 +128,8 @@ config.devServer = {
   https: development && pConfig.config.tiers.development.tls
     ? {
       ca: fs.readFileSync(`${require('os').homedir()}/.valet/CA/LaravelValetCASelfSigned.pem`),
-      key: fs.readFileSync(`${require('os').homedir()}/.valet/Certificates/${targetAppHost}.key`),
-      cert: fs.readFileSync(`${require('os').homedir()}/.valet/Certificates/${targetAppHost}.crt`)
+      key: fs.readFileSync(`${require('os').homedir()}/.valet/Certificates/${targetAppHostname}.key`),
+      cert: fs.readFileSync(`${require('os').homedir()}/.valet/Certificates/${targetAppHostname}.crt`)
     }
     : false,
   // pfx: '/path/to/file.pfx',
@@ -147,7 +147,7 @@ config.devServer = {
   port: pConfig.config.tiers.development.port,
   // proxy: {},
   // public: 'myapp.test:80',
-  publicPath: outputPublicPathBuilt,
+  publicPath: outputPublicPathWithPort,
   quiet: false,
   // socket: 'socket',
   // staticOptions: {},
@@ -162,6 +162,7 @@ config.devServer = {
   }
 };
 
+
 // ----------------
 // MODULE RULES
 
@@ -174,7 +175,6 @@ config.module = {
         {
           loader: 'css-loader',
           options: {
-            minimize: false,
             importLoaders: 2,
             sourceMap: true
           }
@@ -192,7 +192,7 @@ config.module = {
             keepQuery: true
           }
         }
-      ]
+      ],
     },
     {
       test: /\.(scss)$/,
@@ -201,7 +201,6 @@ config.module = {
         {
           loader: 'css-loader',
           options: {
-            minimize: false,
             importLoaders: 3,
             sourceMap: true
           }
@@ -223,10 +222,10 @@ config.module = {
           loader: 'sass-loader',
           options: {
             sourceMap: true,
-            data: `$env: ${JSON.stringify(process.env.NODE_ENV || 'development')};`
+            prependData: `$env: ${JSON.stringify(process.env.NODE_ENV || 'development')};`
           }
         }
-      ]
+      ],
     },
     {
       test: /\.(png|jpe?g|gif|svg)$/,
@@ -293,33 +292,55 @@ config.module = {
 // OPTIMISATION
 
 config.optimization = {
-  // minimize: false, // can override
+  minimize: true, // can override
   minimizer: [
-    new UglifyJsPlugin({
+    new TerserPlugin({
+      test: /\.js(\?.*)?$/i,
+      // include: '',
+      // exclude: '',
+      chunkFilter: (chunk) => {
+        return true;
+      },
       cache: true,
+      // cacheKeys: (defaultCacheKeys, file) => {},
       parallel: true,
-      uglifyOptions: {
-        compress: {
-          sequences: true,
-          dead_code: true,
-          conditionals: true,
-          booleans: true,
-          unused: true,
-          if_return: true,
-          join_vars: true,
-          drop_console: false,
-          warnings: true
-        },
-        ecma: 6,
-        mangle: false,
-        warnings: true,
-        output: {
-          comments: false,
-          beautify: false
-        }
+      sourceMap: !!sourceMapType,
+      // minify: (file, sourceMap) => {},
+      warningsFilter: (warning, source, file) => {
+        return true;
       },
       extractComments: false,
-      sourceMap: !!sourceMapType // evaluates to bool
+      terserOptions: {
+        ecma: undefined,
+        warnings: true,
+        parse: {},
+        compress: {},
+        mangle: false,
+        module: false,
+        output: {
+          comments: false
+        },
+        sourceMap: false,
+        toplevel: false,
+        nameCache: null,
+        ie8: false,
+        keep_classnames: undefined,
+        keep_fnames: false,
+        safari10: false
+      }
+    }),
+    new OptimizeCSSAssetsPlugin({
+      cssProcessorOptions: {
+        map: sourceMapType === false ? false :
+        sourceMapType.includes('inline') ?
+        {
+          inline: true,
+        } :
+        {
+          inline: false,
+          annotation: true
+        }
+      }
     })
   ]
 };
@@ -347,17 +368,19 @@ config.plugins.push(new webpack.DefinePlugin({
 
 // ----------------
 // Hot reloading and named modules
-
 if (development) {
   config.plugins.push(new webpack.HotModuleReplacementPlugin());
-  // config.plugins.push(new webpack.NamedModulesPlugin()); // enabled by mode
+  // config.plugins.push(new webpack.NamedModulesPlugin()); // enabled in development mode by default https://webpack.js.org/configuration/mode/
 } else {
-  config.plugins.push(new webpack.HashedModuleIdsPlugin());
+  // config.plugins.push(new webpack.HashedModuleIdsPlugin());
+  // config.plugins.push(new webpack.NamedModulesPlugin());
 }
 
 // ----------------
 // ModuleConcatenationPlugin
-config.plugins.push(new webpack.optimize.ModuleConcatenationPlugin());
+if (!development) {
+  // config.plugins.push(new webpack.optimize.ModuleConcatenationPlugin()); // enabled in production mode by default https://webpack.js.org/configuration/mode/
+}
 
 // ----------------
 // FileManagerPlugin
@@ -379,11 +402,14 @@ config.plugins.push(new FileManagerPlugin({
 // ----------------
 // HtmlWebpackPlugin
 config.plugins.push(new HtmlWebpackPlugin({
+  // just pass through some variables
   outputPublicPathNoPort,
+  outputPublicPathWithPort,
   fsInlineContents: {
     'preflight.js': fs.readFileSync(path.join(__dirname, 'src/preflight/preflight.js'), 'utf8'),
     'preflight.css': fs.readFileSync(path.join(__dirname, 'src/preflight/preflight.css'), 'utf8')
   },
+  //
   title: `GUIDE - ${pConfig.name}`,
   filename: path.join(__dirname, 'public/index.html'),
   template: path.join(__dirname, 'src/html/index.template.ejs'),
@@ -416,7 +442,7 @@ config.plugins.push(new HtmlWebpackHarddiskPlugin());
 // MiniCssExtractPlugin
 config.plugins.push(new MiniCssExtractPlugin({
   filename: (development) ? '[name].css' : '[name].[chunkhash].css',
-  chunkFilename: (development) ? '[id].css' : '[id].[chunkhash].css'
+  chunkFilename: (development) ? '[id].css' : '[id].[chunkhash].css',
 }));
 
 // ----------------

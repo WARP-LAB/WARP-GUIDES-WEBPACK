@@ -13,8 +13,8 @@
 # Prefligt
 ---
 
-Use existing `webpacktest-devserver` code base from previous guide stage. Either work on top of it or just make a copy. The directory now is called `webpacktest-htmlandcache`. Make changes in `package.json` name field. Don't forget `npm install`.
-
+Use existing `webpacktest-devserver` code base from previous guide stage. Either work on top of it or just make a copy. The directory now is called `webpacktest-htmlandcache`. Make changes in `package.json` *name* field and *fqdn* fields. Don't forget `npm install`.  
+Copy `images` to `src` and `spacemono` to `src/fonts` from `media`.
 
 ---
 # Remove static `index.html`
@@ -39,11 +39,11 @@ Till now we were using prefilled `assets/index.html` to serve the webpage. It wa
 * either via  `webpacktest-xxx.test(:80)` where `public/index.html` in public dir was served by *nginx*
 *  or `localhost:4000` where `public/index.html` was served by webpack DevServer by specifying content base.
 
-That introduced issues when building for development or testing tiers as we needed to go into the `public/index.html` and add or remove port number to the assets URIs. See notes in `webpacktest-devserver` guide stage.
+That introduced issues when building for development (utilising webpack-dev-server) or testing tiers as we needed to go into the `public/index.html` and add or remove port number to the assets URIs. See notes in `webpacktest-devserver` guide stage.
 
 However - we can build/generate `public/index.html` using webpack on the fly (note: *building* differs from *serving*, mkay).
 
-And it is not only about development. Such generated `index.html` file really can be also used in staging and production tiers. Moreover the generated file can be actually some another template file (pug, blade...) that is then read by serverside app before dynamically serving it to the client.
+And it is not only about development. Such generated `index.html` file really can be also used in staging and production tiers. Moreover the generated file can be actually some serverside template engine file that is then read by serverside app before dynamically serving it to the client.
 
 ## Install
 
@@ -55,7 +55,7 @@ npm install html-webpack-plugin --save-dev
 
 ### html-webpack-harddisk-plugin, plugin for the plugin
 
-There are [many](https://github.com/jantimon/html-webpack-plugin#third-party-addons).
+There are [many](https://github.com/jantimon/html-webpack-plugin#plugins).
 
 The one we will use is to emit the generated html file in `public` directory. We could use in memory stuff, however that would introduce need for middlewares and configuration not for this guide (yet).
 
@@ -67,7 +67,7 @@ npm install html-webpack-harddisk-plugin --save-dev
 
 Many template engines [are supported](https://github.com/jantimon/html-webpack-plugin/blob/master/docs/template-option.md).
 
-Let us just use built in *lodash* (underscore) template markup.
+Let us just use built in *lodash* (underscore.js) template markup.
 Here is link to [html-webpack-template](https://github.com/jaketrent/html-webpack-template/blob/master/index.ejs) to give you idea what data gets exposed.
 
 ## Configure
@@ -86,8 +86,8 @@ _src/index.template.ejs_
   <meta name="description" content="Webpack Guide">
   <meta name="keywords" content="webpack,guide">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
-  <script src="<%= htmlWebpackPlugin.options.outputPublicPathNoPort %>preflight.js"></script>
-  <link href="<%= htmlWebpackPlugin.options.outputPublicPathNoPort %>preflight.css" rel="stylesheet" type="text/css">
+  <script src="<%= htmlWebpackPlugin.options.outputPublicPathWithPort %>preflight.js"></script>
+  <link href="<%= htmlWebpackPlugin.options.outputPublicPathWithPort %>preflight.css" rel="stylesheet" type="text/css">
   <% for (let css in htmlWebpackPlugin.files.css) { %>
     <link href="<%= htmlWebpackPlugin.files.css[css] %>" rel="stylesheet" type="text/css">
   <% } %>
@@ -124,7 +124,10 @@ const HtmlWebpackHarddiskPlugin = require('html-webpack-harddisk-plugin');
 // ----------------
 // HtmlWebpackPlugin
 config.plugins.push(new HtmlWebpackPlugin({
+  // just pass through some variables
   outputPublicPathNoPort,
+  outputPublicPathWithPort,
+  //
   title: `GUIDE - ${pConfig.name}`,
   filename: path.join(__dirname, 'public/index.html'),
   template: path.join(__dirname, 'src/html/index.template.ejs'),
@@ -155,13 +158,11 @@ npm run build:front:dev
 npm run build:front:test
 ```
 
-Observe how (if) `index.html` is outputted into `public` directory and is served to the browser in both cases (and inspect how port number in outputted HTML changes based on ENV). See also that 
+Observe how (if) `index.html` is outputted into `public` directory and is served to the browser in both cases (and inspect how port number in outputted HTML changes based on ENV).
 
 ## Automatically inject entries / outputs (optional)
 
-We are specifying manually where in the template entry outputs are injected. We can automate it
-
-Just change `inject` to `true` or location such as
+We are specifying manually where in the template entry outputs are injected. It can be automated by changing `inject` to `true` or location such as
 
 _webpack.front.config.js_
 
@@ -169,13 +170,13 @@ _webpack.front.config.js_
 inject: 'body'
 ```
 
-And remove those lines where we manually inject assets from *index.template.ejs*. Currently we will keep our manual injection points.
+and removing lines in *index.template.ejs*  where assets are manually specified. Currently we will keep our manual injection points.
 
 ---
 # Cache busting by using hashes
 ---
 
-Till now HTML always referenced to `index.js|css`. This is bad as those files in real world have to be cached. As the filenames do not change then user will not get our new webapp version! HTML building allows us to use cache busting by changing filenames of our outputs on new builds!
+Till now HTML always referenced to `index.js|css`. This is bad as those files in real world have to be cached. As the filenames do not change then user will not get our new webapp version! HTML building allows us to use cache busting by changing filenames of our outputs on new builds.
 
 Currently when building HTML (and previously when doing *manual* `index.html`) the built output looks something like this
 
@@ -192,7 +193,7 @@ Include chunk-specific hash in the filename for JavaScript and CSS. In developme
 
   output: {
     path: outputFsPath,
-    publicPath: outputPublicPathBuilt,
+    publicPath: outputPublicPathWithPort,
     filename: (development) ? '[name].js' : '[name].[chunkhash].js',
   },
 
@@ -241,9 +242,6 @@ Set its value to the contents(!) of `preflight` files
 
 ```javascript
 // ...
-const fs = require('fs');
-
-// ...
 
 config.plugins.push(new FileManagerPlugin({
   onStart: {
@@ -280,11 +278,15 @@ Now just echo out the contents in the template head.
 *index.template.ejs*
 
 ```ejs
+  <!--
+  <script src="<%= htmlWebpackPlugin.options.outputPublicPathWithPort %>preflight.js"></script>
+  <link href="<%= htmlWebpackPlugin.options.outputPublicPathWithPort %>preflight.css" rel="stylesheet" type="text/css">
+  -->
   <script><%= htmlWebpackPlugin.options.fsInlineContents['preflight.js'] %></script>
   <style><%= htmlWebpackPlugin.options.fsInlineContents['preflight.css'] %></style>
 ```
 
-Note - if preflight state machine changes (which happens just few times during whole development process), webpack dev server has to be restarted.
+Note - if code of preflight state machine changes (which happens just few times during whole development process), webpack dev server has to be restarted.
 
 Build and observe how file contents get inlined!
 
