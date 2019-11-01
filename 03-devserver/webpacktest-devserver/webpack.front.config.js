@@ -242,42 +242,7 @@ config.module = {
       ].filter((e) => e !== null)
     },
     {
-      test: /\.woff2(\?v=\d+\.\d+\.\d+)?$/,
-      use: [{
-        loader: 'file-loader',
-        options: {}
-      }]
-    },
-    {
-      test: /\.woff(\?v=\d+\.\d+\.\d+)?$/,
-      use: [{
-        loader: 'file-loader',
-        options: {}
-      }]
-    },
-    {
-      test: /\.otf(\?v=\d+\.\d+\.\d+)?$/,
-      use: [{
-        loader: 'file-loader',
-        options: {}
-      }]
-    },
-    {
-      test: /\.ttf(\?v=\d+\.\d+\.\d+)?$/,
-      use: [{
-        loader: 'file-loader',
-        options: {}
-      }]
-    },
-    {
-      test: /\.eot(\?v=\d+\.\d+\.\d+)?$/,
-      use: [{
-        loader: 'file-loader',
-        options: {}
-      }]
-    },
-    {
-      test: /\.svg(\?v=\d+\.\d+\.\d+)?$/,
+      test: /\.(woff2|woff|otf|ttf|eot|svg)$/,
       use: [{
         loader: 'file-loader',
         options: {}

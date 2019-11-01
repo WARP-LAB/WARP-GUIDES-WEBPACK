@@ -227,7 +227,7 @@ Note that in *HtmlWebpackPlugin* we have set `hash: false`, because we do not wa
 
 Note that proper inlining for *built assets* will be discussed later in code splitting section. This is a special road I take for CSS state machine, webpack runtime should be nowhere near these files.
 
-How about inlining inside HTML `preflight` files that currently are copied over to assets using *FileManagerPlugin*? Does avoiding two extra requests wins over having to return a bit bigger HTML? Due to their content and purpose it might be an OK idea.
+How about inlining inside HTML `preflight` files that currently are copied over to assets using *FileManagerPlugin*? Does avoiding two extra requests wins over having to return a bit bigger HTML? What about HTTP/1.1 vs HTTP/2 case? Due to their content and purpose it might be an OK idea.
 
 Note that from the current tools that are available another approach from what we will be taking would be
 
