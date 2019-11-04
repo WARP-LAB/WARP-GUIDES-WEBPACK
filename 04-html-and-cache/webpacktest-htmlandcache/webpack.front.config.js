@@ -29,41 +29,75 @@ if (production) {
   development = true; // fall back to development
 }
 
+const devServe = !!process.env.DEV_SERVE;
+
+// ----------------
+// Output filesystem path
+const outputPathFsContentBase = path.join(__dirname, 'public/');
+const outputPathFsAssetsSuffix = 'assets/';
+const outputPathFsBuild = path.join(__dirname, `public/${outputPathFsAssetsSuffix}`);
+
+// ----------------
+// Webpack output URL
+const outputPathPublicUrlRelativeToApp = 'assets/'; // file system paths do not necessarily reflect in URL paths 
+const outputPathPublicUrlAbsoluteToRoot = `/${pConfig.config.tiers[tierName].appPathAboveServerRoot}${outputPathPublicUrlRelativeToApp}`;
+
 // ----------------
 // Host, port, putput public path based on env
-let targetAppProtocolPrefix = ''; // explicitly set protocol, protocol-relative URLs are now considered an anti-pattern
+let targetAppProtocolPrefix; // protocol
 let targetAppHostname; // hostname
+let targetAppPathAboveServerRoot; // 'some/path/above/webroot/'
 let targetAppPortSuffix; // if some custom port is specified, set suffix
-let targetAppUrlWithPort; // app root URL (with custom port, if exists), usually domain root, but can be subdirectory
+let targetAppUrlWithPort; // app root URL (with custom port, if exists), usually domain root, but can be subpath
 let targetAppUrlNoPort; // app root URL without any port designation
-const targetAppBuildUrlDir = 'assets/';
 
-let outputPublicPathWithPort; // ULR to built assets
-let outputPublicPathNoPort; // ULR to built assets, but without any port designation
+let outputPublicAssetsUrlWithPort; // ULR to built assets
+let outputPublicAssetsUrlNoPort; // ULR to built assets, but without any port designation
 
-// we can use tierName to set stuff at once
+// protocol-relative URLs are considered an anti-pattern in HTTPS-should-be-everywhere world
 if (!pConfig.config.useProtocolRelativeUrls) {
   targetAppProtocolPrefix = pConfig.config.tiers[tierName].tls ? 'https:' : 'http:';
+} else {
+  targetAppProtocolPrefix = '';
 }
-targetAppHostname = pConfig.config.tiers[tierName].fqdn;
+
+targetAppHostname = (devServe) ? 'localhost' : pConfig.config.tiers[tierName].fqdn;
+targetAppPathAboveServerRoot =  (devServe) ? '' : pConfig.config.tiers[tierName].appPathAboveServerRoot;
 targetAppPortSuffix = (pConfig.config.tiers[tierName].port) ? `:${pConfig.config.tiers[tierName].port}` : '';
-targetAppUrlWithPort = `${targetAppProtocolPrefix}//${pConfig.config.tiers[tierName].fqdn}${targetAppPortSuffix}/${pConfig.config.tiers[tierName].appPathAboveRoot}`;
-targetAppUrlNoPort = `${targetAppProtocolPrefix}//${pConfig.config.tiers[tierName].fqdn}/${pConfig.config.tiers[tierName].appPathAboveRoot}`;
-outputPublicPathWithPort = `${targetAppUrlWithPort}${targetAppBuildUrlDir}`;
-outputPublicPathNoPort = `${targetAppUrlNoPort}${targetAppBuildUrlDir}`;
+targetAppUrlWithPort = `${targetAppProtocolPrefix}//${targetAppHostname}${targetAppPortSuffix}/${targetAppPathAboveServerRoot}`;
+targetAppUrlNoPort = `${targetAppProtocolPrefix}//${targetAppHostname}/${targetAppPathAboveServerRoot}`;
+outputPublicAssetsUrlWithPort = `${targetAppUrlWithPort}${outputPathPublicUrlRelativeToApp}`;
+outputPublicAssetsUrlNoPort = `${targetAppUrlNoPort}${outputPathPublicUrlRelativeToApp}`;
+
+let relativeUrlType;
+let webpackConfigOutputPublicPath = outputPublicAssetsUrlWithPort;
+
+if (devServe) {
+  // if using webpack-dev-server to serve files, just use full url
+  relativeUrlType = false;
+}
+else {
+  relativeUrlType = pConfig.config.tiers[tierName].relativeUrlType;
+  if (relativeUrlType === 'server-root-relative') {
+    webpackConfigOutputPublicPath = `/${targetAppPathAboveServerRoot}${outputPathPublicUrlRelativeToApp}`;
+  }
+  else if (relativeUrlType === 'app-index-relative') {
+    webpackConfigOutputPublicPath = `${outputPathPublicUrlRelativeToApp}`;
+  }
+  else {
+    relativeUrlType = false; // sanitize
+  }
+}
 
 console.log('\x1b[42m\x1b[30m                                                               \x1b[0m');
 console.log('\x1b[44m%s\x1b[0m -> \x1b[36m%s\x1b[0m', 'TIER', tierName);
+if (devServe) { console.log('\x1b[44m%s\x1b[0m -> \x1b[36m%s\x1b[0m', 'DEV SERVE', devServe); }
 console.log('\x1b[44m%s\x1b[0m -> \x1b[36m%s\x1b[0m', 'targetAppHostname', targetAppHostname);
 console.log('\x1b[44m%s\x1b[0m -> \x1b[36m%s\x1b[0m', 'targetAppUrlWithPort', targetAppUrlWithPort);
 console.log('\x1b[44m%s\x1b[0m -> \x1b[36m%s\x1b[0m', 'targetAppUrlNoPort', targetAppUrlNoPort);
-console.log('\x1b[44m%s\x1b[0m -> \x1b[36m%s\x1b[0m', 'outputPublicPathWithPort', outputPublicPathWithPort);
-console.log('\x1b[44m%s\x1b[0m -> \x1b[36m%s\x1b[0m', 'outputPublicPathNoPort', outputPublicPathNoPort);
+console.log('\x1b[44m%s\x1b[0m -> \x1b[36m%s\x1b[0m', 'outputPublicAssetsUrlWithPort', outputPublicAssetsUrlWithPort);
+console.log('\x1b[44m%s\x1b[0m -> \x1b[36m%s\x1b[0m', 'outputPublicAssetsUrlNoPort', outputPublicAssetsUrlNoPort);
 console.log('\x1b[42m\x1b[30m                                                               \x1b[0m');
-
-// ----------------
-// Output fs path
-const outputFsPath = path.join(__dirname, 'public/assets');
 
 // ----------------
 // Source map conf
@@ -81,8 +115,8 @@ let config = {
     ]
   },
   output: {
-    path: outputFsPath,
-    publicPath: outputPublicPathWithPort,
+    path: outputPathFsBuild,
+    publicPath: webpackConfigOutputPublicPath,
     filename: (development) ? '[name].js' : '[name].[chunkhash].js',
   },
   resolve: {
@@ -107,7 +141,7 @@ config.devServer = {
   clientLogLevel: 'info',
   compress: true,
 
-  contentBase: false, // path.join(__dirname, 'public'), // pass content base if not using nginx to serve files
+  contentBase: (devServe) ? outputPathFsContentBase : false,
   // watchContentBase: true,
   // watchOptions: {
   //   poll: true
@@ -147,7 +181,7 @@ config.devServer = {
   port: pConfig.config.tiers.development.port,
   // proxy: {},
   // public: 'myapp.test:80',
-  publicPath: outputPublicPathWithPort,
+  publicPath: outputPublicAssetsUrlWithPort,
   quiet: false,
   // socket: 'socket',
   // staticOptions: {},
@@ -233,7 +267,9 @@ config.module = {
       use: [
         {
           loader: 'file-loader',
-          options: {}
+          options: {
+            publicPath: (relativeUrlType === 'app-index-relative') ? './' : ''
+          }
         },
         (!development)
           ? {
@@ -247,7 +283,9 @@ config.module = {
       test: /\.(woff2|woff|otf|ttf|eot|svg)$/,
       use: [{
         loader: 'file-loader',
-        options: {}
+        options: {
+          publicPath: (relativeUrlType === 'app-index-relative') ? './' : ''
+        }
       }]
     }
   ]
@@ -263,17 +301,17 @@ config.optimization = {
       test: /\.js(\?.*)?$/i,
       // include: '',
       // exclude: '',
-      chunkFilter: (chunk) => {
-        return true;
-      },
+      // chunkFilter: (chunk) => {
+      //   return true;
+      // },
       cache: true,
       // cacheKeys: (defaultCacheKeys, file) => {},
       parallel: true,
       sourceMap: !!sourceMapType,
       // minify: (file, sourceMap) => {},
-      warningsFilter: (warning, source, file) => {
-        return true;
-      },
+      // warningsFilter: (warning, source, file) => {
+      //   return true;
+      // },
       extractComments: false,
       terserOptions: {
         ecma: undefined,
@@ -354,7 +392,7 @@ config.plugins.push(new FileManagerPlugin({
     copy: [
       // {
       //   source: path.join(__dirname, 'src/preflight/*.{js,css}'),
-      //   destination: outputFsPath
+      //   destination: outputPathFsBuild
       // }
     ],
     move: [],
@@ -368,15 +406,15 @@ config.plugins.push(new FileManagerPlugin({
 // HtmlWebpackPlugin
 config.plugins.push(new HtmlWebpackPlugin({
   // just pass through some variables
-  outputPublicPathNoPort,
-  outputPublicPathWithPort,
+  outputPublicAssetsUrlNoPort,
+  outputPublicAssetsUrlWithPort,
   fsInlineContents: {
     'preflight.js': fs.readFileSync(path.join(__dirname, 'src/preflight/preflight.js'), 'utf8'),
     'preflight.css': fs.readFileSync(path.join(__dirname, 'src/preflight/preflight.css'), 'utf8')
   },
   //
   title: `GUIDE - ${pConfig.name}`,
-  filename: path.join(__dirname, 'public/index.html'),
+  filename: `${outputPathFsContentBase}index.html`,
   template: path.join(__dirname, 'src/html/index.template.ejs'),
   inject: false, // we specify manually where we want our entry outputs to be in the template
   // favicon: favicon.ico,

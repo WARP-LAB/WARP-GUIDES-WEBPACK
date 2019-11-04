@@ -183,9 +183,17 @@ Use [Normalize.css](https://necolas.github.io/normalize.css/). Although our usua
 npm install normalize.css --save-dev
 ```
 
-Add to _src/index.global.scss_ SCSS `@import '~normalize.css';`
+Add it to app SCSS
 
-We add it as a module, so we prefix it with `~`. Now you know what `resolve: { modules: [] }` in webpack config stands for. Search paths!
+_src/index.global.scss_
+
+```scss
+@import '~normalize.css';
+
+// ...
+```
+
+We add it as a module, so we prefix it with `~`. Now you know what `resolve: { modules: [] }` in webpack config stands for - search paths.
 
 Run webpack and inspect `public/assets/index.css`
 
@@ -233,7 +241,7 @@ let config = {
     
     new OptimizeCSSAssetsPlugin({
       cssProcessorOptions: {
-        map: sourceMapType === false ? false :
+        map: (sourceMapType === false) ? false :
         sourceMapType.includes('inline') ?
         {
           inline: true,

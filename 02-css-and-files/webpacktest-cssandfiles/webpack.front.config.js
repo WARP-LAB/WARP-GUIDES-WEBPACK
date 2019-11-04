@@ -16,11 +16,11 @@ console.log('GLOBAL ENVIRONMENT \x1b[36m%s\x1b[0m', process.env.NODE_ENV);
 
 // ----------------
 // Output public path
-const outputPublicPathBuilt = '/assets/';
+const outputPathPublicUrlRelativeToApp = 'assets/';
 
 // ----------------
 // Output fs path
-const outputFsPath = path.join(__dirname, 'public/assets');
+const outputPathFsBuild = path.join(__dirname, 'public/assets');
 
 // ----------------
 // Source map conf
@@ -38,8 +38,8 @@ let config = {
     ]
   },
   output: {
-    path: outputFsPath,
-    publicPath: outputPublicPathBuilt,
+    path: outputPathFsBuild,
+    publicPath: outputPathPublicUrlRelativeToApp,
     filename: '[name].js'
   },
   resolve: {
@@ -152,17 +152,17 @@ config.optimization = {
       test: /\.js(\?.*)?$/i,
       // include: '',
       // exclude: '',
-      chunkFilter: (chunk) => {
-        return true;
-      },
+      // chunkFilter: (chunk) => {
+      //   return true;
+      // },
       cache: true,
       // cacheKeys: (defaultCacheKeys, file) => {},
       parallel: true,
       sourceMap: !!sourceMapType,
       // minify: (file, sourceMap) => {},
-      warningsFilter: (warning, source, file) => {
-        return true;
-      },
+      // warningsFilter: (warning, source, file) => {
+      //   return true;
+      // },
       extractComments: false,
       terserOptions: {
         ecma: undefined,
@@ -185,7 +185,7 @@ config.optimization = {
     }),
     new OptimizeCSSAssetsPlugin({
       cssProcessorOptions: {
-        map: sourceMapType === false ? false :
+        map: (sourceMapType === false) ? false :
         sourceMapType.includes('inline') ?
         {
           inline: true,
@@ -233,7 +233,7 @@ config.plugins.push(new FileManagerPlugin({
     copy: [
       {
         source: path.join(__dirname, 'src/preflight/*.{js,css}'),
-        destination: outputFsPath
+        destination: outputPathFsBuild
       }
     ],
     move: [],

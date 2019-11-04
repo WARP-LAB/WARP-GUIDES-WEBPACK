@@ -85,19 +85,17 @@ _package.json_
 
 ## Server side
 
-Remember that this *Hello World* does not necessarily need any webserver. Opening `index.html` directly from filesystem will work just fine in most cases.
-
-But that's it. All further sections will assume some server side static file serving to actually reflect on real development process. If not using webserver paths will break.
+Remember that this *Hello World* (and further examples) does not necessarily need any webserver. Opening `index.html` directly from filesystem will work just fine if *asset paths* (JS , CSS , fonts, images, etc.) are specified relatively to `index.html` file. All further sections will assume some server side static file serving to actually reflect on real development process.
 
 The guide is written by having directory `webpacktest-helloworld` (and in the future `webpacktest-<sectionname>`) in a directory where *Laravel Valet* is [*parked*](https://laravel.com/docs/6.x/valet#the-park-command).  
 *Valet* has nothing to do with *PHP* in this case. It just gives us *nginx* (that serves files from `anydirectory/public` within its park directory OOB) and *DnsMasq*, so that all directories within *park* are automatically served as `directoryname.tldofyourchoice`.  
-When we put `webpacktest-helloworld` directory in *Valet park* directory, it can be accessed via `//webpacktest-helloworld.test` domain, *nginx* will automatically serve `webpacktest-helloworld/public`. Although *Valet* is not requirement and you can craft your own stuff, it is really handy!
+When we put `webpacktest-helloworld` directory in *Valet park* directory, it can be accessed via `//webpacktest-helloworld.test` domain, *nginx* will automatically serve `webpacktest-helloworld/public`. Although *Valet* is not requirement and you can craft your own stuff, it is really handy.
 
 Options
 
 * If doing this locally having `nginx` then `public` directory from the directory structure described above should be served (web root).
 * If doing this locally via Node, then put the directory structure wherever.
-* If doing this locally within container (Docker) or VM (Vagrant/whatever), then put where needed
+* If doing this locally within container / VM, then put where needed
 * If doing this on our devserver `devisites` pool, `public` is webroot, served at `nameformywebpacktest.our.dev.host.tld`.
 
 ---
@@ -118,7 +116,7 @@ npm install webpack-cli --save-dev
 
 ## First configuration
 
-Fill in webpack configuration file. Please always use ES6 in webpack config files.
+Fill in webpack configuration file. Use ES6 in webpack config files.
 
 _webpack.front.config.js_
 
@@ -128,11 +126,11 @@ const path = require('path');
 
 // ----------------
 // Output public path
-const outputPublicPathBuilt = '/assets/';
+const outputPathPublicUrlRelativeToApp = 'assets/';
 
 // ----------------
 // Output fs path
-const outputFsPath = path.join(__dirname, 'public/assets');
+const outputPathFsBuild = path.join(__dirname, 'public/assets');
 
 // ----------------
 // Config
@@ -145,8 +143,8 @@ let config = {
     ]
   },
   output: {
-    path: outputFsPath,
-    publicPath: outputPublicPathBuilt,
+    path: outputPathFsBuild,
+    publicPath: outputPathPublicUrlRelativeToApp,
     filename: '[name].js'
   },
   resolve: {
@@ -217,7 +215,7 @@ rm -rf $(pwd)/public/assets/** && $(pwd)/node_modules/webpack/bin/webpack.js --c
 
 Inspect `public/assets` directory. Open `index.html` directly in the browser from filesystem.
 
-Further below instead of accessing local `node_modules` bin manually, we will use [`npx`](https://github.com/zkat/npx) (and later we will introduce *npm scripts*).
+Further below instead of accessing local `node_modules` bin manually, we will use [`npx`](https://github.com/npm/npx) (and later we will introduce *npm scripts*).
 
 Notice, that entry point __key names__ dictate what will be the outputted __filename__ in `./public/assets`. That is, you can change key name and real file name to whatever, i.e.,
 
@@ -356,17 +354,17 @@ config.optimization = {
       test: /\.js(\?.*)?$/i,
       // include: '',
       // exclude: '',
-      chunkFilter: (chunk) => {
-        return true;
-      },
+      // chunkFilter: (chunk) => {
+      //   return true;
+      // },
       cache: true,
       // cacheKeys: (defaultCacheKeys, file) => {},
       parallel: true,
       sourceMap: false,
       // minify: (file, sourceMap) => {},
-      warningsFilter: (warning, source, file) => {
-        return true;
-      },
+      // warningsFilter: (warning, source, file) => {
+      //   return true;
+      // },
       extractComments: false,
       terserOptions: {
         ecma: undefined,
@@ -424,7 +422,7 @@ config.plugins.push(new FileManagerPlugin({
     copy: [
       {
         source: path.join(__dirname, 'src/preflight/*.{js,css}'),
-        destination: outputFsPath
+        destination: outputPathFsBuild
       }
     ],
     move: [],
@@ -558,11 +556,11 @@ console.log('GLOBAL ENVIRONMENT \x1b[36m%s\x1b[0m', process.env.NODE_ENV);
 
 // ----------------
 // Output public path
-const outputPublicPathBuilt = '/assets/';
+const outputPathPublicUrlRelativeToApp = 'assets/';
 
 // ----------------
 // Output fs path
-const outputFsPath = path.join(__dirname, 'public/assets');
+const outputPathFsBuild = path.join(__dirname, 'public/assets');
 
 // ----------------
 // Config
@@ -575,8 +573,8 @@ let config = {
     ]
   },
   output: {
-    path: outputFsPath,
-    publicPath: outputPublicPathBuilt,
+    path: outputPathFsBuild,
+    publicPath: outputPathPublicUrlRelativeToApp,
     filename: '[name].js'
   },
   resolve: {
@@ -637,17 +635,17 @@ config.optimization = {
       test: /\.js(\?.*)?$/i,
       // include: '',
       // exclude: '',
-      chunkFilter: (chunk) => {
-        return true;
-      },
+      // chunkFilter: (chunk) => {
+      //   return true;
+      // },
       cache: true,
       // cacheKeys: (defaultCacheKeys, file) => {},
       parallel: true,
       sourceMap: false,
       // minify: (file, sourceMap) => {},
-      warningsFilter: (warning, source, file) => {
-        return true;
-      },
+      // warningsFilter: (warning, source, file) => {
+      //   return true;
+      // },
       extractComments: false,
       terserOptions: {
         ecma: undefined,
@@ -685,7 +683,7 @@ config.plugins.push(new FileManagerPlugin({
     copy: [
       {
         source: path.join(__dirname, 'src/preflight/*.{js,css}'),
-        destination: outputFsPath
+        destination: outputPathFsBuild
       }
     ],
     move: [],
@@ -769,6 +767,16 @@ And *Hello World* in browser now has colours!
 ---
 
 This should belong to *Hello World* as the princuple is so important when using webpack. [Read here](https://webpack.js.org/plugins/module-concatenation-plugin/). As of webpack 4 it is by default on when in *production mode* [optimization.concatenateModules](https://medium.com/webpack/webpack-4-mode-and-optimization-5423a6bc597a).
+
+_webpack.front.config.js_
+
+```jsvascript
+// ----------------
+// ModuleConcatenationPlugin
+if (!development) {
+  // config.plugins.push(new webpack.optimize.ModuleConcatenationPlugin()); // enabled in production mode by default https://webpack.js.org/configuration/mode/
+}
+```
 
 ---
 # Define plugin

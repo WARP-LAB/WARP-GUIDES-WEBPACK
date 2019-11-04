@@ -16,30 +16,35 @@
         "fqdn": "webpacktest-htmlandcache.test",
         "tls": false,
         "port": "4000",
-        "appPathAboveRoot": ""
+        "appPathAboveServerRoot": "",
+        "relativeUrlType": false
       },
       "testing": {
         "fqdn": "webpacktest-htmlandcache.test",
         "tls": false,
         "port": "",
-        "appPathAboveRoot": ""
+        "appPathAboveServerRoot": "",
+        "relativeUrlType": false
       },
       "staging": {
         "fqdn": "stageserver.tld",
         "tls": true,
         "port": "",
-        "appPathAboveRoot": ""
+        "appPathAboveServerRoot": "",
+        "relativeUrlType": false
       },
       "production": {
         "fqdn": "publicapp.tld",
         "tls": true,
         "port": "",
-        "appPathAboveRoot": ""
+        "appPathAboveServerRoot": "",
+        "relativeUrlType": false
       }
     }
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
+    "serve:front:dev": "npm run clean:assets && NODE_ENV=development DEV_SERVE=true webpack-dev-server --config=$(pwd)/webpack.front.config.js -d",
     "build:front:dev": "npm run clean:assets && NODE_ENV=development webpack-dev-server --config=$(pwd)/webpack.front.config.js -d",
     "build:front:test": "npm run clean:assets && NODE_ENV=testing webpack --config=$(pwd)/webpack.front.config.js --progress",
     "build:front:stage": "npm run clean:assets && NODE_ENV=staging webpack --config=$(pwd)/webpack.front.config.js --progress",

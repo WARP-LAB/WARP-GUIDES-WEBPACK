@@ -16,11 +16,11 @@ console.log('GLOBAL ENVIRONMENT \x1b[36m%s\x1b[0m', process.env.NODE_ENV);
 
 // ----------------
 // Output public path
-const outputPublicPathBuilt = '/assets/';
+const outputPublicPathBuilt = 'assets/';
 
 // ----------------
 // Output fs path
-const outputFsPath = path.join(__dirname, 'public/assets');
+const outputPathFsBuild = path.join(__dirname, 'public/assets');
 
 // ----------------
 // Config
@@ -33,7 +33,7 @@ let config = {
     ]
   },
   output: {
-    path: outputFsPath,
+    path: outputPathFsBuild,
     publicPath: outputPublicPathBuilt,
     filename: '[name].js'
   },
@@ -166,7 +166,7 @@ config.plugins.push(new FileManagerPlugin({
     copy: [
       {
         source: path.join(__dirname, 'src/preflight/*.{js,css}'),
-        destination: outputFsPath
+        destination: outputPathFsBuild
       }
     ],
     move: [],

@@ -55,9 +55,20 @@ const targetAppHostname = 'webpacktest-devserver.test';
 
 // ----------------
 // Output public path
-const outputPublicPathWithPort = development ? `http://${targetAppHostname}:4000/assets/` : `//${targetAppHostname}/assets/`;
+const outputPublicAssetsUrlWithPort = development ? `http://${targetAppHostname}:4000/assets/` : `//${targetAppHostname}/assets/`;
 
 // ...  
+
+let config = {
+  // ...
+  output: {
+    path: outputPathFsBuild,
+    publicPath: outputPublicAssetsUrlWithPort,
+    filename: '[name].js'
+  },
+  // ...
+};
+
 ```
 
 #### HTML
@@ -122,7 +133,7 @@ Then use localhost as hostname as well as public path such as
 
 ```javascript
 const targetAppHostname = 'localhost';
-const outputPublicPathWithPort = development ? `//${targetAppHostname}:4000/assets/` : `//${targetAppHostname}/assets/`;
+const outputPublicAssetsUrlWithPort = development ? `//${targetAppHostname}:4000/assets/` : `//${targetAppHostname}/assets/`;
 ```
 
 here and in the future. 
@@ -218,7 +229,7 @@ config.devServer = {
   port: 4000,
   // proxy: {},
   // public: 'myapp.test:80',
-  publicPath: outputPublicPathWithPort,
+  publicPath: outputPublicAssetsUrlWithPort,
   quiet: false,
   // socket: 'socket',
   // staticOptions: {},
