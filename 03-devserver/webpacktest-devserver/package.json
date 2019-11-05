@@ -6,65 +6,12 @@
   "author": "kroko",
   "license": "MIT",
   "private": true,
-  "config": {
-    "useProtocolRelativeUrls": false,
-    "webpackDevServer": {
-      "hot": true
-    },
-    "tiers": {
-      "development": {
-        "fqdn": "webpacktest-devserver.test",
-        "tls": false,
-        "port": "4000",
-        "appPathAboveServerRoot": "",
-        "relativeUrlType": false
-      },
-      "testing": {
-        "fqdn": "webpacktest-devserver.test",
-        "tls": false,
-        "port": "",
-        "appPathAboveServerRoot": "",
-        "relativeUrlType": false
-      },
-      "staging": {
-        "fqdn": "stageserver.tld",
-        "tls": true,
-        "port": "",
-        "appPathAboveServerRoot": "",
-        "relativeUrlType": false
-      },
-      "production": {
-        "fqdn": "publicapp.tld",
-        "tls": true,
-        "port": "",
-        "appPathAboveServerRoot": "",
-        "relativeUrlType": false
-      }
-    }
-  },
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "serve:front:dev": "npm run clean:assets && NODE_ENV=development DEV_SERVE=true webpack-dev-server --config=$(pwd)/webpack.front.config.js -d",
-    "build:front:dev": "npm run clean:assets && NODE_ENV=development webpack-dev-server --config=$(pwd)/webpack.front.config.js -d",
-    "build:front:test": "npm run clean:assets && NODE_ENV=testing webpack --config=$(pwd)/webpack.front.config.js --progress",
-    "build:front:stage": "npm run clean:assets && NODE_ENV=staging webpack --config=$(pwd)/webpack.front.config.js --progress",
-    "build:front:prod": "npm run clean:assets && NODE_ENV=production webpack --config=$(pwd)/webpack.front.config.js --progress",
-    "clean:assets": "rm -rf $(pwd)/public/assets/*",
-    "screen:start": "npm run screen:stop && screen -S $npm_package_name -d -m npm run build:front:dev",
-    "screen:enter": "screen -r $npm_package_name",
-    "screen:stop": "screen -S $npm_package_name -X quit 2>/dev/null || :",
-    "fly:front:testing": "echo \"Flightplan is out of sope for this tut\" && exit 0",
-    "fly:front:staging": "echo \"Flightplan is out of sope for this tut\" && exit 0",
-    "fly:front:production": "echo \"Flightplan is out of sope for this tut\" && exit 0",
-    "guide:clean": "npm run clean:assets && rm -rf $(pwd)/node_modules && rm -rf $(pwd)/package-lock.json"
-  },
   "devDependencies": {
-    "autoprefixer": "^9.7.0",
+    "autoprefixer": "^9.7.1",
+    "copy-webpack-plugin": "^5.0.4",
     "css-loader": "^3.2.0",
-    "css-mqpacker": "^7.0.0",
     "cssnano": "^4.1.10",
     "file-loader": "^4.2.0",
-    "filemanager-webpack-plugin": "^2.0.5",
     "image-webpack-loader": "^6.0.0",
     "mini-css-extract-plugin": "^0.8.0",
     "node-sass": "^4.13.0",

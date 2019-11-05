@@ -2,7 +2,7 @@
 const path = require('path');
 const webpack = require('webpack');
 const TerserPlugin = require('terser-webpack-plugin');
-const FileManagerPlugin = require('filemanager-webpack-plugin');
+const CopyPlugin = require('copy-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin');
 
@@ -15,19 +15,29 @@ const production = process.env.NODE_ENV === 'production';
 console.log('GLOBAL ENVIRONMENT \x1b[36m%s\x1b[0m', process.env.NODE_ENV);
 
 // ----------------
+// Output filesystem path
+const outputPathFsBuild = path.join(__dirname, 'public/assets/');
+
+// ----------------
 // Output public path
 const outputPathPublicUrlRelativeToApp = 'assets/';
 
 // ----------------
-// Output fs path
-const outputPathFsBuild = path.join(__dirname, 'public/assets');
+// Relative URL type based on env
+let relativeUrlType; // possible values: false, 'app-index-relative', 'server-root-relative'
+if (development) {
+  relativeUrlType = false;
+}
+else {
+  relativeUrlType = 'app-index-relative';
+} 
 
 // ----------------
 // Source map conf
 const sourceMapType = (development) ? 'inline-source-map' : false;
 
 // ----------------
-// Config
+// BASE CONFIG
 let config = {
   mode: development ? 'development' : 'production',
   devtool: sourceMapType,
@@ -54,7 +64,6 @@ let config = {
 
 // ----------------
 // MODULE RULES
-
 config.module = {
   rules: [
     {
@@ -81,7 +90,7 @@ config.module = {
             keepQuery: true
           }
         }
-      ],
+      ]
     },
     {
       test: /\.(scss)$/,
@@ -114,7 +123,7 @@ config.module = {
             prependData: `$env: ${JSON.stringify(process.env.NODE_ENV || 'development')};`
           }
         }
-      ],
+      ]
     },
     {
       test: /\.(png|jpe?g|gif|svg)$/,
@@ -122,7 +131,9 @@ config.module = {
       use: [
         {
           loader: 'file-loader',
-          options: {}
+          options: {
+            publicPath: (relativeUrlType === 'app-index-relative') ? './' : ''
+          }
         },
         (!development)
           ? {
@@ -136,7 +147,9 @@ config.module = {
       test: /\.(woff2|woff|otf|ttf|eot|svg)$/,
       use: [{
         loader: 'file-loader',
-        options: {}
+        options: {
+          publicPath: (relativeUrlType === 'app-index-relative') ? './' : ''
+        }
       }]
     }
   ]
@@ -144,7 +157,6 @@ config.module = {
 
 // ----------------
 // OPTIMISATION
-
 config.optimization = {
   minimize: true, // can override
   minimizer: [
@@ -227,21 +239,15 @@ if (!development) {
 }
 
 // ----------------
-// FileManagerPlugin
-config.plugins.push(new FileManagerPlugin({
-  onStart: {
-    copy: [
-      {
-        source: path.join(__dirname, 'src/preflight/*.{js,css}'),
-        destination: outputPathFsBuild
-      }
-    ],
-    move: [],
-    delete: [],
-    mkdir: [],
-    archive: []
+// CopyPlugin
+config.plugins.push(new CopyPlugin([
+  {
+    from: path.join(__dirname, 'src/preflight/*.{js,css}'),
+    to: outputPathFsBuild,
+    flatten: true,
+    toType: 'dir'
   }
-}));
+]));
 
 // ----------------
 // MiniCssExtractPlugin
@@ -249,13 +255,5 @@ config.plugins.push(new MiniCssExtractPlugin({
   filename: '[name].css',
   chunkFilename: '[id].css',
 }));
-
-// ----------------
-// POSTCSS LOADER CONFIG
-// defined in .postcssrc.js
-
-// ----------------
-// BROWSERSLIST CONFIG
-// defined in .browserslistrc
 
 module.exports = config;

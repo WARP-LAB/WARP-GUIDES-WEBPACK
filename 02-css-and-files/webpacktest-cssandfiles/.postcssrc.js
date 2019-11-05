@@ -9,8 +9,8 @@ module.exports = (ctx) => ({
       flexbox: true,
       grid: false
     }),
-    require('css-mqpacker')(),
-    // we can always minimise CSS, as we use source maps, but this shows how we can make this env aware
+    // require('css-mqpacker')(),
+    // we can always minimise CSS, as on dev we use source maps, but this shows how we can make this env aware
     ctx.env === 'development'
       ? null
       : require('cssnano')({

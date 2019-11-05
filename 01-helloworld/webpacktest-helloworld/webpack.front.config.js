@@ -2,7 +2,7 @@
 const path = require('path');
 const webpack = require('webpack');
 const TerserPlugin = require('terser-webpack-plugin');
-const FileManagerPlugin = require('filemanager-webpack-plugin');
+const CopyPlugin = require('copy-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin');
 
@@ -15,15 +15,15 @@ const production = process.env.NODE_ENV === 'production';
 console.log('GLOBAL ENVIRONMENT \x1b[36m%s\x1b[0m', process.env.NODE_ENV);
 
 // ----------------
+// Output filesystem path
+const outputPathFsBuild = path.join(__dirname, 'public/assets/');
+
+// ----------------
 // Output public path
-const outputPublicPathBuilt = 'assets/';
+const outputPathPublicUrlRelativeToApp = 'assets/';
 
 // ----------------
-// Output fs path
-const outputPathFsBuild = path.join(__dirname, 'public/assets');
-
-// ----------------
-// Config
+// BASE CONFIG
 let config = {
   mode: development ? 'development' : 'production',
   context: __dirname,
@@ -34,7 +34,7 @@ let config = {
   },
   output: {
     path: outputPathFsBuild,
-    publicPath: outputPublicPathBuilt,
+    publicPath: outputPathPublicUrlRelativeToApp,
     filename: '[name].js'
   },
   resolve: {
@@ -49,7 +49,6 @@ let config = {
 
 // ----------------
 // MODULE RULES
-
 config.module = {
   rules: [
     {
@@ -87,7 +86,6 @@ config.module = {
 
 // ----------------
 // OPTIMISATION
-
 config.optimization = {
   minimize: true, // can override
   minimizer: [
@@ -95,17 +93,17 @@ config.optimization = {
       test: /\.js(\?.*)?$/i,
       // include: '',
       // exclude: '',
-      chunkFilter: (chunk) => {
-        return true;
-      },
+      // chunkFilter: (chunk) => {
+      //   return true;
+      // },
       cache: true,
       // cacheKeys: (defaultCacheKeys, file) => {},
       parallel: true,
       sourceMap: false,
       // minify: (file, sourceMap) => {},
-      warningsFilter: (warning, source, file) => {
-        return true;
-      },
+      // warningsFilter: (warning, source, file) => {
+      //   return true;
+      // },
       extractComments: false,
       terserOptions: {
         ecma: undefined,
@@ -160,21 +158,15 @@ if (!development) {
 }
 
 // ----------------
-// FileManagerPlugin
-config.plugins.push(new FileManagerPlugin({
-  onStart: {
-    copy: [
-      {
-        source: path.join(__dirname, 'src/preflight/*.{js,css}'),
-        destination: outputPathFsBuild
-      }
-    ],
-    move: [],
-    delete: [],
-    mkdir: [],
-    archive: []
+// CopyPlugin
+config.plugins.push(new CopyPlugin([
+  {
+    from: path.join(__dirname, 'src/preflight/*.{js,css}'),
+    to: outputPathFsBuild,
+    flatten: true,
+    toType: 'dir'
   }
-}));
+]));
 
 // ----------------
 // MiniCssExtractPlugin

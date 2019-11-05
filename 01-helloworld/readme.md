@@ -23,10 +23,13 @@
 
 ## OS requirements
 
-This assumes development on macOS, which is Unix 03 / POSIX standard, or some nice BSD/* nix platform that is excellent for web development.  
-masOS specific stuff here basically is [*Homebrew*](https://brew.sh) and [*Laravel Valet*](https://github.com/laravel/valet). The first is just package manager and the second can be substituted by installing *nginx* and *dnsmasq* to serve local static files, plus it seems that there is also [Valet Linux](https://github.com/cpriego/valet-linux).   
-If you are on pure MSW, my first and last suggestion is using MSW as just host for *nix* virtual machine. This tut does not include any need for databases. I bet somebody has written *Medium* article that web development on MSW rocks.  
-Btw, if one has to switch back and forth between POSIX and MSW while working on project, then using [cross-env](https://www.npmjs.com/package/cross-env) is a must.   
+This assumes development on any of these
+
+- BSD/*nix.
+- Microsoft Windows where you do all this in POSIX shell, because you have [WSL](https://en.wikipedia.org/wiki/Windows_Subsystem_for_Linux) installed.
+- macOS (and this is actually written on this [*you-should-migrate-away-platform*](https://i.giphy.com/media/l49JIG26cSItG0BCU/source.gif)).
+
+Btw, if one has to switch back and forth between POSIX and MSW command prompt while working on project, then using [cross-env](https://www.npmjs.com/package/cross-env) is a must (when on MSW you should use WSL POSIX shell, don't use *command promt*).
 
 ## Set up basic dir structure
 
@@ -85,18 +88,19 @@ _package.json_
 
 ## Server side
 
-Remember that this *Hello World* (and further examples) does not necessarily need any webserver. Opening `index.html` directly from filesystem will work just fine if *asset paths* (JS , CSS , fonts, images, etc.) are specified relatively to `index.html` file. All further sections will assume some server side static file serving to actually reflect on real development process.
+Remember that this *Hello World* (and further examples) does not necessarily need serverside.
 
-The guide is written by having directory `webpacktest-helloworld` (and in the future `webpacktest-<sectionname>`) in a directory where *Laravel Valet* is [*parked*](https://laravel.com/docs/6.x/valet#the-park-command).  
-*Valet* has nothing to do with *PHP* in this case. It just gives us *nginx* (that serves files from `anydirectory/public` within its park directory OOB) and *DnsMasq*, so that all directories within *park* are automatically served as `directoryname.tldofyourchoice`.  
-When we put `webpacktest-helloworld` directory in *Valet park* directory, it can be accessed via `//webpacktest-helloworld.test` domain, *nginx* will automatically serve `webpacktest-helloworld/public`. Although *Valet* is not requirement and you can craft your own stuff, it is really handy.
+Opening `index.html` directly from filesystem in browser will work just fine if *asset paths* (JS, CSS, font, image, etc. files), as they are referenced from `index.html` and/or JavaScript & CSS files, are specified with correct relative paths.
 
-Options
+There are cases though where one may need to allow browser to load resources from local filesystem, for example webfonts.
 
-* If doing this locally having `nginx` then `public` directory from the directory structure described above should be served (web root).
-* If doing this locally via Node, then put the directory structure wherever.
-* If doing this locally within container / VM, then put where needed
-* If doing this on our devserver `devisites` pool, `public` is webroot, served at `nameformywebpacktest.our.dev.host.tld`.
+*webpack-dev-server* fires up Node.js server by itself though, thus in that case you will not open `index.html`, but access developed stuff via `http://localhost:<port>/`, discussed in 3rd chapter.
+
+However if you have webserver running, let it serve `public` directory from examples.  
+A nice tool for that is [Valet Linux](https://cpriego.github.io/valet-linux/), [Valet WSL](https://github.com/valeryan/valet-wsl)(in progress) or [Laravel Valet](https://laravel.com/docs/5.7/valet).  
+*Valet* has nothing to do with *PHP* in this case. It gives *nginx* that serves files from `anydirectory/public` within its [*park*](https://laravel.com/docs/6.x/valet#the-park-command) directory and *DnsMasq*, so that all directories within *park* are automatically served as `http(s)://directoryname.test`.  
+Practical example - if you copy `webpacktest-helloworld` (and in the future `webpacktest-<sectionname>`) in a directory where *Valet* is parked, then you can access the built stuff using `http(s)://webpacktest-helloworld.test` in browser, where `webpacktest-helloworld/public` directory contents are served, starting with *index.html* out of box.  
+Although *Valet* is not requirement and you can craft your own stuff, it is really handy.
 
 ---
 # Vanilla JavaScript and SCSS/CSS setup
@@ -125,15 +129,15 @@ _webpack.front.config.js_
 const path = require('path');
 
 // ----------------
+// Output filesystem path
+const outputPathFsBuild = path.join(__dirname, 'public/assets/');
+
+// ----------------
 // Output public path
 const outputPathPublicUrlRelativeToApp = 'assets/';
 
 // ----------------
-// Output fs path
-const outputPathFsBuild = path.join(__dirname, 'public/assets');
-
-// ----------------
-// Config
+// BASE CONFIG
 let config = {
   mode: 'development',
   context: __dirname,
@@ -156,7 +160,9 @@ let config = {
     ]
   }
 };
+
 module.exports = config;
+
 ```
 
 ### Fill in basic HTML, JS
@@ -172,9 +178,9 @@ module.exports = config;
   <meta name="description" content="Webpack Guide">
   <meta name="keywords" content="webpack,guide">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
-  <script src="./assets/preflight.js"></script>
-  <link href="./assets/preflight.css" rel="stylesheet" type="text/css">
-  <link href="./assets/index.css" rel="stylesheet" type="text/css">
+  <script src="assets/preflight.js"></script>
+  <link href="assets/preflight.css" rel="stylesheet" type="text/css">
+  <link href="assets/index.css" rel="stylesheet" type="text/css">
 </head>
 <body>
   <noscript>
@@ -189,7 +195,7 @@ module.exports = config;
   <script>
     window.__TEMPLATE_DATA__ = {};
   </script>
-  <script src="./assets/index.js"></script>
+  <script src="assets/index.js"></script>
 </body>
 </html>
 ```
@@ -213,9 +219,11 @@ Run webpack (before that clean assets directory)
 rm -rf $(pwd)/public/assets/** && $(pwd)/node_modules/webpack/bin/webpack.js --config=$(pwd)/webpack.front.config.js --progress
 ```
 
-Inspect `public/assets` directory. Open `index.html` directly in the browser from filesystem.
+Note that further below instead of accessing local `node_modules` bin manually to call `webpack`, we will use [`npx`](https://github.com/npm/npx) (and later we will introduce *npm scripts*).
 
-Further below instead of accessing local `node_modules` bin manually, we will use [`npx`](https://github.com/npm/npx) (and later we will introduce *npm scripts*).
+Inspect `public/assets` directory, it contains stuff now.
+
+Open `index.html` directly in the browser from filesystem.
 
 Notice, that entry point __key names__ dictate what will be the outputted __filename__ in `./public/assets`. That is, you can change key name and real file name to whatever, i.e.,
 
@@ -229,7 +237,7 @@ and you will get `myBundleName.js` in `./public/assets` (later you will see that
 
 You can change this behaviour if output `filename: '[name].js'` is set to `filename: 'someConstantName.js'`.  
 But don't do that, let your entry point key name define the output name.  
-Think of what would happen if you had multiple entry points (just like in a real world scenario). How would you manage filenames then if output file would not somehow depend on entry point, but would be always constant? Also later on when we get to chunking up webpack one entry point will produce multiple outputs as wel lazy loaded stuff...
+Think of what would happen if you had multiple entry points (just like in a real world scenario). How would you manage filenames then if output file would not somehow depend on entry point, but would be always constant? Also later on when we get to chunking up webpack one entry point will produce multiple outputs as well as lazy loaded stuff...
 
 ## Webpack mode, deploy tiers and environments (`NODE_ENV`)
 
@@ -261,7 +269,10 @@ console.log('GLOBAL ENVIRONMENT \x1b[36m%s\x1b[0m', process.env.NODE_ENV);
 
 // ...
 
-mode: development ? 'development' : 'production',
+let config = {
+  mode: development ? 'development' : 'production',
+  // ...  
+};
 
 // ...
 
@@ -283,8 +294,7 @@ rm -rf $(pwd)/public/assets/** && NODE_ENV=testing npx webpack --config=$(pwd)/w
 rm -rf $(pwd)/public/assets/** && NODE_ENV=development npx webpack --config=$(pwd)/webpack.front.config.js --progress
 ```
 
-Inspect the outputted `assets/index.js` in both cases.
-
+Inspect the outputted `assets/index.js` in both cases. You should see that in *testing* case `assets/index.js` is minimised. Why and how it happens, read below.
 
 ---
 # Requiring JS
@@ -320,7 +330,7 @@ helpers.helperA();
 
 Build and observe.
 
-## Webpack minimise JavaScript
+## Webpack minimise JavaScript with custom options
 
 If you built webpack for testing tier then you already saw that minimisation in action as setting `mode` to production autoenables *TerserPlugin* (previously it was *UglifyJsPlugin*), [see docs](https://webpack.js.org/concepts/mode/). In other words, on production mode webpack sets `optimization.minimize: true` and `optimization.minimizer: new TerserPlugin({})` with some defaults.
 
@@ -346,7 +356,6 @@ const TerserPlugin = require('terser-webpack-plugin');
 
 // ----------------
 // OPTIMISATION
-
 config.optimization = {
   minimize: true, // can override
   minimizer: [
@@ -397,17 +406,22 @@ Our `index.html` file has `preflight.js` and `preflight.css` referenced in the h
 
 Let us consider these assets as a special case where we want to avoid any webpack stuff to be attached to it (runtime and manifest, more on that later). What do I mean by webpack stuff? Build the project once again for development (no minimising) and inspect `public/assets/index.js`. *That webpack stuff.*
 
-From the current tools that are available one approach would be to use [`copy-webpack-plugin`](https://github.com/webpack-contrib/copy-webpack-plugin) which is quite popular (and you can use it for this purpose), however we will be using [`filemanager-webpack-plugin`](https://github.com/gregnb/filemanager-webpack-plugin) as *filemanager* allows specifying actions that are executed both before and/or after webpack begins the bundling process.
+From the current tools that are available one approach would be to use [`copy-webpack-plugin`](https://github.com/webpack-contrib/copy-webpack-plugin) which is quite popular. We have used [`filemanager-webpack-plugin`](https://github.com/gregnb/filemanager-webpack-plugin) as *filemanager* allows specifying actions that are executed both before and/or after webpack begins the bundling process. Due to the fact that the latter has stalled in it's development, while the first is in the *webpack-contrib* pool let's choose the first one.
+
+```sh
+npm install copy-webpack-plugin --save-dev
+```
+
+_webpack.front.config.js_
+
 
 ```sh
 npm install filemanager-webpack-plugin --save-dev
 ```
 
-_webpack.front.config.js_
-
 ```javascript
 // ...
-const FileManagerPlugin = require('filemanager-webpack-plugin');
+const CopyPlugin = require('copy-webpack-plugin');
 // ...
 
 // ----------------
@@ -415,23 +429,16 @@ const FileManagerPlugin = require('filemanager-webpack-plugin');
 config.plugins = [];
 
 // ----------------
-// FileManagerPlugin
-
-config.plugins.push(new FileManagerPlugin({
-  onStart: {
-    copy: [
-      {
-        source: path.join(__dirname, 'src/preflight/*.{js,css}'),
-        destination: outputPathFsBuild
-      }
-    ],
-    move: [],
-    delete: [],
-    mkdir: [],
-    archive: []
+// CopyPlugin
+config.plugins.push(new CopyPlugin([
+  {
+    from: path.join(__dirname, 'src/preflight/*.{js,css}'),
+    to: outputPathFsBuild,
+    flatten: true,
+    toType: 'dir'
   }
-}));
-// ...
+]));
+
 ```
 
 _src/preflight/preflight.js_
@@ -495,7 +502,7 @@ rm -rf $(pwd)/public/assets/** && NODE_ENV=testing npx webpack --config=$(pwd)/w
 
 The files are in `public/assets` directory. Open page in the browser, preflight JS does it's job of renaming classnames and prefligt CSS does it's job of of hiding that `Incabable :(` message.
 
-The sole reason for preflight is to use some ES3 code without any polyfills (in real production actually preflight script is inlined in template) that can execute on *any* browser for detecting very very very basic browser features, including JavaScript support, in order to set if the webapp can be run at all. It is not about which features to enable, granular feature detection and fallbacks can be done in actual app code using tools such as *Modernzr*.
+The sole reason for preflight is to use some ES3 code without any polyfills that can execute on *any* browser for detecting very very very basic browser features, including JavaScript support, in order to set if the webapp can be run at all. It is not about which features to enable, granular feature detection and fallbacks can be done in actual app code using tools such as *Modernzr*.
 
 ## Note on cssnext
 
@@ -542,7 +549,7 @@ _webpack.front.config.js_
 'use strict';
 const path = require('path');
 const TerserPlugin = require('terser-webpack-plugin');
-const FileManagerPlugin = require('filemanager-webpack-plugin');
+const CopyPlugin = require('copy-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin');
 
@@ -555,15 +562,15 @@ const production = process.env.NODE_ENV === 'production';
 console.log('GLOBAL ENVIRONMENT \x1b[36m%s\x1b[0m', process.env.NODE_ENV);
 
 // ----------------
+// Output filesystem path
+const outputPathFsBuild = path.join(__dirname, 'public/assets/');
+
+// ----------------
 // Output public path
 const outputPathPublicUrlRelativeToApp = 'assets/';
 
 // ----------------
-// Output fs path
-const outputPathFsBuild = path.join(__dirname, 'public/assets');
-
-// ----------------
-// Config
+// BASE CONFIG
 let config = {
   mode: development ? 'development' : 'production',
   context: __dirname,
@@ -589,7 +596,6 @@ let config = {
 
 // ----------------
 // MODULE RULES
-
 config.module = {
   rules: [
     {
@@ -627,7 +633,6 @@ config.module = {
 
 // ----------------
 // OPTIMISATION
-
 config.optimization = {
   minimize: true, // can override
   minimizer: [
@@ -677,21 +682,15 @@ config.optimization = {
 config.plugins = [];
 
 // ----------------
-// FileManagerPlugin
-config.plugins.push(new FileManagerPlugin({
-  onStart: {
-    copy: [
-      {
-        source: path.join(__dirname, 'src/preflight/*.{js,css}'),
-        destination: outputPathFsBuild
-      }
-    ],
-    move: [],
-    delete: [],
-    mkdir: [],
-    archive: []
+// CopyPlugin
+config.plugins.push(new CopyPlugin([
+  {
+    from: path.join(__dirname, 'src/preflight/*.{js,css}'),
+    to: outputPathFsBuild,
+    flatten: true,
+    toType: 'dir'
   }
-}));
+]));
 
 // ----------------
 // MiniCssExtractPlugin
@@ -736,9 +735,9 @@ _src/index.global.scss_
 ```scss
 @charset 'UTF-8';
 
-@import 'index.legacy.css';
-
 // This is example of SCSS
+
+@import 'index.legacy.css';
 
 $mycolor: red;
 
@@ -766,11 +765,11 @@ And *Hello World* in browser now has colours!
 # Scope hoisting and module concatenation
 ---
 
-This should belong to *Hello World* as the princuple is so important when using webpack. [Read here](https://webpack.js.org/plugins/module-concatenation-plugin/). As of webpack 4 it is by default on when in *production mode* [optimization.concatenateModules](https://medium.com/webpack/webpack-4-mode-and-optimization-5423a6bc597a).
+This should belong to *Hello World* as the principle is so important when using webpack. [Read here](https://webpack.js.org/plugins/module-concatenation-plugin/). As of webpack 4 it is by default on when in *production mode* [optimization.concatenateModules](https://medium.com/webpack/webpack-4-mode-and-optimization-5423a6bc597a).
 
 _webpack.front.config.js_
 
-```jsvascript
+```javascript
 // ----------------
 // ModuleConcatenationPlugin
 if (!development) {

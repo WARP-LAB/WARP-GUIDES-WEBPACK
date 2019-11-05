@@ -1,16 +1,13 @@
 'use strict';
-const fs = require('fs');
 const path = require('path');
-const pConfig = require('./package.json');
 const webpack = require('webpack');
 const TerserPlugin = require('terser-webpack-plugin');
-const FileManagerPlugin = require('filemanager-webpack-plugin');
+const CopyPlugin = require('copy-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin');
 
 // ----------------
 // ENV
-// bit manual mangling as we cannot trust process.env.NODE_ENV to be set
 let tierName;
 let development = process.env.NODE_ENV === 'development';
 const testing = process.env.NODE_ENV === 'testing';
@@ -27,7 +24,7 @@ if (production) {
   development = true; // fall back to development
 }
 
-const devServe = !!process.env.DEV_SERVE;
+const devServeStatic = !!process.env.DEV_SERVE_STATIC && process.env.DEV_SERVE_STATIC === 'true';
 
 // ----------------
 // Output filesystem path
@@ -36,65 +33,35 @@ const outputPathFsAssetsSuffix = 'assets/';
 const outputPathFsBuild = path.join(__dirname, `public/${outputPathFsAssetsSuffix}`);
 
 // ----------------
-// Webpack output URL
-const outputPathPublicUrlRelativeToApp = 'assets/'; // file system paths do not necessarily reflect in URL paths 
-const outputPathPublicUrlAbsoluteToRoot = `/${pConfig.config.tiers[tierName].appPathAboveServerRoot}${outputPathPublicUrlRelativeToApp}`;
+// Output public path
+const outputPathPublicUrlRelativeToApp = 'assets/';
 
 // ----------------
-// Host, port, putput public path based on env
-let targetAppProtocolPrefix; // protocol
-let targetAppHostname; // hostname
-let targetAppPathAboveServerRoot; // 'some/path/above/webroot/'
-let targetAppPortSuffix; // if some custom port is specified, set suffix
-let targetAppUrlWithPort; // app root URL (with custom port, if exists), usually domain root, but can be subpath
-let targetAppUrlNoPort; // app root URL without any port designation
+// Host, port, output public path based on env
+let targetAppHostname;
+let targetAppPortNumber;
+let outputPublicAssetsUrlFinal;
 
-let outputPublicAssetsUrlWithPort; // ULR to built assets
-let outputPublicAssetsUrlNoPort; // ULR to built assets, but without any port designation
+targetAppHostname = 'localhost'; // 'webpacktest-devserver.test';
+targetAppPortNumber = 4000;
+outputPublicAssetsUrlFinal = development ? `http://${targetAppHostname}:${targetAppPortNumber}/${outputPathPublicUrlRelativeToApp}` : outputPathPublicUrlRelativeToApp;
+const webpackConfigOutputPublicPath = outputPublicAssetsUrlFinal;
 
-// protocol-relative URLs are considered an anti-pattern in HTTPS-should-be-everywhere world
-if (!pConfig.config.useProtocolRelativeUrls) {
-  targetAppProtocolPrefix = pConfig.config.tiers[tierName].tls ? 'https:' : 'http:';
-} else {
-  targetAppProtocolPrefix = '';
-}
-
-targetAppHostname = (devServe) ? 'localhost' : pConfig.config.tiers[tierName].fqdn;
-targetAppPathAboveServerRoot =  (devServe) ? '' : pConfig.config.tiers[tierName].appPathAboveServerRoot;
-targetAppPortSuffix = (pConfig.config.tiers[tierName].port) ? `:${pConfig.config.tiers[tierName].port}` : '';
-targetAppUrlWithPort = `${targetAppProtocolPrefix}//${targetAppHostname}${targetAppPortSuffix}/${targetAppPathAboveServerRoot}`;
-targetAppUrlNoPort = `${targetAppProtocolPrefix}//${targetAppHostname}/${targetAppPathAboveServerRoot}`;
-outputPublicAssetsUrlWithPort = `${targetAppUrlWithPort}${outputPathPublicUrlRelativeToApp}`;
-outputPublicAssetsUrlNoPort = `${targetAppUrlNoPort}${outputPathPublicUrlRelativeToApp}`;
-
-let relativeUrlType;
-let webpackConfigOutputPublicPath = outputPublicAssetsUrlWithPort;
-
-if (devServe) {
-  // if using webpack-dev-server to serve files, just use full url
+let relativeUrlType; // possible values: false, 'app-index-relative', 'server-root-relative'
+if (development) {
   relativeUrlType = false;
 }
 else {
-  relativeUrlType = pConfig.config.tiers[tierName].relativeUrlType;
-  if (relativeUrlType === 'server-root-relative') {
-    webpackConfigOutputPublicPath = `/${targetAppPathAboveServerRoot}${outputPathPublicUrlRelativeToApp}`;
-  }
-  else if (relativeUrlType === 'app-index-relative') {
-    webpackConfigOutputPublicPath = `${outputPathPublicUrlRelativeToApp}`;
-  }
-  else {
-    relativeUrlType = false; // sanitize
-  }
+  relativeUrlType = 'app-index-relative';
 }
 
+// ----------------
+// Print constructed settings
 console.log('\x1b[42m\x1b[30m                                                               \x1b[0m');
 console.log('\x1b[44m%s\x1b[0m -> \x1b[36m%s\x1b[0m', 'TIER', tierName);
-if (devServe) { console.log('\x1b[44m%s\x1b[0m -> \x1b[36m%s\x1b[0m', 'DEV SERVE', devServe); }
 console.log('\x1b[44m%s\x1b[0m -> \x1b[36m%s\x1b[0m', 'targetAppHostname', targetAppHostname);
-console.log('\x1b[44m%s\x1b[0m -> \x1b[36m%s\x1b[0m', 'targetAppUrlWithPort', targetAppUrlWithPort);
-console.log('\x1b[44m%s\x1b[0m -> \x1b[36m%s\x1b[0m', 'targetAppUrlNoPort', targetAppUrlNoPort);
-console.log('\x1b[44m%s\x1b[0m -> \x1b[36m%s\x1b[0m', 'outputPublicAssetsUrlWithPort', outputPublicAssetsUrlWithPort);
-console.log('\x1b[44m%s\x1b[0m -> \x1b[36m%s\x1b[0m', 'outputPublicAssetsUrlNoPort', outputPublicAssetsUrlNoPort);
+console.log('\x1b[44m%s\x1b[0m -> \x1b[36m%s\x1b[0m', 'outputPublicAssetsUrlFinal', outputPublicAssetsUrlFinal);
+console.log('\x1b[44m%s\x1b[0m -> \x1b[36m%s\x1b[0m', 'relativeUrlType', relativeUrlType);
 console.log('\x1b[42m\x1b[30m                                                               \x1b[0m');
 
 // ----------------
@@ -130,59 +97,72 @@ let config = {
 // ----------------
 // DevServer CONFIG
 config.devServer = {
-  allowedHosts: [
-    '.test',
-    'localhost'
-  ],
+  host: targetAppHostname,
+  port: targetAppPortNumber,
+
+  // needs webpack.HotModuleReplacementPlugin()
+  hot: true,
+  // hotOnly: true
+
+  // pass content base if using webpack-dev-server to serve static files
+  // contentBase: false,
+  contentBase: (devServeStatic) ? outputPathFsContentBase : false,
+  // staticOptions: {},
+
+  watchContentBase: false,
+  // watchOptions: {
+  //   poll: true
+  // },
+  // liveReload: true,
+
+  publicPath: outputPublicAssetsUrlFinal,
+
+  // allow webpack-dev-server to write files to disk
+  // pass through only preflight files, that are copied using copy-webpack-plugin
+  writeToDisk (filePath) {
+    return filePath.match(/preflight\.(js|css)$/);
+  },
+
   disableHostCheck: false,
   bonjour: false,
   clientLogLevel: 'info',
   compress: true,
-
-  contentBase: (devServe) ? outputPathFsContentBase : false,
-  // watchContentBase: true,
-  // watchOptions: {
-  //   poll: true
-  // },
 
   // lazy: true,
   // filename: 'index.js', // used if lazy true
   headers: {
     'Access-Control-Allow-Origin': '*'
   },
+  allowedHosts: [
+    '.test',
+    'localhost'
+  ],
   historyApiFallback: true,
-  host: targetAppHostname,
 
-  // needs webpack.HotModuleReplacementPlugin()
-  hot: pConfig.config.webpackDevServer.hot,
-  // hotOnly: true
+  https: false,
+  // https: {
+  //   ca: fs.readFileSync(`${require('os').homedir()}/.valet/CA/LaravelValetCASelfSigned.pem`),
+  //   key: fs.readFileSync(`${require('os').homedir()}/.valet/Certificates/${targetAppHostname}.key`),
+  //   cert: fs.readFileSync(`${require('os').homedir()}/.valet/Certificates/${targetAppHostname}.crt`)
+  // },
 
-  https: development && pConfig.config.tiers.development.tls
-    ? {
-      ca: fs.readFileSync(`${require('os').homedir()}/.valet/CA/LaravelValetCASelfSigned.pem`),
-      key: fs.readFileSync(`${require('os').homedir()}/.valet/Certificates/${targetAppHostname}.key`),
-      cert: fs.readFileSync(`${require('os').homedir()}/.valet/Certificates/${targetAppHostname}.crt`)
-    }
-    : false,
   // pfx: '/path/to/file.pfx',
   // pfxPassphrase: 'passphrase',
 
-  index: 'index.htm',
+  index: 'index.html',
+  serveIndex: true,
   inline: true,
   noInfo: false,
-  open: false,
+  // open: false,
   // openPage: '/different/page',
   overlay: {
     warnings: false,
     errors: true
   },
-  port: pConfig.config.tiers.development.port,
   // proxy: {},
-  // public: 'myapp.test:80',
-  publicPath: outputPublicAssetsUrlWithPort,
+  // public: '',
   quiet: false,
-  // socket: 'socket',
-  // staticOptions: {},
+
   stats: 'normal',
   useLocalIp: false,
 
@@ -191,13 +171,16 @@ config.devServer = {
   },
   after (app) {
     console.log('Webpack devserver middleware after');
+  },
+  onListening (server) {
+    const port = server.listeningApp.address().port;
+    console.log('Webpack devserver listening on port:', port);
   }
 };
 
 
 // ----------------
 // MODULE RULES
-
 config.module = {
   rules: [
     {
@@ -224,7 +207,7 @@ config.module = {
             keepQuery: true
           }
         }
-      ],
+      ]
     },
     {
       test: /\.(scss)$/,
@@ -257,7 +240,7 @@ config.module = {
             prependData: `$env: ${JSON.stringify(process.env.NODE_ENV || 'development')};`
           }
         }
-      ],
+      ]
     },
     {
       test: /\.(png|jpe?g|gif|svg)$/,
@@ -291,7 +274,6 @@ config.module = {
 
 // ----------------
 // OPTIMISATION
-
 config.optimization = {
   minimize: true, // can override
   minimizer: [
@@ -368,13 +350,10 @@ config.plugins.push(new webpack.DefinePlugin({
 }));
 
 // ----------------
-// Hot reloading and named modules
+// Hot reloading
 if (development) {
   config.plugins.push(new webpack.HotModuleReplacementPlugin());
   // config.plugins.push(new webpack.NamedModulesPlugin()); // enabled in development mode by default https://webpack.js.org/configuration/mode/
-} else {
-  // config.plugins.push(new webpack.HashedModuleIdsPlugin());
-  // config.plugins.push(new webpack.NamedModulesPlugin());
 }
 
 // ----------------
@@ -384,21 +363,15 @@ if (!development) {
 }
 
 // ----------------
-// FileManagerPlugin
-config.plugins.push(new FileManagerPlugin({
-  onStart: {
-    copy: [
-      {
-        source: path.join(__dirname, 'src/preflight/*.{js,css}'),
-        destination: outputPathFsBuild
-      }
-    ],
-    move: [],
-    delete: [],
-    mkdir: [],
-    archive: []
+// CopyPlugin
+config.plugins.push(new CopyPlugin([
+  {
+    from: path.join(__dirname, 'src/preflight/*.{js,css}'),
+    to: outputPathFsBuild,
+    flatten: true,
+    toType: 'dir'
   }
-}));
+]));
 
 // ----------------
 // MiniCssExtractPlugin
@@ -406,13 +379,5 @@ config.plugins.push(new MiniCssExtractPlugin({
   filename: '[name].css',
   chunkFilename: '[id].css',
 }));
-
-// ----------------
-// POSTCSS LOADER CONFIG
-// defined in .postcssrc.js
-
-// ----------------
-// BROWSERSLIST CONFIG
-// defined in .browserslistrc
 
 module.exports = config;
