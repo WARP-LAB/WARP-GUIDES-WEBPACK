@@ -7,7 +7,6 @@
 * webpack DevServer setup
 * CORS
 * making it hot
-* Introducing npm scripts and config example
 
 ---
 # Prefligt
