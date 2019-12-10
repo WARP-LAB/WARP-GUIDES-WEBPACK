@@ -572,9 +572,8 @@ Loaders & documentation
 [style-loader](https://github.com/webpack-contrib/style-loader)  
 [css-loader](https://github.com/webpack-contrib/css-loader)  
 [sass-loader](https://github.com/webpack-contrib/sass-loader)  
-[optimize-css-assets-webpack-plugin](https://github.com/NMFR/optimize-css-assets-webpack-plugin)  
 
-Previously minification could be handled by `css-loader`, now `optimize-css-assets-webpack-plugin` is needed.
+Previously minification could be handled by `css-loader`, now a simple adition is [optimize-css-assets-webpack-plugin](https://github.com/NMFR/optimize-css-assets-webpack-plugin), which uses [cssnano](https://github.com/cssnano/cssnano). However, hen we get to PostCSS we will get rid of it and set up minification options differently.
 
 Until webpack 4 [extract-text-webpack-plugin](https://github.com/webpack/extract-text-webpack-plugin) ([webpack docs](https://webpack.js.org/plugins/extract-text-webpack-plugin/)) was way to go.
 
@@ -586,11 +585,11 @@ However now we should use [mini-css-extract-plugin](https://github.com/webpack-c
 npm install style-loader --save-dev
 npm install css-loader --save-dev
 npm install sass-loader --save-dev
-npm install optimize-css-assets-webpack-plugin --save-dev
 npm install mini-css-extract-plugin --save-dev
+npm install optimize-css-assets-webpack-plugin --save-dev
 ```
 
-Now set up loaders, set `mini-css-extract-plugin` to extract CSS if `!development` and set up `optimize-css-assets-webpack-plugin`.
+Now set up loaders, set `mini-css-extract-plugin` to extract CSS if `!development` and set up temporary `optimize-css-assets-webpack-plugin`.
 
 _webpack.front.config.js_
 
@@ -600,7 +599,7 @@ const path = require('path');
 const TerserPlugin = require('terser-webpack-plugin');
 const CopyPlugin = require('copy-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
-const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin');
+const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin'); // Use while PostCSS is not introduced
 
 // ----------------
 // ENV
@@ -732,9 +731,8 @@ config.optimization = {
         safari10: false
       }
     }),
-    new OptimizeCSSAssetsPlugin({
-      //
-    })
+    // Use while PostCSS is not introduced
+    new OptimizeCSSAssetsPlugin({})
   ]
 };
 

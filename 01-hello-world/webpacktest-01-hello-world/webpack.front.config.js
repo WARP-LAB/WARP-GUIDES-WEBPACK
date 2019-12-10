@@ -4,7 +4,7 @@ const webpack = require('webpack');
 const TerserPlugin = require('terser-webpack-plugin');
 const CopyPlugin = require('copy-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
-const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin');
+const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin'); // Use while PostCSS is not introduced
 
 // ----------------
 // ENV
@@ -136,9 +136,8 @@ config.optimization = {
         safari10: false
       }
     }),
-    new OptimizeCSSAssetsPlugin({
-      //
-    })
+    // Use while PostCSS is not introduced
+    new OptimizeCSSAssetsPlugin({})
   ]
 };
 
