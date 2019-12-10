@@ -4,15 +4,25 @@ const webpack = require('webpack');
 const TerserPlugin = require('terser-webpack-plugin');
 const CopyPlugin = require('copy-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
-const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin');
+// const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin'); // Use while PostCSS is not introduced
 
 // ----------------
 // ENV
-const development = process.env.NODE_ENV === 'development';
+let tierName;
+let development = process.env.NODE_ENV === 'development';
 const testing = process.env.NODE_ENV === 'testing';
 const staging = process.env.NODE_ENV === 'staging';
 const production = process.env.NODE_ENV === 'production';
-console.log('GLOBAL ENVIRONMENT \x1b[36m%s\x1b[0m', process.env.NODE_ENV);
+if (production) {
+  tierName = 'production';
+} else if (staging) {
+  tierName = 'staging';
+} else if (testing) {
+  tierName = 'testing';
+} else {
+  tierName = 'development';
+  development = true; // fall back to development
+}
 
 // ----------------
 // Output filesystem path
@@ -31,6 +41,12 @@ if (development) {
 else {
   relativeUrlType = 'app-index-relative';
 } 
+
+// ----------------
+// Setup log
+console.log('\x1b[42m\x1b[30m                                                               \x1b[0m');
+console.log('\x1b[44m%s\x1b[0m -> \x1b[36m%s\x1b[0m', 'TIER', tierName);
+console.log('\x1b[42m\x1b[30m                                                               \x1b[0m');
 
 // ----------------
 // Source map conf
@@ -90,7 +106,7 @@ config.module = {
             keepQuery: true
           }
         }
-      ]
+      ],
     },
     {
       test: /\.(scss)$/,
@@ -123,7 +139,7 @@ config.module = {
             prependData: `$env: ${JSON.stringify(process.env.NODE_ENV || 'development')};`
           }
         }
-      ]
+      ],
     },
     {
       test: /\.(png|jpe?g|gif|svg)$/,
@@ -135,22 +151,24 @@ config.module = {
             publicPath: (relativeUrlType === 'app-index-relative') ? './' : ''
           }
         },
-        (!development)
-          ? {
-            loader: 'image-webpack-loader',
-            options: {}
+        {
+          loader: 'image-webpack-loader',
+          options: {
+            disable: development
           }
-          : null
-      ].filter((e) => e !== null)
+        }
+      ]
     },
     {
       test: /\.(woff2|woff|otf|ttf|eot|svg)$/,
-      use: [{
-        loader: 'file-loader',
-        options: {
-          publicPath: (relativeUrlType === 'app-index-relative') ? './' : ''
+      use: [
+        {
+          loader: 'file-loader',
+          options: {
+            publicPath: (relativeUrlType === 'app-index-relative') ? './' : ''
+          }
         }
-      }]
+      ]
     }
   ]
 };
@@ -164,17 +182,13 @@ config.optimization = {
       test: /\.js(\?.*)?$/i,
       // include: '',
       // exclude: '',
-      // chunkFilter: (chunk) => {
-      //   return true;
-      // },
+      // chunkFilter: (chunk) => { return true; },
       cache: true,
       // cacheKeys: (defaultCacheKeys, file) => {},
       parallel: true,
       sourceMap: !!sourceMapType,
       // minify: (file, sourceMap) => {},
-      // warningsFilter: (warning, source, file) => {
-      //   return true;
-      // },
+      // warningsFilter: (warning, source, file) => { return true; },
       extractComments: false,
       terserOptions: {
         ecma: undefined,
@@ -194,20 +208,8 @@ config.optimization = {
         keep_fnames: false,
         safari10: false
       }
-    }),
-    new OptimizeCSSAssetsPlugin({
-      cssProcessorOptions: {
-        map: (sourceMapType === false) ? false :
-        sourceMapType.includes('inline') ?
-        {
-          inline: true,
-        } :
-        {
-          inline: false,
-          annotation: true
-        }
-      }
     })
+    // new OptimizeCSSAssetsPlugin({}) // Use PostCSS pipe instead
   ]
 };
 
@@ -219,24 +221,35 @@ config.plugins = [];
 // DefinePlugin
 config.plugins.push(new webpack.DefinePlugin({
   'process.env': {
-    'NODE_ENV': (development) ? JSON.stringify('development') : JSON.stringify('production'),
+    'NODE_ENV': (development) ? 'development' : 'production',
     'BROWSER': true
   },
   __CLIENT__: true,
   __SERVER__: false,
+  __DEVTOOLS__: development,
   __DEV__: development,
+  __PROD__: !development,
   __DEVELOPMENT__: development,
   __TESTING__: testing,
   __STAGING__: staging,
-  __PRODUCTION__: production,
-  __DEVTOOLS__: development
+  __PRODUCTION__: production
 }));
 
 // ----------------
 // ModuleConcatenationPlugin
 if (!development) {
-  // config.plugins.push(new webpack.optimize.ModuleConcatenationPlugin()); // enabled in production mode by default https://webpack.js.org/configuration/mode/
+  // enabled in production mode by default
+  // https://webpack.js.org/plugins/module-concatenation-plugin/
+  // https://webpack.js.org/configuration/mode/
+  // config.plugins.push(new webpack.optimize.ModuleConcatenationPlugin());
 }
+
+// ----------------
+// MiniCssExtractPlugin
+config.plugins.push(new MiniCssExtractPlugin({
+  filename: '[name].css',
+  chunkFilename: '[id].css',
+}));
 
 // ----------------
 // CopyPlugin
@@ -250,10 +263,11 @@ config.plugins.push(new CopyPlugin([
 ]));
 
 // ----------------
-// MiniCssExtractPlugin
-config.plugins.push(new MiniCssExtractPlugin({
-  filename: '[name].css',
-  chunkFilename: '[id].css',
-}));
+// POSTCSS PLUGINS CONFIG
+// defined in .postcssrc.js
+
+// ----------------
+// BROWSERSLIST CONFIG
+// defined in .browserslistrc
 
 module.exports = config;

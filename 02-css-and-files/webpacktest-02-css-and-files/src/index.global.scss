@@ -1,6 +1,7 @@
 @charset 'UTF-8';
 
 // This is example of SCSS
+
 @import '~normalize.css';
 @import 'typography.global.scss';
 @import 'index.legacy.css';
@@ -10,7 +11,7 @@ $mycolor: red;
 $paragarphColor: black;
 
 @if $env == 'development' {
-  $paragarphColor: magenta;
+  $paragarphColor: green;
 } @else {
   $paragarphColor: yellow;
 }

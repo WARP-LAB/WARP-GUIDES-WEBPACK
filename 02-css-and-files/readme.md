@@ -16,13 +16,21 @@
 # Prefligt
 ---
 
-Use existing `webpacktest-helloworld` code base from previous guide stage. Either work on top of it or just make a copy. The directory now is called `webpacktest-cssandfiles`. Make changes in `package.json` name field. Don't forget `npm install`.
+Use existing code base from previous guide stage (`webpacktest-01-hello-world`). Either work on top of it or just make a copy.  
+The directory now is called `webpacktest-02-css-and-files`.  
+Make changes in `package.json` name field.  
+Dont forget `npm install`.
+
+```sh
+cd webpacktest-02-css-and-files
+npm install
+```
 
 ---
 # PostCSS
 ---
 
-One does not simply... don't use PostCSS.
+Use PostCSS.
 
 ### Loader and plugins
 
@@ -40,13 +48,11 @@ npm install autoprefixer --save-dev
 npm install cssnano --save-dev
 ```
 
-### Notes
-
-It is [recommended](https://github.com/postcss/postcss-loader#plugins) to use separate `.postcssrc.js` file. All possible filenames and formats (JSON, YAML, JS) are discussed [here](https://github.com/michael-ciniawsky/postcss-load-config).
-
-We will minify CSS using a separate pass via PostCSS ecosystem (using same `cssnano`). Let us keep CSS processing in as few places as possible.
-
 ### PostCSS configuration file
+
+It is [recommended](https://github.com/postcss/postcss-loader#plugins) to use separate configuration file for PostCSS. All possible filenames and formats (JSON, YAML, JS) are discussed [here](https://github.com/michael-ciniawsky/postcss-load-config).
+
+Choosing JS file to set configuration as that enables some logic in the configuration file.
 
 Add new file at project root.
 
@@ -64,25 +70,36 @@ module.exports = (ctx) => ({
       flexbox: true,
       grid: false
     }),
-    // require('css-mqpacker')(),
-    // we can always minimise CSS, as on dev we use source maps, but this shows how we can make this env aware
+    // require('css-mqpacker')(), // depreciated
+    // this shows how we can make logic env aware
     ctx.env === 'development'
       ? null
       : require('cssnano')({
-        discardComments: {
-          removeAll: true
-        },
-        autoprefixer: false, // we do it explicitly using autoprefixer
-        zindex: false,
-        normalizeUrl: false
+        // https://cssnano.co/guides/optimisations
+        preset: ['default', {
+          autoprefixer: false, // do not remove prefixes  
+          discardComments: {
+            removeAll: true,
+          },
+          normalizeUrl: false,
+          normalizeWhitespace: true,
+          zindex: false
+        }]
       })
   ].filter((e) => e !== null)
 });
 ```
 
+### cssnano
+
+We will minify CSS using a separate pass via PostCSS ecosystem (using `cssnano`, of course [alternatives exist](https://goalsmashers.github.io/css-minification-benchmark/)).  
+
+Let us keep CSS processing in as few places as possible. See also [webpack docs](https://webpack.js.org/plugins/mini-css-extract-plugin/#minimizing-for-production).
+
 ### Autoprefixer
 
-`autoprefixer` (browserslist) rules [should](https://github.com/postcss/autoprefixer#browsers) be put into either `package.json` or `browserslist` (multiple filenames supported) config file ([see docs](https://github.com/ai/browserslist#packagejson)). We are going to put them in `.browserslistrc`.
+`autoprefixer` (browserslist) rules [should](https://github.com/postcss/autoprefixer#browsers) be put into some [config file](https://github.com/browserslist/browserslist#config-file).  
+We are going to put them in `.browserslistrc`.
 
 Docs for autoprefixer rules found in _.postcssrc.js_ can be found [here](https://github.com/postcss/autoprefixer#options).
 
@@ -98,7 +115,7 @@ _.browserslistrc_
 > 0.0001%
 ```
 
-We make use of [browserslist environments](https://github.com/browserslist/browserslist#environments).
+We make use of [browserslist environments](https://github.com/browserslist/browserslist#configuring-for-different-environments).
 
 ### `postcss-loader`
 
@@ -163,13 +180,41 @@ config.module = {
 // ...
 ```
 
+### Remove `optimize-css-assets-webpack-plugin`
+
+We do not need `optimize-css-assets-webpack-plugin` any more, as CSS optimization is done via PostCSS plugins. Remove it from _webpack.front.config.js_.
+
+If you really want to use `optimize-css-assets-webpack-plugin`, then specify nanocss options [as per docs](https://github.com/NMFR/optimize-css-assets-webpack-plugin#configuration) in _webpack.front.config.js_
+
+```javascript
+// ...
+
+// ----------------
+// OPTIMISATION
+config.optimization = {
+  minimize: true, // can override
+  minimizer: [
+    // ...
+    new OptimizeCSSAssetsPlugin({
+      // HERE
+    })
+  ]
+};
+
+// ...
+```
+
+### Test it
+
 Run for testing and inspect `public/assets/index.css`
 
 ```sh
-rm -rf $(pwd)/public/assets/** && NODE_ENV=testing npx webpack --config=$(pwd)/webpack.front.config.js --progress
+rm -rf $(pwd)/public/assets/** && \
+NODE_ENV=testing \
+npx webpack --config=$(pwd)/webpack.front.config.js --progress
 ```
 
-Prefixes for `flex` and `transform`!
+Prefixes for `flex` and `transform` and CSS is minimised.
 
 ---
 # normalize.css
@@ -196,7 +241,9 @@ We add it as a module, so we prefix it with `~`. Now you know what `resolve: { m
 Run webpack and inspect `public/assets/index.css`
 
 ```sh
-rm -rf $(pwd)/public/assets/** && NODE_ENV=testing npx webpack --config=$(pwd)/webpack.front.config.js --progress
+rm -rf $(pwd)/public/assets/** && \
+NODE_ENV=testing \
+npx webpack --config=$(pwd)/webpack.front.config.js --progress
 ```
 
 ---
@@ -237,20 +284,6 @@ let config = {
     })
     
     // ...
-    
-    new OptimizeCSSAssetsPlugin({
-      cssProcessorOptions: {
-        map: (sourceMapType === false) ? false :
-        sourceMapType.includes('inline') ?
-        {
-          inline: true,
-        } :
-        {
-          inline: false,
-          annotation: true
-        }
-      }
-    })
 
 // ...
 ```
@@ -268,8 +301,23 @@ inspect both browser inspector as well as `public/assets/` directory.
 
 Eventually shange config to have source map only when using development tier and have it inlined
 
+_webpack.front.config.js_
+
 ```javascript
 const sourceMapType = (development) ? 'inline-source-map' : false;
+```
+Build both for development and any other tier, observe the difference
+
+```sh
+rm -rf $(pwd)/public/assets/** && \
+NODE_ENV=development \
+npx webpack --config=$(pwd)/webpack.front.config.js --progress
+```
+
+```sh
+rm -rf $(pwd)/public/assets/** && \
+NODE_ENV=testing \
+npx webpack --config=$(pwd)/webpack.front.config.js --progress
 ```
 
 Keep `inline-source-map` for now although it has slowest build & rebuild performance, read more [here](https://webpack.js.org/guides/build-performance/#devtool) and [here](https://webpack.js.org/configuration/devtool/).
@@ -302,6 +350,7 @@ _index.global.scss_
 @charset 'UTF-8';
 
 // This is example of SCSS
+
 @import '~normalize.css';
 @import 'index.legacy.css';
 
@@ -310,7 +359,7 @@ $mycolor: red;
 $paragarphColor: black;
 
 @if $env == 'development' {
-  $paragarphColor: magenta;
+  $paragarphColor: green;
 } @else {
   $paragarphColor: yellow;
 }
@@ -335,9 +384,9 @@ Build for *development* and *testing* tiers, note the difference in browser.
 ---
 
 Now let us add some images to source.  
-Have `my-small-image.jpg` below 20 KB.  
-Have `my-large-image.jpg` at about 50 KB.   
-See `media/images` dir in this repo where images are already prepared (or use [this](http://lorempixel.com/200/200/) and [this](http://lorempixel.com/600/600/)). Put them under `src/images` directory.
+Have `my-small-image.jpg` below 20 KB. [helper](http://lorempixel.com/200/200/)  
+Have `my-large-image.jpg` at about 50 KB. [helper](http://lorempixel.com/600/600/)   
+See `media/images` dir in this repo where images are already prepared. Copy `images` directory to `src/images`.
 
 Loaders  
 [file-loader](https://github.com/webpack-contrib/file-loader)  
@@ -369,7 +418,7 @@ $mycolor: red;
 $paragarphColor: black;
 
 @if $env == 'development' {
-  $paragarphColor: magenta;
+  $paragarphColor: green;
 } @else {
   $paragarphColor: yellow;
 }
@@ -395,7 +444,7 @@ body {
 
 ### `file-loader` example
 
-Pipe images that are required by CSS (and JS) to build directory. Don't be surprised about not including SVG, later on that.
+Pipe images that are required by CSS (and JS) to build directory. Don't be surprised about special SVG regex, later on that.
 
 Add loaders to module rules. Note that we resolve URLs in (S)CSS pipe & add loader for image files.
 
@@ -403,6 +452,9 @@ _webpack.front.config.js_
 
 ```javascript
 // ...
+
+// ----------------
+// MODULE RULES
 config.module = {
   rules: [
     {
@@ -429,7 +481,7 @@ config.module = {
             keepQuery: true
           }
         }
-      ]
+      ],
     },
     {
       test: /\.(scss)$/,
@@ -462,10 +514,11 @@ config.module = {
             prependData: `$env: ${JSON.stringify(process.env.NODE_ENV || 'development')};`
           }
         }
-      ]
+      ],
     },
     {
-      test: /\.(png|jpe?g|gif)$/,
+      test: /\.(png|jpe?g|gif|svg)$/,
+      exclude: /.-webfont\.svg$/,
       use: [
         {
           loader: 'file-loader',
@@ -475,20 +528,27 @@ config.module = {
     }
   ]
 };
+
 // ...
 ```
 
 Run webpack for `development` and `testing` tiers.
 
 ```sh
-rm -rf $(pwd)/public/assets/** && NODE_ENV=development npx webpack --config=$(pwd)/webpack.front.config.js --progress
+rm -rf $(pwd)/public/assets/** && \
+NODE_ENV=development \
+npx webpack --config=$(pwd)/webpack.front.config.js --progress
+```
 
-rm -rf $(pwd)/public/assets/** && NODE_ENV=testing npx webpack --config=$(pwd)/webpack.front.config.js --progress
+```sh
+rm -rf $(pwd)/public/assets/** && \
+NODE_ENV=testing \
+npx webpack --config=$(pwd)/webpack.front.config.js --progress
 ```
 
 One can observe that images are outputted to `public/assets` as expected in both cases.  
 But there is an issue with loading images in browser.  
-When being in `development` tier images are displayed (as there is no actual CSS, it is served by javascript via `style-loader`), but when in `testing` (or more precisely, when in *non-development*) tier we get *404*s.
+When being in `development` tier images are displayed (as there is no actual CSS, it is served by javascript via `style-loader`), but when in `testing` (or more precisely, when in *non-development*) tier we get *404*s and browser fails to display images.
 
 The issue is that in `testing` tier images within built CSS file at `public/assets/index.css` are referenced as 
 
@@ -523,7 +583,8 @@ else {
 // ...
 
     {
-      test: /\.(png|jpe?g|gif)$/,
+      test: /\.(png|jpe?g|gif|svg)$/,
+      exclude: /.-webfont\.svg$/,
       use: [
         {
           loader: 'file-loader',
@@ -538,17 +599,25 @@ else {
 
 ```
 
-Build for testing
+Run webpack for `development` and `testing` tiers.
 
 ```sh
-rm -rf $(pwd)/public/assets/** && NODE_ENV=testing npx webpack --config=$(pwd)/webpack.front.config.js --progress
+rm -rf $(pwd)/public/assets/** && \
+NODE_ENV=development \
+npx webpack --config=$(pwd)/webpack.front.config.js --progress
 ```
 
-Images should now render as built CSS file `public/assets/index.css` should reference images relative to CSS file correctly.
+```sh
+rm -rf $(pwd)/public/assets/** && \
+NODE_ENV=testing \
+npx webpack --config=$(pwd)/webpack.front.config.js --progress
+```
+
+Images should now render in *testing tier* as built CSS file `public/assets/index.css` should reference images relative to CSS file correctly.
 
 ### `url-loader` example
 
-A neat feature for HTTP/1.1 world is *embedding* small assets in CSS. Change `file-loader` to `url-loader`.
+A feature that can be used in case of HTTP/1.1 is *embedding* small assets in CSS. Change `file-loader` to `url-loader`.
 
 _webpack.front.config.js_
 
@@ -556,7 +625,8 @@ _webpack.front.config.js_
 // ...
 
     {
-      test: /\.(png|jpe?g|gif)$/,
+      test: /\.(png|jpe?g|gif|svg)$/,
+      exclude: /.-webfont\.svg$/,
       use: [
         {
           loader: 'url-loader',
@@ -571,7 +641,7 @@ _webpack.front.config.js_
 // ...
 ```
 
-Run webpack and inspect `public/assets/` directory and inspect `body` and `.app` CSS.  
+Run webpack and inspect `public/assets/` directory and inspect `body` and `.app` CSS in `public/assets/index.css`.  
 Notice how larger image is outputted as file in `public/assets/` while smaller image is inlined as base64 in CSS (assuming that one is below and other is above the size limit as set for `url loader` - `limit: 20000`). Just as intended in this exercise.
 
 Further use `file-loader` though as we target HTTP/2-ready serverside.
@@ -599,7 +669,8 @@ _webpack.front.config.js_
 ```javascript
 // ...
     {
-      test: /\.(png|jpe?g|gif)$/,
+      test: /\.(png|jpe?g|gif|svg)$/,
+      exclude: /.-webfont\.svg$/,
       use: [
         {
           loader: 'file-loader',
@@ -607,18 +678,18 @@ _webpack.front.config.js_
             publicPath: (relativeUrlType === 'app-index-relative') ? './' : ''
           }
         },
-        (!development)
-          ? {
-            loader: 'image-webpack-loader',
-            options: {}
+        {
+          loader: 'image-webpack-loader',
+          options: {
+            disable: development
           }
-          : null
-      ].filter((e) => e !== null)
+        }
+      ]
     }
 // ...
 ```
 
-Run webpack for testing and observe how outputted image size differs in `public/assets/` from source.
+Run webpack for testing and observe how outputted image filesizes differ in `public/assets/` from source (for such small filesizes the gains will not be much though).
 
 ---
 # Fonts
@@ -626,11 +697,13 @@ Run webpack for testing and observe how outputted image size differs in `public/
 
 ## Building
 
-This example uses *bulletproof syntax* although [you can retire it](https://www.zachleat.com/web/retire-bulletproof-syntax/).
+This example uses *bulletproof syntax* although [it can be retired for years and for good reasons](https://www.zachleat.com/web/retire-bulletproof-syntax/).
 
 All webfonts should end with `*-webfont.ext` in their filename for following examples.
 
-See `media/fonts/spacemono` directory in this repo. Put directory `media/fonts/spacemono` into `src/fonts/`.
+See `media/fonts/spacemono` directory in this repo.  
+Create directory `src/fonts/`.  
+Put directory `media/fonts/spacemono` into `src/fonts/`.
 
 ## Packing & loading
 
@@ -743,6 +816,7 @@ _src/index.global.scss_
 @charset 'UTF-8';
 
 // This is example of SCSS
+
 @import '~normalize.css';
 @import 'typography.global.scss';
 @import 'index.legacy.css';
@@ -752,7 +826,7 @@ _src/index.global.scss_
 
 Add loaders for font files in webpack config.
 
-We will use `file-loader` not `url-loder` as these should be considered *vendor space* assets, but this example shows mime type settings if you were to inline them.
+We will use `file-loader` not `url-loder`, but this example shows mime type settings if you were to inline them.
 
 _webpack.front.config.js_
 
@@ -821,7 +895,6 @@ _webpack.front.config.js_
 // ...
 ```
 
-
 Back to `file-loader` for font files
 
 _webpack.front.config.js_
@@ -829,12 +902,14 @@ _webpack.front.config.js_
 ```javascript
     {
       test: /\.(woff2|woff|otf|ttf|eot|svg)$/,
-      use: [{
-        loader: 'file-loader',
-        options: {
-          publicPath: (relativeUrlType === 'app-index-relative') ? './' : ''
+      use: [
+        {
+          loader: 'file-loader',
+          options: {
+            publicPath: (relativeUrlType === 'app-index-relative') ? './' : ''
+          }
         }
-      }]
+      ]
     }
 ```
 
@@ -842,7 +917,7 @@ Run webpack and inspect `public/assets/` directory as well as how it looks in br
 
 ## Webpack SVG images vs SVG fonts
 
-Let us distinguish between webfonts and images, because we asume *bulletproof syntax*. We do it by naming convention. To do so, all svg webfonts alaways have to be suffixed with `-webfont`. If the *bulletproof syntax* is dropped then this can be ignored. Add SVG to *image-webpack-loader* pipe.
+Let us distinguish between webfonts and images in case os SVG, because we asume *bulletproof syntax*. We do it by naming convention. To do so, all svg webfonts alaways have to be suffixed with `-webfont`. If the *bulletproof syntax* is dropped then this can be ignored. This is already adressed using `exclude` rule.
 
 _webpack.front.config.js_
 
@@ -859,26 +934,34 @@ _webpack.front.config.js_
             publicPath: (relativeUrlType === 'app-index-relative') ? './' : ''
           }
         },
-        (!development)
-          ? {
-            loader: 'image-webpack-loader',
-            options: {}
+        {
+          loader: 'image-webpack-loader',
+          options: {
+            disable: development
           }
-          : null
-      ].filter((e) => e !== null)
+        }
+      ]
     },
     {
       test: /\.(woff2|woff|otf|ttf|eot|svg)$/,
-      use: [{
-        loader: 'file-loader',
-        options: {
-          publicPath: (relativeUrlType === 'app-index-relative') ? './' : ''
+      use: [
+        {
+          loader: 'file-loader',
+          options: {
+            publicPath: (relativeUrlType === 'app-index-relative') ? './' : ''
+          }
         }
-      }]
+      ]
     }
 
 //...
 ```
+
+---
+# Result
+---
+
+See `webpacktest-02-css-and-files` directory.
 
 ---
 # Next
