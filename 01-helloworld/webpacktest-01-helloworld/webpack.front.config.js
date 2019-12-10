@@ -8,11 +8,21 @@ const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin');
 
 // ----------------
 // ENV
-const development = process.env.NODE_ENV === 'development';
+let tierName;
+let development = process.env.NODE_ENV === 'development';
 const testing = process.env.NODE_ENV === 'testing';
 const staging = process.env.NODE_ENV === 'staging';
 const production = process.env.NODE_ENV === 'production';
-console.log('GLOBAL ENVIRONMENT \x1b[36m%s\x1b[0m', process.env.NODE_ENV);
+if (production) {
+  tierName = 'production';
+} else if (staging) {
+  tierName = 'staging';
+} else if (testing) {
+  tierName = 'testing';
+} else {
+  tierName = 'development';
+  development = true; // fall back to development
+}
 
 // ----------------
 // Output filesystem path
@@ -21,6 +31,12 @@ const outputPathFsBuild = path.join(__dirname, 'public/assets/');
 // ----------------
 // Output public path
 const outputPathPublicUrlRelativeToApp = 'assets/';
+
+// ----------------
+// Setup log
+console.log('\x1b[42m\x1b[30m                                                               \x1b[0m');
+console.log('\x1b[44m%s\x1b[0m -> \x1b[36m%s\x1b[0m', 'TIER', tierName);
+console.log('\x1b[42m\x1b[30m                                                               \x1b[0m');
 
 // ----------------
 // BASE CONFIG
@@ -93,17 +109,13 @@ config.optimization = {
       test: /\.js(\?.*)?$/i,
       // include: '',
       // exclude: '',
-      // chunkFilter: (chunk) => {
-      //   return true;
-      // },
+      // chunkFilter: (chunk) => { return true; },
       cache: true,
       // cacheKeys: (defaultCacheKeys, file) => {},
       parallel: true,
       sourceMap: false,
       // minify: (file, sourceMap) => {},
-      // warningsFilter: (warning, source, file) => {
-      //   return true;
-      // },
+      // warningsFilter: (warning, source, file) => { return true; },
       extractComments: false,
       terserOptions: {
         ecma: undefined,
@@ -138,24 +150,35 @@ config.plugins = [];
 // DefinePlugin
 config.plugins.push(new webpack.DefinePlugin({
   'process.env': {
-    'NODE_ENV': (development) ? JSON.stringify('development') : JSON.stringify('production'),
+    'NODE_ENV': (development) ? 'development' : 'production',
     'BROWSER': true
   },
   __CLIENT__: true,
   __SERVER__: false,
+  __DEVTOOLS__: development,
   __DEV__: development,
+  __PROD__: !development,
   __DEVELOPMENT__: development,
   __TESTING__: testing,
   __STAGING__: staging,
-  __PRODUCTION__: production,
-  __DEVTOOLS__: development
+  __PRODUCTION__: production
 }));
 
 // ----------------
 // ModuleConcatenationPlugin
 if (!development) {
-  // config.plugins.push(new webpack.optimize.ModuleConcatenationPlugin()); // enabled in production mode by default https://webpack.js.org/configuration/mode/
+  // enabled in production mode by default
+  // https://webpack.js.org/plugins/module-concatenation-plugin/
+  // https://webpack.js.org/configuration/mode/
+  // config.plugins.push(new webpack.optimize.ModuleConcatenationPlugin());
 }
+
+// ----------------
+// MiniCssExtractPlugin
+config.plugins.push(new MiniCssExtractPlugin({
+  filename: '[name].css',
+  chunkFilename: '[id].css',
+}));
 
 // ----------------
 // CopyPlugin
@@ -167,12 +190,5 @@ config.plugins.push(new CopyPlugin([
     toType: 'dir'
   }
 ]));
-
-// ----------------
-// MiniCssExtractPlugin
-config.plugins.push(new MiniCssExtractPlugin({
-  filename: '[name].css',
-  chunkFilename: '[id].css',
-}));
 
 module.exports = config;
