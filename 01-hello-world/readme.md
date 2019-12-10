@@ -36,7 +36,7 @@ Crate master directory and set files tree up like this (`tree -a .`).
 Leave all files empty, we will fill them step by step.  
 
 ```
-webpacktest-01-helloworld
+webpacktest-01-hello-world
 ├── package.json
 ├── public
 │   ├── assets
@@ -75,7 +75,7 @@ _package.json_
 
 ```json
 {
-  "name": "webpacktest-01-helloworld",
+  "name": "webpacktest-01-hello-world",
   "version": "1.0.0",
   "description": "webpack testing",
   "main": "public/index.html",
@@ -95,11 +95,11 @@ The one serverside that will be needed once we get to *webpack-dev-server* will 
 
 Note that there might be cases though where one may need to allow browser to load resources from local filesystem, for example webfonts.
 
-However if you have webserver running, let it serve `public` directory from examples. For this *Hello World* that would be serving `webpacktest-01-helloworld/public` as *webroot*.
+However if you have webserver running, let it serve `public` directory from examples. For this *Hello World* that would be serving `webpacktest-01-hello-world/public` as *webroot*.
 
 A nice tool for that is [Valet Linux](https://cpriego.github.io/valet-linux/), [Valet WSL](https://github.com/valeryan/valet-wsl)(in progress) or [Laravel Valet](https://laravel.com/docs/5.7/valet).  
 *Valet* has nothing to do with *Laravel* or *PHP* in this case. It supplies *nginx* that serves files from `anydirectory/public` within its [*park*](https://laravel.com/docs/6.x/valet#the-park-command) directory and sets up *DnsMasq*, so that all directories within *park* (more precisely - `public` directories within) are automatically served as `http(s)://directoryname.test`.  
-Practical example - if you copy `webpacktest-01-helloworld` (and in the future `webpacktest-<sectionname>`) in a directory where *Valet* is parked, then you can access the built stuff using `http(s)://webpacktest-01-helloworld.test` in browser, where `webpacktest-01-helloworld/public` directory contents are served, starting with *index.html* out of box.  
+Practical example - if you copy `webpacktest-01-hello-world` (and in the future `webpacktest-<sectionname>`) in a directory where *Valet* is parked, then you can access the built stuff using `http(s)://webpacktest-01-hello-world.test` in browser, where `webpacktest-01-hello-world/public` directory contents are served, starting with *index.html* out of box.  
 Although *Valet* is not requirement and you can craft your own stuff, it is really handy.
 
 ---
@@ -114,7 +114,7 @@ Although *Valet* is not requirement and you can craft your own stuff, it is real
 Install webpack and save to dev dependencies
 
 ```sh
-cd webpacktest-01-helloworld
+cd webpacktest-01-hello-world
 npm install webpack --save-dev
 npm install webpack-cli --save-dev
 ```
@@ -960,6 +960,12 @@ if (false) {
   console.log('I\'m in development!'); // <--this is unreachable, so remove it
 }
 ```
+
+---
+# Result
+---
+
+See `webpacktest-01-hello-world` directory.
 
 ---
 # Next
