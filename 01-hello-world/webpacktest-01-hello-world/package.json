@@ -1,5 +1,5 @@
 {
-  "name": "webpacktest-01-helloworld",
+  "name": "webpacktest-01-hello-world",
   "version": "1.0.0",
   "description": "webpack testing",
   "main": "public/index.html",
