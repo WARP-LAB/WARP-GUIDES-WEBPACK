@@ -29,12 +29,17 @@ if (production) {
 const outputPathFsBuild = path.join(__dirname, 'public/assets/');
 
 // ----------------
-// Output public path
+// Output URL path
 const outputPathPublicUrlRelativeToApp = 'assets/';
 
 // ----------------
-// Relative URL type based on env
-let relativeUrlType; // possible values: false, 'app-index-relative', 'server-root-relative'
+// Relative URL type based on env, or false if not relative
+// Assumed values to be used:
+//    'app-index-relative'
+//    'server-root-relative'
+//    false (if not relative, but FQDN used)
+// Note that value MUST be 'app-index-relative' if index.html is opened from local filesystem directly
+let relativeUrlType;
 if (development) {
   relativeUrlType = false;
 }

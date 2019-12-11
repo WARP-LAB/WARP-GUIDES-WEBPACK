@@ -15,6 +15,7 @@
 * Scope hoisting
 * Define plugin
 * Notes on other loaders
+* npm scripts
 
 ---
 # Preflight
@@ -131,11 +132,12 @@ const path = require('path');
 
 // ----------------
 // Output filesystem path
-const outputPathFsBuild = path.join(__dirname, 'public/assets/');
+const appPathFsBase = path.join(__dirname, 'public/'); // file system path, used to set application base path for later use
+const appPathFsBuild = path.join(appPathFsBase, 'assets/'); // file system path, used to set webpack.config.output.path a.o. uses
 
 // ----------------
-// Output public path
-const outputPathPublicUrlRelativeToApp = 'assets/';
+// Output URL path
+const outputPathUrlBuildRelativeToApp = 'assets/';
 
 // ----------------
 // BASE CONFIG
@@ -148,8 +150,8 @@ let config = {
     ]
   },
   output: {
-    path: outputPathFsBuild,
-    publicPath: outputPathPublicUrlRelativeToApp,
+    path: appPathFsBuild,
+    publicPath: outputPathUrlBuildRelativeToApp,
     filename: '[name].js'
   },
   resolve: {
@@ -476,7 +478,7 @@ config.plugins = [];
 config.plugins.push(new CopyPlugin([
   {
     from: path.join(__dirname, 'src/preflight/*.{js,css}'),
-    to: outputPathFsBuild,
+    to: appPathFsBuild,
     flatten: true,
     toType: 'dir'
   }
@@ -621,11 +623,12 @@ if (production) {
 
 // ----------------
 // Output filesystem path
-const outputPathFsBuild = path.join(__dirname, 'public/assets/');
+const appPathFsBase = path.join(__dirname, 'public/'); // file system path, used to set application base path for later use
+const appPathFsBuild = path.join(appPathFsBase, 'assets/'); // file system path, used to set webpack.config.output.path a.o. uses
 
 // ----------------
-// Output public path
-const outputPathPublicUrlRelativeToApp = 'assets/';
+// Output URL path
+const outputPathUrlBuildRelativeToApp = 'assets/';
 
 // ----------------
 // Setup log
@@ -644,8 +647,8 @@ let config = {
     ]
   },
   output: {
-    path: outputPathFsBuild,
-    publicPath: outputPathPublicUrlRelativeToApp,
+    path: appPathFsBuild,
+    publicPath: outputPathUrlBuildRelativeToApp,
     filename: '[name].js'
   },
   resolve: {
@@ -745,7 +748,7 @@ config.plugins = [];
 config.plugins.push(new CopyPlugin([
   {
     from: path.join(__dirname, 'src/preflight/*.{js,css}'),
-    to: outputPathFsBuild,
+    to: appPathFsBuild,
     flatten: true,
     toType: 'dir'
   }
@@ -957,6 +960,41 @@ no `'I\'m in development!'` can be found because define plugin works (and Terser
 if (false) {
   console.log('I\'m in development!'); // <--this is unreachable, so remove it
 }
+```
+
+---
+# npm scripts
+---
+
+Till now for running webpack we were using 
+
+```sh
+rm -rf $(pwd)/public/assets/** && \
+NODE_ENV=development \
+npx webpack --config=$(pwd)/webpack.front.config.js --progress
+```
+(and changing `NODE_ENV` accordingly).
+
+Let us define some [user npm scripts](https://docs.npmjs.com/misc/scripts) that we can use as shorthand. Add key to _package.json_
+
+_package.json_
+
+```json
+  "scripts": {
+    "front:build:dev": "npm run clean:assets && NODE_ENV=development webpack --config=$(pwd)/webpack.front.config.js --progress",
+    "front:build:test": "npm run clean:assets && NODE_ENV=testing webpack --config=$(pwd)/webpack.front.config.js --progress",
+    "front:build:stage": "npm run clean:assets && NODE_ENV=staging webpack --config=$(pwd)/webpack.front.config.js --progress",
+    "front:build:prod": "npm run clean:assets && NODE_ENV=production webpack --config=$(pwd)/webpack.front.config.js --progress",
+    "clean:assets": "rm -rf $(pwd)/public/assets/**"
+  },
+```
+
+Now we can use `npm run` to call these tasks.
+
+```sh
+npm run front:build:dev
+npm run front:build:test
+# ...
 ```
 
 ---

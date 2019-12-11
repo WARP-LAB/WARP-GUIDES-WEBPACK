@@ -29,7 +29,7 @@ if (production) {
 const outputPathFsBuild = path.join(__dirname, 'public/assets/');
 
 // ----------------
-// Output public path
+// Output URL path
 const outputPathPublicUrlRelativeToApp = 'assets/';
 
 // ----------------

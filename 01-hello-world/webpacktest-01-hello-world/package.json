@@ -6,6 +6,13 @@
   "author": "kroko",
   "license": "MIT",
   "private": true,
+  "scripts": {
+    "front:build:dev": "npm run clean:assets && NODE_ENV=development webpack --config=$(pwd)/webpack.front.config.js --progress",
+    "front:build:test": "npm run clean:assets && NODE_ENV=testing webpack --config=$(pwd)/webpack.front.config.js --progress",
+    "front:build:stage": "npm run clean:assets && NODE_ENV=staging webpack --config=$(pwd)/webpack.front.config.js --progress",
+    "front:build:prod": "npm run clean:assets && NODE_ENV=production webpack --config=$(pwd)/webpack.front.config.js --progress",
+    "clean:assets": "rm -rf $(pwd)/public/assets/**"
+  },
   "devDependencies": {
     "copy-webpack-plugin": "^5.1.0",
     "css-loader": "^3.3.0",

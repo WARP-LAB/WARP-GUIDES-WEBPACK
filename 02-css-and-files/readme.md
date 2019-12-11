@@ -209,9 +209,7 @@ config.optimization = {
 Run for testing and inspect `public/assets/index.css`
 
 ```sh
-rm -rf $(pwd)/public/assets/** && \
-NODE_ENV=testing \
-npx webpack --config=$(pwd)/webpack.front.config.js --progress
+npm run front:build:test
 ```
 
 Prefixes for `flex` and `transform` and CSS is minimised.
@@ -241,9 +239,7 @@ We add it as a module, so we prefix it with `~`. Now you know what `resolve: { m
 Run webpack and inspect `public/assets/index.css`
 
 ```sh
-rm -rf $(pwd)/public/assets/** && \
-NODE_ENV=testing \
-npx webpack --config=$(pwd)/webpack.front.config.js --progress
+npm run front:build:test
 ```
 
 ---
@@ -309,15 +305,11 @@ const sourceMapType = (development) ? 'inline-source-map' : false;
 Build both for development and any other tier, observe the difference
 
 ```sh
-rm -rf $(pwd)/public/assets/** && \
-NODE_ENV=development \
-npx webpack --config=$(pwd)/webpack.front.config.js --progress
+npm run front:build:dev
 ```
 
 ```sh
-rm -rf $(pwd)/public/assets/** && \
-NODE_ENV=testing \
-npx webpack --config=$(pwd)/webpack.front.config.js --progress
+npm run front:build:test
 ```
 
 Keep `inline-source-map` for now although it has slowest build & rebuild performance, read more [here](https://webpack.js.org/guides/build-performance/#devtool) and [here](https://webpack.js.org/configuration/devtool/).
@@ -535,15 +527,11 @@ config.module = {
 Run webpack for `development` and `testing` tiers.
 
 ```sh
-rm -rf $(pwd)/public/assets/** && \
-NODE_ENV=development \
-npx webpack --config=$(pwd)/webpack.front.config.js --progress
+npm run front:build:dev
 ```
 
 ```sh
-rm -rf $(pwd)/public/assets/** && \
-NODE_ENV=testing \
-npx webpack --config=$(pwd)/webpack.front.config.js --progress
+npm run front:build:test
 ```
 
 One can observe that images are outputted to `public/assets` as expected in both cases.  
@@ -571,8 +559,12 @@ Later we will discuss that path to assets actually could be FQDN, but let us sti
 // ...
 
 // ----------------
-// Relative URL type based on env
-let relativeUrlType; // possible values: false, 'app-index-relative', 'server-root-relative'
+// Relative URL type based on env, or false if not relative
+// Assumed values to be used:
+//    'app-index-relative'
+//    'server-root-relative'
+//    false (if not relative, but FQDN used)
+// Note that value MUST be 'app-index-relative' if index.html is opened from local filesystem directlylet relativeUrlType;
 if (development) {
   relativeUrlType = false;
 }
@@ -602,15 +594,11 @@ else {
 Run webpack for `development` and `testing` tiers.
 
 ```sh
-rm -rf $(pwd)/public/assets/** && \
-NODE_ENV=development \
-npx webpack --config=$(pwd)/webpack.front.config.js --progress
+npm run front:build:dev
 ```
 
 ```sh
-rm -rf $(pwd)/public/assets/** && \
-NODE_ENV=testing \
-npx webpack --config=$(pwd)/webpack.front.config.js --progress
+npm run front:build:test
 ```
 
 Images should now render in *testing tier* as built CSS file `public/assets/index.css` should reference images relative to CSS file correctly.
