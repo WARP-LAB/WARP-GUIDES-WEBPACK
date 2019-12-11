@@ -564,13 +564,12 @@ Later we will discuss that path to assets actually could be FQDN, but let us sti
 //    'app-index-relative'
 //    'server-root-relative'
 //    false (if not relative, but FQDN used)
-// Note that value MUST be 'app-index-relative' if index.html is opened from local filesystem directlylet relativeUrlType;
-if (development) {
-  relativeUrlType = false;
-}
-else {
-  relativeUrlType = 'app-index-relative';
-} 
+// Note that value MUST be 'app-index-relative' if index.html is opened from local filesystem directly
+let relativeUrlType = 'app-index-relative';
+
+// ----------------
+// file-loader publicPath
+const fileLoaderPublicPath = (development) ? '' : (relativeUrlType === 'app-index-relative') ? './' : '';
 
 // ...
 
@@ -581,7 +580,7 @@ else {
         {
           loader: 'file-loader',
           options: {
-            publicPath: (relativeUrlType === 'app-index-relative') ? './' : ''
+            publicPath: fileLoaderPublicPath
           }
         }
       ]
@@ -620,7 +619,7 @@ _webpack.front.config.js_
           loader: 'url-loader',
           options: {
             limit: 20000,
-            publicPath: (relativeUrlType === 'app-index-relative') ? './' : ''
+            publicPath: fileLoaderPublicPath
           }
         }
       ]
@@ -663,7 +662,7 @@ _webpack.front.config.js_
         {
           loader: 'file-loader',
           options: {
-            publicPath: (relativeUrlType === 'app-index-relative') ? './' : ''
+            publicPath: fileLoaderPublicPath
           }
         },
         {
@@ -814,74 +813,36 @@ _src/index.global.scss_
 
 Add loaders for font files in webpack config.
 
-We will use `file-loader` not `url-loder`, but this example shows mime type settings if you were to inline them.
+We will use `file-loader` not `url-loder`, but if you are using the latter, specify mime type settings, meaning that if you have
 
 _webpack.front.config.js_
 
 ```javascript
 // ...
     {
-      test: /\.woff2(\?v=\d+\.\d+\.\d+)?$/,
+      test: /\.<fontextension>$/,
       use: [{
         loader: 'url-loader',
         options: {
           limit: 10,
-          mimetype: 'application/font-woff2'
+          mimetype: '<correct-mime-type-for-font>'
         }
       }]
     },
-    {
-      test: /\.woff(\?v=\d+\.\d+\.\d+)?$/,
-      use: [{
-        loader: 'url-loader',
-        options: {
-          limit: 10,
-          mimetype: 'application/font-woff'
-        }
-      }]
-    },
-    {
-      test: /\.otf(\?v=\d+\.\d+\.\d+)?$/,
-      use: [{
-        loader: 'url-loader',
-        options: {
-          limit: 10,
-          mimetype: 'application/x-font-opentype'
-        }
-      }]
-    },
-    {
-      test: /\.ttf(\?v=\d+\.\d+\.\d+)?$/,
-      use: [{
-        loader: 'url-loader',
-        options: {
-          limit: 10,
-          mimetype: 'application/x-font-truetype'
-        }
-      }]
-    },
-    {
-      test: /\.eot(\?v=\d+\.\d+\.\d+)?$/,
-      use: [{
-        loader: 'url-loader',
-        options: {
-          limit: 10,
-          mimetype: 'application/vnd.ms-fontobject'
-        }
-      }]
-    },
-    {
-      test: /\.svg(\?v=\d+\.\d+\.\d+)?$/,
-      use: [{
-        loader: 'url-loader',
-        options: {
-          limit: 10,
-          mimetype: 'mimetype=image/svg+xml'
-        }
-      }]
-    }
 // ...
 ```
+
+then
+
+| `<fontextension>` | `<correct-mime-type-for-font>` |
+| --- | --- |
+| `woff2` | `application/font-woff2` |
+| `woff` | `application/font-woff` |
+| `otf` | `application/x-font-opentype` |
+| `ttf` | `application/x-font-truetype` |
+| `eot` | `application/vnd.ms-fontobject` |
+| `svg` | `mimetype=image/svg+xml` |
+  
 
 Back to `file-loader` for font files
 
@@ -894,7 +855,7 @@ _webpack.front.config.js_
         {
           loader: 'file-loader',
           options: {
-            publicPath: (relativeUrlType === 'app-index-relative') ? './' : ''
+            publicPath: fileLoaderPublicPath
           }
         }
       ]
@@ -919,7 +880,7 @@ _webpack.front.config.js_
         {
           loader: 'file-loader',
           options: {
-            publicPath: (relativeUrlType === 'app-index-relative') ? './' : ''
+            publicPath: fileLoaderPublicPath
           }
         },
         {
@@ -936,7 +897,7 @@ _webpack.front.config.js_
         {
           loader: 'file-loader',
           options: {
-            publicPath: (relativeUrlType === 'app-index-relative') ? './' : ''
+            publicPath: fileLoaderPublicPath
           }
         }
       ]

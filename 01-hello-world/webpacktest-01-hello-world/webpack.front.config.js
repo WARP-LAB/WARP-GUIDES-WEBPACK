@@ -26,16 +26,19 @@ if (production) {
 
 // ----------------
 // Output filesystem path
-const outputPathFsBuild = path.join(__dirname, 'public/assets/');
+const appPathFsBase = path.join(__dirname, 'public/'); // file system path, used to set application base path for later use
+const appPathFsBuild = path.join(appPathFsBase, 'assets/'); // file system path, used to set webpack.config.output.path a.o. uses
 
 // ----------------
 // Output URL path
-const outputPathPublicUrlRelativeToApp = 'assets/';
+const appPathUrlBuildRelativeToApp = 'assets/';
 
 // ----------------
 // Setup log
 console.log('\x1b[42m\x1b[30m                                                               \x1b[0m');
 console.log('\x1b[44m%s\x1b[0m -> \x1b[36m%s\x1b[0m', 'TIER', tierName);
+console.log('\x1b[44m%s\x1b[0m -> \x1b[36m%s\x1b[0m', 'appPathUrlBuildRelativeToApp', appPathUrlBuildRelativeToApp);
+console.log('\x1b[44m%s\x1b[0m -> \x1b[36m%s\x1b[0m', 'appPathUrlBuildRelativeToServerRoot', appPathUrlBuildRelativeToServerRoot);
 console.log('\x1b[42m\x1b[30m                                                               \x1b[0m');
 
 // ----------------
@@ -49,8 +52,8 @@ let config = {
     ]
   },
   output: {
-    path: outputPathFsBuild,
-    publicPath: outputPathPublicUrlRelativeToApp,
+    path: appPathFsBuild,
+    publicPath: appPathUrlBuildRelativeToApp,
     filename: '[name].js'
   },
   resolve: {
@@ -102,6 +105,7 @@ config.module = {
 
 // ----------------
 // OPTIMISATION
+// https://webpack.js.org/configuration/optimization/
 config.optimization = {
   minimize: true, // can override
   minimizer: [
@@ -136,14 +140,33 @@ config.optimization = {
         safari10: false
       }
     }),
-    // Use while PostCSS is not introduced
-    new OptimizeCSSAssetsPlugin({})
+    new OptimizeCSSAssetsPlugin({}) // Use while PostCSS is not introduced
   ]
 };
 
 // ----------------
 // PLUGINS
 config.plugins = [];
+
+// ----------------
+// Plugins as enabled OOB by webpack based on mode
+// https://webpack.js.org/configuration/mode/
+//
+// development
+// - NamedChunksPlugin
+// - NamedModulesPlugin
+//
+// production
+// - FlagDependencyUsagePlugin
+// - FlagIncludedChunksPlugin
+// - ModuleConcatenationPlugin
+// - NoEmitOnErrorsPlugin
+// - OccurrenceOrderPlugin
+// - SideEffectsFlagPlugin
+// - TerserPlugin
+//
+// none
+// - none enabled
 
 // ----------------
 // DefinePlugin
@@ -165,6 +188,7 @@ config.plugins.push(new webpack.DefinePlugin({
 
 // ----------------
 // ModuleConcatenationPlugin
+// enabled in production mode by default
 if (!development) {
   // enabled in production mode by default
   // https://webpack.js.org/plugins/module-concatenation-plugin/
@@ -184,7 +208,7 @@ config.plugins.push(new MiniCssExtractPlugin({
 config.plugins.push(new CopyPlugin([
   {
     from: path.join(__dirname, 'src/preflight/*.{js,css}'),
-    to: outputPathFsBuild,
+    to: appPathFsBuild,
     flatten: true,
     toType: 'dir'
   }

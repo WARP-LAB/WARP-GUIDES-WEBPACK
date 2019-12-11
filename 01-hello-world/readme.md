@@ -137,7 +137,7 @@ const appPathFsBuild = path.join(appPathFsBase, 'assets/'); // file system path,
 
 // ----------------
 // Output URL path
-const outputPathUrlBuildRelativeToApp = 'assets/';
+const appPathUrlBuildRelativeToApp = 'assets/';
 
 // ----------------
 // BASE CONFIG
@@ -151,7 +151,7 @@ let config = {
   },
   output: {
     path: appPathFsBuild,
-    publicPath: outputPathUrlBuildRelativeToApp,
+    publicPath: appPathUrlBuildRelativeToApp,
     filename: '[name].js'
   },
   resolve: {
@@ -287,6 +287,8 @@ if (production) {
 // Setup log
 console.log('\x1b[42m\x1b[30m                                                               \x1b[0m');
 console.log('\x1b[44m%s\x1b[0m -> \x1b[36m%s\x1b[0m', 'TIER', tierName);
+console.log('\x1b[44m%s\x1b[0m -> \x1b[36m%s\x1b[0m', 'appPathUrlBuildRelativeToApp', appPathUrlBuildRelativeToApp);
+console.log('\x1b[44m%s\x1b[0m -> \x1b[36m%s\x1b[0m', 'appPathUrlBuildRelativeToServerRoot', appPathUrlBuildRelativeToServerRoot);
 console.log('\x1b[42m\x1b[30m                                                               \x1b[0m');
 
 // ...
@@ -474,6 +476,26 @@ const CopyPlugin = require('copy-webpack-plugin');
 config.plugins = [];
 
 // ----------------
+// Plugins as enabled OOB by webpack based on mode
+// https://webpack.js.org/configuration/mode/
+//
+// development
+// - NamedChunksPlugin
+// - NamedModulesPlugin
+//
+// production
+// - FlagDependencyUsagePlugin
+// - FlagIncludedChunksPlugin
+// - ModuleConcatenationPlugin
+// - NoEmitOnErrorsPlugin
+// - OccurrenceOrderPlugin
+// - SideEffectsFlagPlugin
+// - TerserPlugin
+//
+// none
+// - none enabled
+
+// ----------------
 // CopyPlugin
 config.plugins.push(new CopyPlugin([
   {
@@ -628,13 +650,16 @@ const appPathFsBuild = path.join(appPathFsBase, 'assets/'); // file system path,
 
 // ----------------
 // Output URL path
-const outputPathUrlBuildRelativeToApp = 'assets/';
+const appPathUrlBuildRelativeToApp = 'assets/';
 
 // ----------------
 // Setup log
 console.log('\x1b[42m\x1b[30m                                                               \x1b[0m');
 console.log('\x1b[44m%s\x1b[0m -> \x1b[36m%s\x1b[0m', 'TIER', tierName);
+console.log('\x1b[44m%s\x1b[0m -> \x1b[36m%s\x1b[0m', 'appPathUrlBuildRelativeToApp', appPathUrlBuildRelativeToApp);
+console.log('\x1b[44m%s\x1b[0m -> \x1b[36m%s\x1b[0m', 'appPathUrlBuildRelativeToServerRoot', appPathUrlBuildRelativeToServerRoot);
 console.log('\x1b[42m\x1b[30m                                                               \x1b[0m');
+
 
 // ----------------
 // BASE CONFIG
@@ -648,7 +673,7 @@ let config = {
   },
   output: {
     path: appPathFsBuild,
-    publicPath: outputPathUrlBuildRelativeToApp,
+    publicPath: appPathUrlBuildRelativeToApp,
     filename: '[name].js'
   },
   resolve: {
@@ -734,8 +759,7 @@ config.optimization = {
         safari10: false
       }
     }),
-    // Use while PostCSS is not introduced
-    new OptimizeCSSAssetsPlugin({})
+    new OptimizeCSSAssetsPlugin({}) // Use while PostCSS is not introduced
   ]
 };
 
@@ -840,19 +864,6 @@ npx webpack --config=$(pwd)/webpack.front.config.js --progress
 ---
 
 This should belong to *Hello World* as the principle is important when using webpack. [Read here](https://webpack.js.org/plugins/module-concatenation-plugin/). As of webpack 4 it is by default on when in *production mode* [optimization.concatenateModules](https://medium.com/webpack/webpack-4-mode-and-optimization-5423a6bc597a).
-
-_webpack.front.config.js_
-
-```javascript
-// ----------------
-// ModuleConcatenationPlugin
-if (!development) {
-  // enabled in production mode by default
-  // https://webpack.js.org/plugins/module-concatenation-plugin/
-  // https://webpack.js.org/configuration/mode/
-  // config.plugins.push(new webpack.optimize.ModuleConcatenationPlugin());
-}
-```
 
 ---
 # Define plugin
