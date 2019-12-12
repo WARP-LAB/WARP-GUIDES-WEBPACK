@@ -16,14 +16,14 @@
       "relativeUrlType": "app-index-relative"
     },
     "staging": {
-      "fqdn": "webpacktest-03-devserver.test",
+      "fqdn": "webpacktest-04-devserver.test",
       "tls": false,
       "port": "",
       "appPathUrlAboveServerRoot": "",
       "relativeUrlType": false
     },
     "production": {
-      "fqdn": "webpacktest-03-devserver.test",
+      "fqdn": "webpacktest-04-devserver.test",
       "tls": true,
       "port": "",
       "appPathUrlAboveServerRoot": "",
