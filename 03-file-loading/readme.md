@@ -13,7 +13,7 @@
 Use existing code base from previous guide stage (`webpacktest-02-css-and-postcss`). Either work on top of it or just make a copy.  
 The directory now is called `webpacktest-03-file-loading`.  
 Make changes in `package.json` name field.  
-Dont forget `npm install`.
+Don't forget `npm install`.
 
 ```sh
 cd webpacktest-03-file-loading
