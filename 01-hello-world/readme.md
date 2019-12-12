@@ -4,16 +4,17 @@
 # In this section
 
 * OS requirements
-* Project structure
-* 4-tier system
-* Basic config
-* Loading JavaScript
-* Minimising JavaScript
-* Copying files from source to public without compiling
-* Loading CSS and SCSS
+* Directory structure
+* npm
+* Server side
+* First build of JavaScript
+* Webpack mode, deploy tiers and environments (`NODE_ENV`)
+* JavaScript modules and webpack resolve alias
+* Minimise JavaScript with custom options
+* Copy files to destination without compiling
+* First build of SCSS/CSS
 * Scope hoisting
 * Define plugin
-* Notes on other loaders
 * npm scripts
 
 ---
@@ -29,7 +30,7 @@ This assumes development on any of these
 
 Btw, if one has to switch back and forth between POSIX and MSW command prompt while working on project, then using [cross-env](https://www.npmjs.com/package/cross-env) is a must (but again, when on MSW you should use WSL POSIX shell, don't use *command promt*).
 
-## Set up basic dir structure
+## Set up basic directory structure
 
 Crate master directory and set files tree up like this.  
 Leave all files empty, we will fill them step by step.  
@@ -86,24 +87,23 @@ _package.json_
 
 This *Hello World* (and further examples) does not necessarily need serverside.
 
-Opening `index.html` directly from filesystem in browser will work just fine if *asset paths* (JS, CSS, font, image, etc. files), as they are referenced from `index.html` and/or JavaScript & CSS files, are specified with correct relative paths to the referer.
+Opening `index.html` directly from filesystem in browser will work just fine if *asset paths* (JS, CSS, font, image, etc. files), as they are referenced from `index.html` and/or JavaScript & CSS files, are specified with correct relative paths to the referrer.
 
-The one serverside that will be needed once we get to *webpack-dev-server* will be supplied by *webpack* itself - *webpack-dev-server* fires up Node.js server and will serve files at `http://localhost:<port>/`. In that case there will be an option to also serve `index.html` and access it through FQDN.
+The one serverside that will be needed once we get to *webpack-dev-server* will be supplied by webpack itself - *webpack-dev-server* fires up Node.js server and will serve files at `http://localhost:<port>/`. In that case there will be an option to also serve `index.html` and access it through FQDN.
 
 Note that there might be cases though where one may need to allow browser to load resources from local filesystem, for example webfonts.
 
 However if one has webserver running that is able to serve static files, let it serve `public` directory from chapters. That would be serving `webpacktest-<chapter>/public` as *webroot*  (in case of *Hello World* serving `webpacktest-01-hello-world/public` as *webroot*).
 
-A nice tool for that is [Valet Linux](https://cpriego.github.io/valet-linux/), [Valet WSL](https://github.com/valeryan/valet-wsl)(in progress) or [Laravel Valet](https://laravel.com/docs/5.7/valet).  
-*Valet* has nothing to do with *Laravel* or *PHP* in this case. It supplies *nginx* that serves files from `anydirectory/public` within its [*park*](https://laravel.com/docs/6.x/valet#the-park-command) directory and sets up *DnsMasq*, so that all directories within *park* (more precisely - `public` directories within) are automatically served as `http(s)://directoryname.test`.  
-Practical example - if one copies `webpacktest-01-hello-world` (and in the future `webpacktest-<sectionname>`) in a directory where *Valet* is parked, then the chapter code can be accessed using `http(s)://webpacktest-01-hello-world.test` in browser, where `webpacktest-01-hello-world/public` directory contents are served, `index.html` is *autoindexed*.  
+A nice tool for *serverside* is [Valet Linux](https://cpriego.github.io/valet-linux/), [Valet WSL](https://github.com/valeryan/valet-wsl)(in progress) or [Laravel Valet](https://laravel.com/docs/5.7/valet).  
+*Valet* has nothing to do with *Laravel* or *PHP* in this case. It supplies *nginx* that serves static files from `anydirectory/public` within its [*park*](https://laravel.com/docs/6.x/valet#the-park-command) directory and sets up *DnsMasq*, so that all directories within *park* (more precisely - `public` directories within) are automatically served as `http(s)://directoryname.test`.  
+Practical example - if one copies `webpacktest-01-hello-world` (and in the future `webpacktest-<sectionname>`) in a directory where *Valet* is parked, then the chapter code can be rendered by visiting `http(s)://webpacktest-01-hello-world.test` in browser, where `webpacktest-01-hello-world/public` directory contents are served, `index.html` is *autoindexed*.  
 Although *Valet* is not a requirement for this tut, it is really handy.
 
 ---
-# Vanilla JavaScript first build
+# First build of JavaScript
 
 Note for [absolute beginners](https://www.youtube.com/watch?v=r8NZa9wYZ_U). All npm as well as webpack commands are executed while being `cd`-ed in the chapter's code directory. There is possibility to do `npm --prefix ...` though. RTFM@NPM / ask.
-
 
 ## Install webpack
 
@@ -115,7 +115,7 @@ npm install webpack --save-dev
 npm install webpack-cli --save-dev
 ```
 
-## First configuration
+## Configuration
 
 ### webpack configuration file
 
@@ -179,7 +179,9 @@ module.exports = config;
 
 ```
 
-### Basic HTML and JavaScript
+### HTML
+
+Filling in HTML file.
 
 _public/index.html_
 
@@ -214,6 +216,8 @@ _public/index.html_
 </html>
 ```
 
+### JavaScript
+
 Setting up *Hello World* JavaScript that selects `app` div in DOM and puts some text in it. Note that ES5 is used here and will be until [Babel](https://babeljs.io) is attached to the pipe, except for `require()`.
 
 _src/index.js_
@@ -245,7 +249,7 @@ Open `index.html` directly in the browser from filesystem. JavaScript should be 
 
 ### Entry key naming
 
-Entry object key names in *webpack.front.config.js* dictate what will be the outputted filename in `public/assets`. That is if one changes entry object key name, which currently is set to `index` to say`myBundleName`
+Entry object key names in *webpack.front.config.js* dictate what will be the outputted filename in `public/assets`. That is if one changes entry object key name, which currently is set to `index` to say `myBundleName`
 
 _webpack.front.config.js_
 
@@ -260,15 +264,15 @@ _webpack.front.config.js_
 then `public/assets/` will hold `myBundleName.js` instead of `index.js`.  
 Later one will observe that CSS that is imported through JavaScript also will be built by default as the entry point name dictates, i.e., `public/assets/index.css`.
 
-One can change this behaviour in `config.output.filename` which currently is set to `'[name].js'` as decribed [here](https://webpack.js.org/configuration/output/#outputfilename).  
-Eventually this tutorial will have multiple entry points, cunking and hashing. Let the entry point key name manage the output name, using `[substitutions]`.
+One can change this behaviour in `config.output.filename` which currently is set to `'[name].js'` as described [here](https://webpack.js.org/configuration/output/#outputfilename).  
+Eventually this tutorial will have multiple entry points, chunking and hashing. Let the entry point key name manage the output name, using `[substitutions].ext`.
 
 ---
 # Webpack mode, deploy tiers and environments (`NODE_ENV`)
 
 webpack 4 [introduced modes](https://medium.com/webpack/webpack-4-mode-and-optimization-5423a6bc597a).
 
-See [documentation here](https://webpack.js.org/configuration/mode/).
+See [mode documentation here](https://webpack.js.org/configuration/mode/).
 
 Although webpack has 2 modes (technically 3 as there is `none` mode) this tutorial (manually) sets up base for [4-tier deployment](https://en.wikipedia.org/wiki/Deployment_environment#Architectures). This will be done via environment variable `NODE_ENV`.
 
@@ -308,13 +312,7 @@ if (production) {
 
 // ...
 
-// ----------------
-// Setup log
-console.log('\x1b[42m\x1b[30m                                                               \x1b[0m');
 console.log('\x1b[44m%s\x1b[0m -> \x1b[36m%s\x1b[0m', 'TIER', tierName);
-console.log('\x1b[44m%s\x1b[0m -> \x1b[36m%s\x1b[0m', 'appPathUrlBuildRelativeToApp', appPathUrlBuildRelativeToApp);
-console.log('\x1b[44m%s\x1b[0m -> \x1b[36m%s\x1b[0m', 'appPathUrlBuildRelativeToServerRoot', appPathUrlBuildRelativeToServerRoot);
-console.log('\x1b[42m\x1b[30m                                                               \x1b[0m');
 
 // ...
 
@@ -347,7 +345,7 @@ NODE_ENV=testing \
 npx webpack --config=$(pwd)/webpack.front.config.js --progress
 ```
 
-Inspecting the built `assets/index.js` in both cases one should observe that in *testing* case `assets/index.js` is minimised, webpack *zero config* features are kicking in.
+Inspecting the built `assets/index.js` in both cases one should observe that in *testing* case `assets/index.js` is minimised, webpack *zero config* features are kicking in, more on that later.
 
 ---
 # JavaScript modules and webpack resolve alias
@@ -380,7 +378,7 @@ _src/index.js_
 
 'use strict';
 
-var helpers = require('helpers/helpers.simple.js');
+var helpers = require('extras/helpers.simple.js');
 
 var div = document.querySelector('.app');
 div.innerHTML = '<h1>Hello JS</h1><p>Lorem ipsum.</p>';
@@ -408,7 +406,7 @@ Refresh `index.html` and observe browser console outputting *I am simple helper 
 var helpers = require('extras/helpers.simple.js');
 ```
 
-works (finds and requires the module within `src/helpers/helpers.simple.js`) because resolve alias `extras` is defined.
+works (finds and requires the module within `src/helpers/helpers.simple.js`) because resolve alias `extras` is defined in webpack config.
 
 It could be also written as
 
@@ -416,14 +414,14 @@ It could be also written as
 var helpers = require('./helpers/helpers.simple.js');
 ```
 
-and it will work - using relative path is allowed (in this case from `index.js` to `helpers.simple.js`). 
+and it will work - using relative path is *fine* (in this case from `index.js` to `helpers.simple.js`). 
 
-The point of this example is - use aliases. That allows changing directory structure of the app, one would just have to change where alias are pointing to in `webpack.front.config.js`, there would be no need to change actual app JavaScript code. That also allows avoiding the traversing of the file system up and down within the JavaScript `require()` statements.
+The point of this example is - use aliases. That allows changing directory structure of the app, one would just have to change where alias are pointing to in `webpack.front.config.js`, there would be no need to change actual app JavaScript code. That also allows avoiding the traversing of the file system up and down within the JavaScript `require()` statements which is error prone.
 
 ---
 # Minimise JavaScript with custom options
 
-When buiilding webpack for testing tier then minimisation in action can be seen as setting `mode` to production autoenables *TerserPlugin* that uses [terser](https://github.com/terser/terser) for minification (previously it was *UglifyJsPlugin* which uses [UglifyJS](https://github.com/mishoo/UglifyJS2)), [see docs](https://webpack.js.org/concepts/mode/).
+When building webpack for testing tier then minimisation in action can be seen OOB as setting `mode` to *production* autoenables *TerserPlugin* that uses [terser](https://github.com/terser/terser) for minification. In previous webpack verion(s) it was *UglifyJsPlugin* which uses [UglifyJS](https://github.com/mishoo/UglifyJS2).
 
 In other words, on *production* mode webpack sets `optimization.minimize: true` and `optimization.minimizer: new TerserPlugin({})` with some defaults.
 
@@ -462,9 +460,8 @@ config.optimization = {
       parallel: true,
       sourceMap: false,
       // minify: (file, sourceMap) => {},
-      // warningsFilter: (warning, source, file) => { return true; },
-      extractComments: false,
       warningsFilter: (warning, source, file) => { return true; },
+      extractComments: false,
       terserOptions: {
         // ecma: undefined,
         warnings: true,
@@ -498,7 +495,7 @@ NODE_ENV=testing \
 npx webpack --config=$(pwd)/webpack.front.config.js --progress
 ```
 
-and observe `assets/index.js` file contents.
+and note `assets/index.js` file contents.
 
 Change terser option for comments.
 
@@ -506,6 +503,11 @@ _webpack.front.config.js_
 
 ```javascript
 // ...
+config.optimization = {
+  
+  minimize: true, // can override
+  
+  // ...  
       terserOptions: {
         // ...
         output: {
@@ -513,17 +515,37 @@ _webpack.front.config.js_
         },
         // ...
       }
+
+  // ...
+ };
+
 // ...
 ```
 
 Build again for testing tier and observe.
 
+Set [`config.optimization.minimize`](https://webpack.js.org/configuration/optimization/#optimizationminimize) to be true on non-development tiers.
+
+_webpack.front.config.js_
+
+```javascript
+// ...
+config.optimization = {
+  
+  minimize: !development, // can override
+
+  // ...
+ };
+
+// ...
+```
+
 ---
-# Manually copy files over to destination
+# Copy files to destination without compiling
 
-`index.html` file has `preflight.js` and `preflight.css` referenced in the head. But they are not present in output directory after building webpack, thus rendering `index.html` will greet with *Hello World*, but console we probably yield `404` for *preflight* assets (and also *index.css*, but more on that later as currently there is no CSS at all).
+`index.html` file has `preflight.js` and `preflight.css` referenced in the head. But they are not present in output directory after building webpack, thus while rendering `index.html` console will probably yield `404` for *preflight* assets (and also *index.css*, but more on that later as currently there is no CSS at all).
 
-Consider *preflight* assets as a special case - webpack should not attached *webpack stuff* to it. Webpack *stuff*? Build the project for development (thus no minimising) and inspect `public/assets/index.js`. *That webpack stuff.* Later there will also other *stuff*, i.e., runtime and manifest.
+Consider *preflight* assets as a special case - webpack should not attached *webpack stuff* to it. Webpack *stuff*? Build the project for development (thus no minimising) and inspect `public/assets/index.js`. How does it differ from user code in *src/index.js*? *That webpack stuff.* Later there will be also other *stuff*, i.e., runtime and manifest.
 
 From the current tools that are available one approach would be to use [`copy-webpack-plugin`](https://github.com/webpack-contrib/copy-webpack-plugin) which is the popular one. We have used [`filemanager-webpack-plugin`](https://github.com/gregnb/filemanager-webpack-plugin) as *filemanager* allows specifying actions that are executed both before and/or after webpack begins the bundling process, but it has stalled in it's development.
 
@@ -535,7 +557,9 @@ _webpack.front.config.js_
 
 ```javascript
 // ...
+
 const CopyPlugin = require('copy-webpack-plugin');
+
 // ...
 
 // ----------------
@@ -636,21 +660,21 @@ NODE_ENV=testing \
 npx webpack --config=$(pwd)/webpack.front.config.js --progress
 ```
 
-The *preflight* files are copied to `public/assets` directory. Open page in the browser, preflight JS does it's job of renaming classnames and prefligt CSS does it's job of of hiding that `Incabable :(` message.
+The *preflight* files are copied to `public/assets` directory. Open page in the browser, preflight JS does it's job of renaming classnames and preflight CSS does it's job of of hiding that `Incabable :(` message.
 
-The sole reason for *preflight* is to use some ES3 code without any polyfills that can execute on *any* browser for detecting very very very basic browser features, including JavaScript support, in order to set if the webapp can be run at all. It is not about which features to enable, granular feature detection and fallbacks can be done in actual app code using tools such as [*Modernzr*](https://modernizr.com). *preflight* should not be touched by webpack *compiling* system.
+The sole reason for *preflight* is to use some ES3 code without any polyfills that can execute on *any* browser for detecting very very very basic browser features, including JavaScript support, in order to set if the webapp can be run at all. It is not about which features to enable, granular feature detection and fallbacks can be done in actual app code using tools such as [*Modernzr*](https://modernizr.com). *preflight* should not be touched by webpack *compiling* system!
 
 ---
-# SCSS/CSS setup
+# First build of SCSS/CSS
 
 ## Note on cssnext
 
 Using [cssnext](http://cssnext.io) is not here yet...  
 Sass it is.
 
-## Sass and CSS loaders
+## Sass
 
-### node-sass
+### Install node-sass
 
 For to compile SCSS to CSS [Node-sass](https://github.com/sass/node-sass) will be used. It _is a library that provides binding for Node.js to LibSass, the C version of the popular stylesheet preprocessor, Sass_.  
 
@@ -658,26 +682,27 @@ For to compile SCSS to CSS [Node-sass](https://github.com/sass/node-sass) will b
 npm install node-sass --save-dev
 ```
 
-### About loaders
-
-[webpack documentation](https://webpack.js.org/loaders/)
+## webpack CSS/SCSS loaders and plugins
 
 ### Set up loaders and plugins for Sass and CSS
 
-A bunch of webpack loaders is needed to get that `index.css` working.
+#### Loaders & documentation  
 
-Loaders & documentation  
+A bunch of webpack loaders is needed to get compiled `index.css`.
+[webpack documentation](https://webpack.js.org/loaders/) about loaders.
+
 [style-loader](https://github.com/webpack-contrib/style-loader)  
 [css-loader](https://github.com/webpack-contrib/css-loader)  
 [sass-loader](https://github.com/webpack-contrib/sass-loader)  
 
-Previously minification could be handled by `css-loader`, now a simple adition is [optimize-css-assets-webpack-plugin](https://github.com/NMFR/optimize-css-assets-webpack-plugin), which uses [cssnano](https://github.com/cssnano/cssnano). However it is a basic (and in this tut a temporary solution) as [PostCSS](https://postcss.org) will be used later where CSS optimisation will be solved differently.
+#### Plugins
 
-Until webpack 4 [extract-text-webpack-plugin](https://github.com/webpack/extract-text-webpack-plugin) ([webpack docs](https://webpack.js.org/plugins/extract-text-webpack-plugin/)) was way to go.
+[mini-css-extract-plugin](https://github.com/webpack-contrib/mini-css-extract-plugin) extracts required CSS from within JavaScript into separate file(s). Thus CSS is not inlined into the JavaScript (`public/assets/index.js`), which would be kind of default webpack way without this plugin. Previously [extract-text-webpack-plugin](https://github.com/webpack/extract-text-webpack-plugin) ([webpack docs](https://webpack.js.org/plugins/extract-text-webpack-plugin/)) was used, but it is not *future proof*.
 
-However now [mini-css-extract-plugin](https://github.com/webpack-contrib/mini-css-extract-plugin) should be used as it is future proof.
 
-`mini-css-extract-plugin` extracts required CSS from within JavaScript into separate file(s). Thus CSS is not inlined into the JavaScript (`public/assets/index.js`), which would be kind of default webpack way without this plugin.
+Previously minification could be handled by `css-loader`, now a simple addition is [optimize-css-assets-webpack-plugin](https://github.com/NMFR/optimize-css-assets-webpack-plugin), which uses [cssnano](https://github.com/cssnano/cssnano). However in context in this tut it is a temporary solution as [PostCSS](https://postcss.org) will be used later where CSS optimisation will be solved through it.
+
+#### Install and setup
 
 ```sh
 npm install style-loader --save-dev
@@ -806,7 +831,7 @@ config.module = {
 // ----------------
 // OPTIMISATION
 config.optimization = {
-  minimize: true, // can override
+  minimize: !development, // can override
   minimizer: [
     new TerserPlugin({
       test: /\.js(\?.*)?$/i,
@@ -818,9 +843,8 @@ config.optimization = {
       parallel: true,
       sourceMap: false,
       // minify: (file, sourceMap) => {},
-      // warningsFilter: (warning, source, file) => { return true; },
-      extractComments: false,
       warningsFilter: (warning, source, file) => { return true; },
+      extractComments: false,
       terserOptions: {
         // ecma: undefined,
         warnings: true,
@@ -940,6 +964,8 @@ $mycolor: red;
 }
 ```
 
+### Building
+
 Run webpack for testing tier and inspect `public/assets/index.css`
 
 ```sh
@@ -952,13 +978,17 @@ SCSS and CSS is compiled and spit out in a file under `public/assets` named the 
 
 And *Hello World* in browser now has colours!
 
-**Remember that if webpack is run for development tier then CSS would be actually inlined in `public/assets/index.js` and no `public/assets/index.css` would be generated.**
+Remember that if webpack is run for development tier then CSS would be actually inlined in `public/assets/index.js` and no `public/assets/index.css` would be generated, as set in `config.module.rules` conditionals, which check for development tier.
+
+Run webpack for development.
 
 ```sh
 rm -rf $(pwd)/public/assets/** && \
 NODE_ENV=develpment \
 npx webpack --config=$(pwd)/webpack.front.config.js --progress
 ```
+
+One can observe, that browser renders HTML with CSS applied, although there is no separate CSS file.
 
 ---
 # Scope hoisting and module concatenation
@@ -1035,13 +1065,13 @@ config.plugins.push(new webpack.DefinePlugin({
 // ...
 ```
 
-`process.env.NODE_ENV` gets treatment where it is set to either `development` or `production` (thus 4 tier is *translated* to 2 tier) based on ENV testing logic done at the beginning of _webpack.front.config.js_. The reason is that libraries (*React* is a good example) use `process.env.NODE_ENV` in their code to do something like this
+`process.env.NODE_ENV` gets treatment where it is set to either `development` or `production` (thus 4 tier is *translated* to 2 tier) based on ENV testing logic done at the beginning of _webpack.front.config.js_. The reason is that libraries (*React* is one example) use `process.env.NODE_ENV` in their code to do something like this
 
 ```javascript
 if (process.env.NODE_ENV === 'development') {
-  // do not optimize library, compile it for better debugging
+  // do not optimise library, compile it for better debugging
 } else {
-  // optimize library, strip out all debugging stuff
+  // optimise library, strip out all debugging stuff
 }
 ```
 

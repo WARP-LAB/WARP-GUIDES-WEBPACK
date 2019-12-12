@@ -113,7 +113,7 @@ config.module = {
 // ----------------
 // OPTIMISATION
 config.optimization = {
-  minimize: true, // can override
+  minimize: !development, // can override
   minimizer: [
     new TerserPlugin({
       test: /\.js(\?.*)?$/i,
@@ -125,9 +125,8 @@ config.optimization = {
       parallel: true,
       sourceMap: false,
       // minify: (file, sourceMap) => {},
-      // warningsFilter: (warning, source, file) => { return true; },
-      extractComments: false,
       warningsFilter: (warning, source, file) => { return true; },
+      extractComments: false,
       terserOptions: {
         // ecma: undefined,
         warnings: true,
