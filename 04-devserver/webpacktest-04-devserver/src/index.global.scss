@@ -17,7 +17,7 @@ $paragarphColor: black;
 }
 
 body {
-  background-image: url('./images/my-large-image.jpg');
+  background-image: url('images/my-large-image.jpg');
 }
 
 .app {
@@ -30,5 +30,5 @@ body {
     color: $paragarphColor;
   }
 
-  background-image: url('./images/my-small-image.jpg');
+  background-image: url('images/my-small-image.jpg');
 }

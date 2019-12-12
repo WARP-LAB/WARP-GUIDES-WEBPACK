@@ -1,5 +1,5 @@
 {
-  "name": "webpacktest-03-devserver",
+  "name": "webpacktest-04-devserver",
   "version": "1.0.0",
   "description": "webpack testing",
   "main": "public/index.html",
@@ -7,8 +7,8 @@
   "license": "MIT",
   "private": true,
   "scripts": {
-    "front:devserver:serve": "npm run clean:assets && NODE_ENV=development webpack-dev-server --config=$(pwd)/webpack.front.config.js -d",
-    "front:devserver:static": "npm run clean:assets && NODE_ENV=development DEV_SERVE_STATIC=true webpack-dev-server --config=$(pwd)/webpack.front.config.js -d",
+    "front:dev:serve": "npm run clean:assets && NODE_ENV=development webpack-dev-server --config=$(pwd)/webpack.front.config.js -d",
+    "front:dev:static": "npm run clean:assets && NODE_ENV=development DEV_SERVE_STATIC=true webpack-dev-server --config=$(pwd)/webpack.front.config.js -d",
     "front:build:dev": "npm run clean:assets && NODE_ENV=development webpack --config=$(pwd)/webpack.front.config.js --progress",
     "front:build:test": "npm run clean:assets && NODE_ENV=testing webpack --config=$(pwd)/webpack.front.config.js --progress",
     "front:build:stage": "npm run clean:assets && NODE_ENV=staging webpack --config=$(pwd)/webpack.front.config.js --progress",
@@ -17,7 +17,7 @@
   },
   "devDependencies": {
     "autoprefixer": "^9.7.3",
-    "copy-webpack-plugin": "^5.1.0",
+    "copy-webpack-plugin": "^5.1.1",
     "css-loader": "^3.3.0",
     "cssnano": "^4.1.10",
     "file-loader": "^5.0.2",
@@ -30,7 +30,7 @@
     "resolve-url-loader": "^3.1.1",
     "sass-loader": "^8.0.0",
     "style-loader": "^1.0.1",
-    "terser-webpack-plugin": "^2.2.2",
+    "terser-webpack-plugin": "^2.2.3",
     "url-loader": "^3.0.0",
     "webpack": "^4.41.2",
     "webpack-cli": "^3.3.10",

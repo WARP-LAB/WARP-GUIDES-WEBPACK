@@ -1,6 +1,9 @@
+// webpack config file
+
 'use strict';
-const path = require('path');
+
 const appProps = require('./properties.json');
+const path = require('path');
 const webpack = require('webpack');
 const TerserPlugin = require('terser-webpack-plugin');
 const CopyPlugin = require('copy-webpack-plugin');
@@ -46,7 +49,7 @@ const appPathFsBuild = path.join(appPathFsBase, 'assets/'); // file system path,
 // Output URL path
 // File system paths do not necessarily reflect in URL paths, thus construct them separately
 const appPathUrlBuildRelativeToApp = 'assets/'; // URL path for appPathFsBuild, relative to app base path
-const appPathUrlBuildRelativeToServerRoot = `/${currTierProps.appPathUrlAboveServerRoot}${appPathUrlBuildRelativeToApp}`; // URL path for appPathFsBuild, relative to webserver root
+const appPathUrlBuildRelativeToServerRoot = `/${appPathUrlBuildRelativeToApp}`; // URL path for appPathFsBuild, relative to webserver root
 
 // ----------------
 // Host, port, output public path based on env and props
@@ -69,7 +72,7 @@ let appPathUrlBuildPublicPath; // will be constructed along the way and used in 
 
 // Definitions
 
-appProtocolPrefix = appProps.useProtocolRelativeUrls ? '' : currTierProps.tls ? 'https:' : 'http:'; // protocol-relative is anti-pattern, but sometimes comes handy
+appProtocolPrefix = appProps.useProtocolRelativeUrls ? '' : currTierProps.tls ? 'https:' : 'http:'; // protocol-relative is anti-pattern, but are sometimes handy
 appFqdn = currTierProps.fqdn;
 appPortNumber = currTierProps.port;
 appPortWithSuffix = (appPortNumber) ? `:${appPortNumber}` : '';
@@ -85,16 +88,12 @@ appPathUrlBuildPublicPath = appPathUrlBuildWithPort;
 
 // ----------------
 // Relative URL type based on env, or false if not relative
-// Assumed values to be used:
-//    'app-index-relative'
-//    'server-root-relative'
-//    false (if not relative, but FQDN used)
-// Note that value MUST be 'app-index-relative' if index.html is opened from local filesystem directly
-// let relativeUrlType = (devServerRunning) ? false : currTierProps.relativeUrlType;
+// Assumed values to be used: 'app-index-relative'; 'server-root-relative'; false (if not relative, but FQDN used)
+// Value MUST be 'app-index-relative' if index.html is opened from local filesystem directly and CSS is not inlined in JS
 let relativeUrlType = currTierProps.relativeUrlType;
 
 if (devServerRunning) {
-  console.log('\x1b[45m%s\x1b[0m', 'webpack DevServer running, will force relativeUrlType to false');
+  console.log('\x1b[45m%s\x1b[0m', 'webpack-dev-server running, will force relativeUrlType to false');
   relativeUrlType = false;
 }
 
@@ -114,8 +113,12 @@ else {
 }
 
 // ----------------
-// file-loader publicPath
-const fileLoaderPublicPath = (development) ? '' : (relativeUrlType === 'app-index-relative') ? './' : '';
+// MiniCssExtractPlugin publicPath
+const miniCssExtractPublicPath = (development) ? appPathUrlBuildPublicPath : (relativeUrlType === 'app-index-relative') ? './' : appPathUrlBuildPublicPath;
+
+// ----------------
+// Source map type
+const sourceMapType = (development) ? 'inline-source-map' : false;
 
 // ----------------
 // Setup log
@@ -140,10 +143,6 @@ else {
 console.log('\x1b[42m\x1b[30m                                                               \x1b[0m');
 
 // ----------------
-// Source map conf
-const sourceMapType = (development) ? 'inline-source-map' : false;
-
-// ----------------
 // BASE CONFIG
 let config = {
   mode: development ? 'development' : 'production',
@@ -151,7 +150,7 @@ let config = {
   context: __dirname,
   entry: {
     index: [
-      path.join(__dirname, 'src/index.js')
+      path.resolve(__dirname, 'src/index.js')
     ]
   },
   output: {
@@ -161,11 +160,13 @@ let config = {
   },
   resolve: {
     modules: [
-      path.resolve('./src/'),
-      'src',
+      path.resolve(__dirname, 'src/'),
       'node_modules',
       'bower_components'
-    ]
+    ],
+    alias: {
+      extras: path.resolve(__dirname, 'src/helpers/')
+    }
   }
 };
 
@@ -175,7 +176,6 @@ config.devServer = {
   host: appFqdn,
   port: appPortNumber,
 
-  // needs webpack.HotModuleReplacementPlugin()
   hot: true,
   // hotOnly: true
 
@@ -192,7 +192,7 @@ config.devServer = {
 
   publicPath: appPathUrlBuildPublicPath,
 
-  // allow webpack-dev-server to write files to disk
+  // allow webpack DevServer to write files to disk
   // currently pass through only preflight files, that are copied using copy-webpack-plugin
   writeToDisk (filePath) {
     return filePath.match(/preflight\.(js|css)$/);
@@ -253,7 +253,6 @@ config.devServer = {
   }
 };
 
-
 // ----------------
 // MODULE RULES
 config.module = {
@@ -261,7 +260,17 @@ config.module = {
     {
       test: /\.(css)$/,
       use: [
-        development ? 'style-loader' : MiniCssExtractPlugin.loader,
+        development
+        ? {
+          loader: 'style-loader',
+          options: {}
+        }
+        : {
+          loader: MiniCssExtractPlugin.loader,
+          options: {
+            publicPath: miniCssExtractPublicPath
+          }
+        },
         {
           loader: 'css-loader',
           options: {
@@ -287,7 +296,17 @@ config.module = {
     {
       test: /\.(scss)$/,
       use: [
-        development ? 'style-loader' : MiniCssExtractPlugin.loader,
+        development
+        ? {
+          loader: 'style-loader',
+          options: {}
+        }
+        : {
+          loader: MiniCssExtractPlugin.loader,
+          options: {
+            publicPath: miniCssExtractPublicPath
+          }
+        },
         {
           loader: 'css-loader',
           options: {
@@ -312,7 +331,7 @@ config.module = {
           loader: 'sass-loader',
           options: {
             sourceMap: true,
-            prependData: `$env: ${JSON.stringify(process.env.NODE_ENV || 'development')};`
+            prependData: `$env: ${tierName};`
           }
         }
       ],
@@ -323,9 +342,7 @@ config.module = {
       use: [
         {
           loader: 'file-loader',
-          options: {
-            publicPath: fileLoaderPublicPath
-          }
+          options: {}
         },
         {
           loader: 'image-webpack-loader',
@@ -340,9 +357,7 @@ config.module = {
       use: [
         {
           loader: 'file-loader',
-          options: {
-            publicPath: fileLoaderPublicPath
-          }
+          options: {}
         }
       ]
     }
@@ -351,24 +366,23 @@ config.module = {
 
 // ----------------
 // OPTIMISATION
-// https://webpack.js.org/configuration/optimization/
 config.optimization = {
-  minimize: true, // can override
+  minimize: !development, // can override
   minimizer: [
     new TerserPlugin({
       test: /\.js(\?.*)?$/i,
       // include: '',
       // exclude: '',
-      // chunkFilter: (chunk) => { return true; },
+      chunkFilter: (chunk) => { return true; },
       cache: true,
-      // cacheKeys: (defaultCacheKeys, file) => {},
+      cacheKeys: (defaultCacheKeys, file) => { return defaultCacheKeys; },
       parallel: true,
       sourceMap: !!sourceMapType,
       // minify: (file, sourceMap) => {},
-      // warningsFilter: (warning, source, file) => { return true; },
+      warningsFilter: (warning, source, file) => { return true; },
       extractComments: false,
       terserOptions: {
-        ecma: undefined,
+        // ecma: undefined,
         warnings: true,
         parse: {},
         compress: {},
@@ -386,7 +400,7 @@ config.optimization = {
         safari10: false
       }
     })
-    // new OptimizeCSSAssetsPlugin({}) // Use PostCSS pipe instead
+    // new OptimizeCSSAssetsPlugin({}) // Use while PostCSS is not introduced
   ]
 };
 
@@ -436,24 +450,7 @@ config.plugins.push(new webpack.DefinePlugin({
 // Hot reloading
 if (development) {
   config.plugins.push(new webpack.HotModuleReplacementPlugin());
-  // NamedModulesPlugin and NamedChunksPlugin enabled in development mode by default https://webpack.js.org/configuration/mode/
 }
-
-// ----------------
-// ModuleConcatenationPlugin
-if (!development) {
-  // enabled in production mode by default
-  // https://webpack.js.org/plugins/module-concatenation-plugin/
-  // https://webpack.js.org/configuration/mode/
-  // config.plugins.push(new webpack.optimize.ModuleConcatenationPlugin());
-}
-
-// ----------------
-// MiniCssExtractPlugin
-config.plugins.push(new MiniCssExtractPlugin({
-  filename: '[name].css',
-  chunkFilename: '[id].css',
-}));
 
 // ----------------
 // CopyPlugin
@@ -467,11 +464,10 @@ config.plugins.push(new CopyPlugin([
 ]));
 
 // ----------------
-// POSTCSS PLUGINS CONFIG
-// defined in .postcssrc.js
-
-// ----------------
-// BROWSERSLIST CONFIG
-// defined in .browserslistrc
+// MiniCssExtractPlugin
+config.plugins.push(new MiniCssExtractPlugin({
+  filename: '[name].css',
+  chunkFilename: '[id].css',
+}));
 
 module.exports = config;

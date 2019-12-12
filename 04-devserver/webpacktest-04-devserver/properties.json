@@ -1,8 +1,5 @@
 {
   "useProtocolRelativeUrls": false,
-  "webpackDevServer": {
-    "hot": true
-  },
   "tiers": {
     "development": {
       "fqdn": "localhost",
