@@ -608,7 +608,8 @@ _webpack.front.config.js_
 ---
 # Result
 
-See `webpacktest-03-file-loading` directory.
+See `webpacktest-03-file-loading` directory.  
+Images and fonts have to be copied to `src/..` from `media/..`.
 
 ---
 # Next
