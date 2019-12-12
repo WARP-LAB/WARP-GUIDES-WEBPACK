@@ -9,17 +9,20 @@ module.exports = (ctx) => ({
       flexbox: true,
       grid: false
     }),
-    // require('css-mqpacker')(),
-    // we can always minimise CSS, as on dev we use source maps, but this shows how we can make this env aware
+    // require('css-mqpacker')(), // depreciated
     ctx.env === 'development'
       ? null
       : require('cssnano')({
-        discardComments: {
-          removeAll: true
-        },
-        autoprefixer: false, // we do it explicitly using autoprefixer
-        zindex: false,
-        normalizeUrl: false
+        // https://cssnano.co/guides/optimisations
+        preset: ['default', {
+          autoprefixer: false, // do not remove prefixes  
+          discardComments: {
+            removeAll: true,
+          },
+          normalizeUrl: false,
+          normalizeWhitespace: true,
+          zindex: false
+        }]
       })
   ].filter((e) => e !== null)
 });

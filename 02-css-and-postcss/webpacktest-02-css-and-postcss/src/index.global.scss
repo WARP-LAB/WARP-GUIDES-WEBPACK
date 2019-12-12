@@ -3,7 +3,6 @@
 // This is example of SCSS
 
 @import '~normalize.css';
-@import 'typography.global.scss';
 @import 'index.legacy.css';
 
 $mycolor: red;
@@ -16,10 +15,6 @@ $paragarphColor: black;
   $paragarphColor: yellow;
 }
 
-body {
-  background-image: url('./images/my-large-image.jpg');
-}
-
 .app {
   background-color: $mycolor;
   display: flex;
@@ -30,5 +25,4 @@ body {
     color: $paragarphColor;
   }
 
-  background-image: url('./images/my-small-image.jpg');
 }

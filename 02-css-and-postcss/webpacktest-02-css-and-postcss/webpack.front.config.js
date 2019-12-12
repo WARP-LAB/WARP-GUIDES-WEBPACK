@@ -1,4 +1,7 @@
+// webpack config file
+
 'use strict';
+
 const path = require('path');
 const webpack = require('webpack');
 const TerserPlugin = require('terser-webpack-plugin');
@@ -31,33 +34,21 @@ const appPathFsBuild = path.join(appPathFsBase, 'assets/'); // file system path,
 
 // ----------------
 // Output URL path
-const appPathUrlBuildRelativeToApp = 'assets/';
+// File system paths do not necessarily reflect in URL paths, thus construct them separately
+const appPathUrlBuildRelativeToApp = 'assets/'; // URL path for appPathFsBuild, relative to app base path
+const appPathUrlBuildRelativeToServerRoot = `/${appPathUrlBuildRelativeToApp}`; // URL path for appPathFsBuild, relative to webserver root
 
 // ----------------
-// Relative URL type based on env, or false if not relative
-// Assumed values to be used:
-//    'app-index-relative'
-//    'server-root-relative'
-//    false (if not relative, but FQDN used)
-// Note that value MUST be 'app-index-relative' if index.html is opened from local filesystem directly
-let relativeUrlType = 'app-index-relative';
-
-// ----------------
-// file-loader publicPath
-const fileLoaderPublicPath = (development) ? '' : (relativeUrlType === 'app-index-relative') ? './' : '';
+// Source map type
+const sourceMapType = (development) ? 'inline-source-map' : false;
 
 // ----------------
 // Setup log
 console.log('\x1b[42m\x1b[30m                                                               \x1b[0m');
 console.log('\x1b[44m%s\x1b[0m -> \x1b[36m%s\x1b[0m', 'TIER', tierName);
-console.log('\x1b[44m%s\x1b[0m -> \x1b[36m%s\x1b[0m', 'relativeUrlType', relativeUrlType);
 console.log('\x1b[44m%s\x1b[0m -> \x1b[36m%s\x1b[0m', 'appPathUrlBuildRelativeToApp', appPathUrlBuildRelativeToApp);
 console.log('\x1b[44m%s\x1b[0m -> \x1b[36m%s\x1b[0m', 'appPathUrlBuildRelativeToServerRoot', appPathUrlBuildRelativeToServerRoot);
 console.log('\x1b[42m\x1b[30m                                                               \x1b[0m');
-
-// ----------------
-// Source map conf
-const sourceMapType = (development) ? 'inline-source-map' : false;
 
 // ----------------
 // BASE CONFIG
@@ -67,7 +58,7 @@ let config = {
   context: __dirname,
   entry: {
     index: [
-      path.join(__dirname, 'src/index.js')
+      path.resolve(__dirname, 'src/index.js')
     ]
   },
   output: {
@@ -77,11 +68,13 @@ let config = {
   },
   resolve: {
     modules: [
-      path.resolve('./src/'),
-      'src',
+      path.resolve(__dirname, 'src/'),
       'node_modules',
       'bower_components'
-    ]
+    ],
+    alias: {
+      extras: path.resolve(__dirname, 'src/helpers/')
+    }
   }
 };
 
@@ -91,6 +84,25 @@ config.module = {
   rules: [
     {
       test: /\.(css)$/,
+      use: [
+        development ? 'style-loader' : MiniCssExtractPlugin.loader,
+        {
+          loader: 'css-loader',
+          options: {
+            importLoaders: 1,
+            sourceMap: true
+          }
+        },
+        {
+          loader: 'postcss-loader',
+          options: {
+            sourceMap: true
+          }
+        }
+      ],
+    },
+    {
+      test: /\.(scss)$/,
       use: [
         development ? 'style-loader' : MiniCssExtractPlugin.loader,
         {
@@ -107,39 +119,6 @@ config.module = {
           }
         },
         {
-          loader: 'resolve-url-loader',
-          options: {
-            sourceMap: true,
-            keepQuery: true
-          }
-        }
-      ],
-    },
-    {
-      test: /\.(scss)$/,
-      use: [
-        development ? 'style-loader' : MiniCssExtractPlugin.loader,
-        {
-          loader: 'css-loader',
-          options: {
-            importLoaders: 3,
-            sourceMap: true
-          }
-        },
-        {
-          loader: 'postcss-loader',
-          options: {
-            sourceMap: true
-          }
-        },
-        {
-          loader: 'resolve-url-loader',
-          options: {
-            sourceMap: true,
-            keepQuery: true
-          }
-        },
-        {
           loader: 'sass-loader',
           options: {
             sourceMap: true,
@@ -147,59 +126,29 @@ config.module = {
           }
         }
       ],
-    },
-    {
-      test: /\.(png|jpe?g|gif|svg)$/,
-      exclude: /.-webfont\.svg$/,
-      use: [
-        {
-          loader: 'file-loader',
-          options: {
-            publicPath: fileLoaderPublicPath
-          }
-        },
-        {
-          loader: 'image-webpack-loader',
-          options: {
-            disable: development
-          }
-        }
-      ]
-    },
-    {
-      test: /\.(woff2|woff|otf|ttf|eot|svg)$/,
-      use: [
-        {
-          loader: 'file-loader',
-          options: {
-            publicPath: fileLoaderPublicPath
-          }
-        }
-      ]
     }
   ]
 };
 
 // ----------------
 // OPTIMISATION
-// https://webpack.js.org/configuration/optimization/
 config.optimization = {
-  minimize: true, // can override
+  minimize: !development, // can override
   minimizer: [
     new TerserPlugin({
       test: /\.js(\?.*)?$/i,
       // include: '',
       // exclude: '',
-      // chunkFilter: (chunk) => { return true; },
+      chunkFilter: (chunk) => { return true; },
       cache: true,
-      // cacheKeys: (defaultCacheKeys, file) => {},
+      cacheKeys: (defaultCacheKeys, file) => { return defaultCacheKeys; },
       parallel: true,
       sourceMap: !!sourceMapType,
       // minify: (file, sourceMap) => {},
-      // warningsFilter: (warning, source, file) => { return true; },
+      warningsFilter: (warning, source, file) => { return true; },
       extractComments: false,
       terserOptions: {
-        ecma: undefined,
+        // ecma: undefined,
         warnings: true,
         parse: {},
         compress: {},
@@ -217,7 +166,7 @@ config.optimization = {
         safari10: false
       }
     })
-    // new OptimizeCSSAssetsPlugin({}) // Use PostCSS pipe instead
+    // new OptimizeCSSAssetsPlugin({}) // Use while PostCSS is not introduced
   ]
 };
 
@@ -264,22 +213,6 @@ config.plugins.push(new webpack.DefinePlugin({
 }));
 
 // ----------------
-// ModuleConcatenationPlugin
-if (!development) {
-  // enabled in production mode by default
-  // https://webpack.js.org/plugins/module-concatenation-plugin/
-  // https://webpack.js.org/configuration/mode/
-  // config.plugins.push(new webpack.optimize.ModuleConcatenationPlugin());
-}
-
-// ----------------
-// MiniCssExtractPlugin
-config.plugins.push(new MiniCssExtractPlugin({
-  filename: '[name].css',
-  chunkFilename: '[id].css',
-}));
-
-// ----------------
 // CopyPlugin
 config.plugins.push(new CopyPlugin([
   {
@@ -291,11 +224,10 @@ config.plugins.push(new CopyPlugin([
 ]));
 
 // ----------------
-// POSTCSS PLUGINS CONFIG
-// defined in .postcssrc.js
-
-// ----------------
-// BROWSERSLIST CONFIG
-// defined in .browserslistrc
+// MiniCssExtractPlugin
+config.plugins.push(new MiniCssExtractPlugin({
+  filename: '[name].css',
+  chunkFilename: '[id].css',
+}));
 
 module.exports = config;
