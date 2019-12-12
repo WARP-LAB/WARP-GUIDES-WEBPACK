@@ -1,4 +1,4 @@
-# SCSS, CSS, PostCSS settings and file loading
+# File loading
 
 ---
 # In this section
@@ -8,7 +8,7 @@
 * Font loading (example for old bulletproof syntax)
 
 ---
-# Prefligt
+# Preflight
 
 Use existing code base from previous guide stage (`webpacktest-02-css-and-postcss`). Either work on top of it or just make a copy.  
 The directory now is called `webpacktest-03-file-loading`.  
@@ -24,25 +24,27 @@ npm install
 # Loading files
 
 Now let us add some images to source.  
-Have `my-small-image.jpg` below 20 KB. [helper](http://lorempixel.com/200/200/)  
-Have `my-large-image.jpg` at about 50 KB. [helper](http://lorempixel.com/600/600/)   
-See `media/images` dir in this repo where images are already prepared. Copy `images` directory to `src/images`.
+Have `my-small-image.jpg` below 20 KB. [helper](https://picsum.photos/200/200/)  
+Have `my-large-image.jpg` at about 50 KB. [helper](https://picsum.photos/600/600/)   
+Have `my-js-image.jpg`. [helper](https://picsum.photos/200/200/)  
+See `media/images` dir in this repo where images are already prepared. Copy `images` directory contents to `src/images`.
 
 Loaders  
 [file-loader](https://github.com/webpack-contrib/file-loader)  
+[resolve-url-loader](https://github.com/bholloway/resolve-url-loader)  
 [url-loader](https://github.com/webpack-contrib/url-loader)  
-[resolve-url-loader](https://github.com/bholloway/resolve-url-loader)
+
+`resolve-url-loader` is needed because file paths can be set relative to the code file the file is required from (but can also be required *relative* to resolve paths as set in webpack config).
 
 `url-loader` works like the file loader, but can return a *Data Url* if the file is smaller than a limit.  
-`resolve-url-loader` is needed because we set file path in `url()` relative to the SCSS file we are working in, however webpack tries to resolve from entry point.
 
 ```sh
 npm install file-loader --save-dev
-npm install url-loader --save-dev
 npm install resolve-url-loader --save-dev
+npm install url-loader --save-dev
 ```
 
-Add images to our SCSS
+Adding images to SCSS
 
 _src/index.global.scss_
 
@@ -50,6 +52,7 @@ _src/index.global.scss_
 @charset 'UTF-8';
 
 // This is example of SCSS
+
 @import '~normalize.css';
 @import 'index.legacy.css';
 
@@ -64,7 +67,7 @@ $paragarphColor: black;
 }
 
 body {
-  background-image: url('./images/my-large-image.jpg');
+  background-image: url('images/my-large-image.jpg');
 }
 
 .app {
@@ -77,14 +80,41 @@ body {
     color: $paragarphColor;
   }
 
-  background-image: url('./images/my-small-image.jpg');
+  background-image: url('images/my-small-image.jpg');
 }
+```
+
+Assing images to JavaScript
+
+_src/index.js_
+
+```javascript
+// index.js
+
+/* global __DEVELOPMENT__ */
+
+'use strict';
+
+var helpers = require('extras/helpers.simple.js');
+var myImagePath = require('images/my-js-image.jpg').default;
+require('index.global.scss');
+
+if (__DEVELOPMENT__) {
+  console.log('I\'m in development!');
+}
+
+var div = document.querySelector('.app');
+div.innerHTML = '<h1>Hello JS</h1><p>Lorem ipsum.</p><img src="' + myImagePath + '" alt="My Image">';
+div.innerHTML += '<label for="textfield">Enter your text</label>';
+div.innerHTML += '<input id="textfield" type="text" name="testtext" placeholder="Text Here">';
+console.log('Hello JS!');
+helpers.helperA();
 ```
 
 
 ### `file-loader` example
 
-Pipe images that are required by CSS (and JS) to build directory. Don't be surprised about special SVG regex, later on that.
+Pipe images that are required by CSS (and JS) to build directory. There is a specific SVG targeting regex, later on that.
 
 Add loaders to module rules. Note that we resolve URLs in (S)CSS pipe & add loader for image files.
 
@@ -100,7 +130,15 @@ config.module = {
     {
       test: /\.(css)$/,
       use: [
-        development ? 'style-loader' : MiniCssExtractPlugin.loader,
+        development
+        ? {
+          loader: 'style-loader',
+          options: {}
+        }
+        : {
+          loader: MiniCssExtractPlugin.loader,
+          options: {}
+        },
         {
           loader: 'css-loader',
           options: {
@@ -126,7 +164,15 @@ config.module = {
     {
       test: /\.(scss)$/,
       use: [
-        development ? 'style-loader' : MiniCssExtractPlugin.loader,
+        development
+        ? {
+          loader: 'style-loader',
+          options: {}
+        }
+        : {
+          loader: MiniCssExtractPlugin.loader,
+          options: {}
+        },
         {
           loader: 'css-loader',
           options: {
@@ -151,7 +197,7 @@ config.module = {
           loader: 'sass-loader',
           options: {
             sourceMap: true,
-            prependData: `$env: ${JSON.stringify(process.env.NODE_ENV || 'development')};`
+            prependData: `$env: ${tierName};`
           }
         }
       ],
@@ -183,56 +229,153 @@ npm run front:build:test
 ```
 
 One can observe that images are outputted to `public/assets` as expected in both cases.  
-But there is an issue with loading images in browser.  
-When being in `development` tier images are displayed (as there is no actual CSS, it is served by javascript via `style-loader`), but when in `testing` (or more precisely, when in *non-development*) tier we get *404*s and browser fails to display images.
 
-The issue is that in `testing` tier images within built CSS file at `public/assets/index.css` are referenced as 
+Note that later there might be discussion that path to assets actually could be FQDN, which would solve the issue expanded below, but for now stick with *relative-to-index paths*, which is a bit painful to set up.
+
+There is an issue with loading images in browser.
+
+Image that is required in JS source is displated bith when being in `development` tier as well as `testing` tier.
+Compiled javaScript code that generates HTML references the image as 
+
+```html
+<img src="assets/dilename.ext" alt="My Image">
+```
+
+and that is correct relative path to `public/index.html`
+
+
+Images that are required in CSS source when being in `development` tier are displayed. But when in `testing` tier (or more precisely, when in *non-development*) tier *404*s are thrown and browser fails to display images.  
+
+In *development tier* CSS source is compiled within JavaScript (`public/assets/index.js`).  
+Compiled CSS code that is embedded in JavaScript references the images as 
 
 ```css
 background-image:url(assets/<imagename>.<ext>)
 ```
+JavaScript loads assets relative to the HTML, thus images work as `assets/<imagename>.<ext>` is correct path to images in the filesystem relative to `public/index.html`
 
-although the correct *relative path* should be 
+In *testing tier* CSS source is compiled to separate CSS file (`public/assets/index.css`).  
+Compiled CSS code references the images as 
 
 ```css
-background-image:url(<imagename>.<ext>)
+background-image:url(assets/<imagename>.<ext>)
 ```
+CSS loads assets relative to itself, thus images do not work as `assets/<imagename>.<ext>` is incorrect path to image in the filesystem relative to `public/assets/index.css`.
 
-as images are in same directory as CSS file referencing them.
+Solving the issue.
 
-Later we will discuss that path to assets actually could be FQDN, but let us stick with *relative-to-index paths* for now.
-
+_webpack.front.config.js_
 
 ```javascript
 // ...
 
 // ----------------
 // Relative URL type based on env, or false if not relative
-// Assumed values to be used:
-//    'app-index-relative'
-//    'server-root-relative'
-//    false (if not relative, but FQDN used)
-// Note that value MUST be 'app-index-relative' if index.html is opened from local filesystem directly
-let relativeUrlType = 'app-index-relative';
+// Assumed values to be used: 'app-index-relative'; 'server-root-relative'; false (if not relative, but FQDN used)
+// Value MUST be 'app-index-relative' if index.html is opened from local filesystem directly and CSS is not inlined in JS
+const relativeUrlType = 'app-index-relative';
 
 // ----------------
-// file-loader publicPath
-const fileLoaderPublicPath = (development) ? '' : (relativeUrlType === 'app-index-relative') ? './' : '';
+// MiniCssExtractPlugin publicPath
+const miniCssExtractPublicPath = (development) ? appPathUrlBuildPublicPath : (relativeUrlType === 'app-index-relative') ? './' : appPathUrlBuildPublicPath;
 
 // ...
 
+// ----------------
+// MODULE RULES
+config.module = {
+  rules: [
+    {
+      test: /\.(css)$/,
+      use: [
+        development
+        ? {
+          loader: 'style-loader',
+          options: {}
+        }
+        : {
+          loader: MiniCssExtractPlugin.loader,
+          options: {
+            publicPath: miniCssExtractPublicPath
+          }
+        },
+        {
+          loader: 'css-loader',
+          options: {
+            importLoaders: 2,
+            sourceMap: true
+          }
+        },
+        {
+          loader: 'postcss-loader',
+          options: {
+            sourceMap: true
+          }
+        },
+        {
+          loader: 'resolve-url-loader',
+          options: {
+            sourceMap: true,
+            keepQuery: true
+          }
+        }
+      ],
+    },
+    {
+      test: /\.(scss)$/,
+      use: [
+        development
+        ? {
+          loader: 'style-loader',
+          options: {}
+        }
+        : {
+          loader: MiniCssExtractPlugin.loader,
+          options: {
+            publicPath: miniCssExtractPublicPath
+          }
+        },
+        {
+          loader: 'css-loader',
+          options: {
+            importLoaders: 3,
+            sourceMap: true
+          }
+        },
+        {
+          loader: 'postcss-loader',
+          options: {
+            sourceMap: true
+          }
+        },
+        {
+          loader: 'resolve-url-loader',
+          options: {
+            sourceMap: true,
+            keepQuery: true
+          }
+        },
+        {
+          loader: 'sass-loader',
+          options: {
+            sourceMap: true,
+            prependData: `$env: ${tierName};`
+          }
+        }
+      ],
+    },
     {
       test: /\.(png|jpe?g|gif|svg)$/,
       exclude: /.-webfont\.svg$/,
       use: [
         {
           loader: 'file-loader',
-          options: {
-            publicPath: fileLoaderPublicPath
-          }
+          options: {}
         }
       ]
     }
+  ]
+};
     
 // ...
 
@@ -248,7 +391,7 @@ npm run front:build:dev
 npm run front:build:test
 ```
 
-Images should now render in *testing tier* as built CSS file `public/assets/index.css` should reference images relative to CSS file correctly.
+Images now render also in *testing tier* as built CSS file `public/assets/index.css` references images relative to compiled CSS file correctly.
 
 ### `url-loader` example
 
@@ -266,8 +409,7 @@ _webpack.front.config.js_
         {
           loader: 'url-loader',
           options: {
-            limit: 20000,
-            publicPath: fileLoaderPublicPath
+            limit: 20000
           }
         }
       ]
@@ -276,16 +418,16 @@ _webpack.front.config.js_
 // ...
 ```
 
-Run webpack and inspect `public/assets/` directory and inspect `body` and `.app` CSS in `public/assets/index.css`.  
-Notice how larger image is outputted as file in `public/assets/` while smaller image is inlined as base64 in CSS (assuming that one is below and other is above the size limit as set for `url loader` - `limit: 20000`). Just as intended in this exercise.
+Running webpack for *testing tier*, inspecting `public/assets/` directory and inspectting `body` and `.app` CSS.  
+Larger image (`body`) is outputted as file in `public/assets/` while smaller image (`.app`) is inlined as base64 in CSS (assuming that one is below and other is above the size limit as set for `url loader` - `limit: 20000`). Just as intended.
 
-Further use `file-loader` though as we target HTTP/2-ready serverside.
+Further using `file-loader` though as HTTP/2-ready serverside *at the end* is assumed.
 
 ---
 # Compressing images using `image-webpack-loader`
 
-But we can do better. Let us minify the images.  
-_Minify PNG, JP(E)G, GIF and SVG images with [imagemin](https://github.com/imagemin/imagemin)._
+It is possible to compress the images while building.  
+_Minify PNG, JP(E)G, GIF, SVG and WEBP images with [imagemin](https://github.com/imagemin/imagemin)._
 
 Loader  
 [image-webpack-loader](https://github.com/tcoopman/image-webpack-loader)  
@@ -295,8 +437,8 @@ Loader
 npm install image-webpack-loader --save-dev
 ```
 
-See docs, we keep default minification opts here.  
-This process is expensive. In development we do not care about file size, so enable it only for nondevelopment
+See [imagemin](https://github.com/imagemin/imagemin) docs, default minification options are kept in this tut.  
+This process is expensive. In development osne should not care about file size, so it is enabled only for nondevelopment
 
 _webpack.front.config.js_
 
@@ -323,7 +465,11 @@ _webpack.front.config.js_
 // ...
 ```
 
-Run webpack for testing and observe how outputted image filesizes differ in `public/assets/` from source (for such small filesizes the gains will not be much though).
+After running webpack for testing tier outputted image filesizes differ (are smaller) in `public/assets/` from source (for such small filesizes the gains will not be much though).
+
+```sh
+npm run front:build:test
+```
 
 ---
 # Fonts
@@ -334,79 +480,15 @@ This example uses *bulletproof syntax* although [it can be retired for years and
 
 All webfonts should end with `*-webfont.ext` in their filename for following examples.
 
-See `media/fonts/spacemono` directory in this repo.  
-Create directory `src/fonts/`.  
-Put directory `media/fonts/spacemono` into `src/fonts/`.
+Copy contents (`spacemono` directory and `spacemono-definition.global.scss` file) of `media/fonts/` directory found in this repo to `src/fonts/`
 
 ## Packing & loading
 
-Let us use [Space Mono](https://www.fontsquirrel.com/fonts/space-mono).  
+[Space Mono](https://www.fontsquirrel.com/fonts/space-mono) family is used as example font.
 
-Create and fill in file `fonts/spacemono-definition.global.scss`.
+After copying files `src/fonts/spacemono-definition.global.scss` holds `@font-face` definitions and refer to font files within `src/fonts/spacemono`.
 
-_src/fonts/spacemono-definition.global.scss_
-
-```scss
-@charset 'UTF-8';
-
-@font-face {
-  font-family: 'spacemono-webpack';
-  src: url('./spacemono/spacemono-bold-webfont.eot');
-  src:
-    url('./spacemono/spacemono-bold-webfont.eot?#iefix') format('embedded-opentype'),
-    url('./spacemono/spacemono-bold-webfont.woff2') format('woff2'),
-    url('./spacemono/spacemono-bold-webfont.woff') format('woff'),
-    url('./spacemono/spacemono-bold-webfont.ttf') format('truetype'),
-    url('./spacemono/spacemono-bold-webfont.svg#space_monobold') format('svg');
-  font-weight: 700;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'spacemono-webpack';
-  src: url('./spacemono/spacemono-bolditalic-webfont.eot');
-  src:
-    url('./spacemono/spacemono-bolditalic-webfont.eot?#iefix') format('embedded-opentype'),
-    url('./spacemono/spacemono-bolditalic-webfont.woff2') format('woff2'),
-    url('./spacemono/spacemono-bolditalic-webfont.woff') format('woff'),
-    url('./spacemono/spacemono-bolditalic-webfont.ttf') format('truetype'),
-    url('./spacemono/spacemono-bolditalic-webfont.svg#space_monobold_italic') format('svg');
-  font-weight: 700;
-  font-style: italic;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'spacemono-webpack';
-  src: url('./spacemono/spacemono-regular-webfont.eot');
-  src:
-    url('./spacemono/spacemono-regular-webfont.eot?#iefix') format('embedded-opentype'),
-    url('./spacemono/spacemono-regular-webfont.woff2') format('woff2'),
-    url('./spacemono/spacemono-regular-webfont.woff') format('woff'),
-    url('./spacemono/spacemono-regular-webfont.ttf') format('truetype'),
-    url('./spacemono/spacemono-regular-webfont.svg#space_monoregular') format('svg');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'spacemono-webpack';
-  src: url('./spacemono/spacemono-italic-webfont.eot');
-  src:
-    url('./spacemono/spacemono-italic-webfont.eot?#iefix') format('embedded-opentype'),
-    url('./spacemono/spacemono-italic-webfont.woff2') format('woff2'),
-    url('./spacemono/spacemono-italic-webfont.woff') format('woff'),
-    url('./spacemono/spacemono-italic-webfont.ttf') format('truetype'),
-    url('./spacemono/spacemono-italic-webfont.svg#space_monoitalic') format('svg');
-  font-weight: 400;
-  font-style: italic;
-  font-display: swap;
-}
-```
-
-Import definitions, set typography globals
+Importing definitions into SCSS file for typography and setting other options.
 
 _src/typography.global.scss_
 
@@ -441,7 +523,7 @@ i b {
 }
 ```
 
-Import typography into index SCSS
+Importing typography into app index SCSS
 
 _src/index.global.scss_
 
@@ -457,9 +539,9 @@ _src/index.global.scss_
 // ...
 ```
 
-Add loaders for font files in webpack config.
+Adding loaders for font files in webpack config.
 
-We will use `file-loader` not `url-loder`, but if you are using the latter, specify mime type settings, meaning that if you have
+`file-loader` not `url-loder` will be used, but if one is using the latter, mime type should be specified, meaning if
 
 _webpack.front.config.js_
 
@@ -490,72 +572,43 @@ then
 | `svg` | `mimetype=image/svg+xml` |
   
 
-Back to `file-loader` for font files
-
-_webpack.front.config.js_
-
-```javascript
-    {
-      test: /\.(woff2|woff|otf|ttf|eot|svg)$/,
-      use: [
-        {
-          loader: 'file-loader',
-          options: {
-            publicPath: fileLoaderPublicPath
-          }
-        }
-      ]
-    }
-```
-
-Run webpack and inspect `public/assets/` directory as well as how it looks in browser.
-
-## Webpack SVG images vs SVG fonts
-
-Let us distinguish between webfonts and images in case os SVG, because we asume *bulletproof syntax*. We do it by naming convention. To do so, all svg webfonts alaways have to be suffixed with `-webfont`. If the *bulletproof syntax* is dropped then this can be ignored. This is already adressed using `exclude` rule.
+Setting `file-loader` for font files.
 
 _webpack.front.config.js_
 
 ```javascript
 // ...
-
-    {
-      test: /\.(png|jpe?g|gif|svg)$/,
-      exclude: /.-webfont\.svg$/,
-      use: [
-        {
-          loader: 'file-loader',
-          options: {
-            publicPath: fileLoaderPublicPath
-          }
-        },
-        {
-          loader: 'image-webpack-loader',
-          options: {
-            disable: development
-          }
-        }
-      ]
-    },
     {
       test: /\.(woff2|woff|otf|ttf|eot|svg)$/,
       use: [
         {
           loader: 'file-loader',
-          options: {
-            publicPath: fileLoaderPublicPath
-          }
+          options: {}
         }
       ]
     }
+// ...
+```
 
+Running webpack for both tiers yields *Space Mono* applied to the rendered HTML.
+
+## Webpack SVG images vs SVG fonts
+
+As *bulletproof syntax* is assumed there is distinguish between webfonts and images in case os SVG. It is done by naming convention. All SVG webfonts are assumed to have suffix `-webfont`. If the *bulletproof syntax* is dropped then this can be ignored. This is already adressed using `exclude` rule.
+
+_webpack.front.config.js_
+
+```javascript
+// ...
+      test: /\.(png|jpe?g|gif|svg)$/,
+      exclude: /.-webfont\.svg$/,
 //...
 ```
 
 ---
 # Result
 
-See `webpacktest-02-css-and-files` directory.
+See `webpacktest-03-file-loading` directory.
 
 ---
 # Next
