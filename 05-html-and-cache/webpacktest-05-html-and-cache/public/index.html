@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en" class="noscript incapable">
+<head>
+  <meta charset="utf-8">
+  <title>GUIDE - webpacktest-05-html-and-cache</title>
+  <meta name="description" content="Webpack Guide">
+  <meta name="keywords" content="webpack,guide">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+  <!--
+  <script src="assets/preflight.js"></script>
+  <link href="assets/preflight.css" rel="stylesheet" type="text/css">
+  -->
+  <script>// PREFILIGHT HAS TO STAY ES3 COMPATIBLE
+// Inline in head.
+// This will pause HTML parsing and execute immediately.
+// It changes preceding DOM.
+// When we hit body CSS state machine will be already setup.
+
+// ############################################################
+// Change noscript to script.
+document.documentElement.className = document.documentElement.className.replace(/\bnoscript\b/, 'script');
+
+// ############################################################
+// Change incapable to capable.
+// Normally we try to deploy stuff that works on ES5-ish browsers.
+// That means normally IE11+, but demands for archaic stuff occurs.
+// As example this CTM will inform us via CSS state machine that we are IE10+.
+if ('visibilityState' in document) {
+  document.documentElement.className = document.documentElement.className.replace(/\bincapable\b/, 'capable');
+}
+
+// ############################################################
+// Just say hello.
+console.log('I am Preflight');</script>
+  <style>/* Example of preflight CSS state machine */
+
+.noscript {
+  display: block;
+  background-color: aqua;
+}
+
+.incapable {
+  display: block;
+  background-color: olive;
+}
+
+html.noscript .incapable { display: none; }
+
+html.noscript .app { display: none; }
+
+html.incapable .app { display: none; }
+
+html.capable .incapable { display: none; }
+
+html.script .noscript { display: none; }</style>
+  
+</head>
+<body>
+  <noscript>
+    <div class="noscript">
+      Lynx FTW!
+    </div>
+  </noscript>
+  <div class="incapable">
+    Incapable :(
+  </div>
+  <div class="app"> Loading... </div>
+  <script>
+    window.__TEMPLATE_DATA__ = {};
+  </script>
+  
+    <script src="assets/index.js"></script>
+  
+</body>
+</html>

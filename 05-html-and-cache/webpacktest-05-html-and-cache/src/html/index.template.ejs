@@ -2,18 +2,18 @@
 <html lang="en" class="noscript incapable">
 <head>
   <meta charset="utf-8">
-  <title><%= htmlWebpackPlugin.options.title || 'Webpack Test' %></title>
+  <title><%= htmlWebpackPlugin.options.title || 'My Title' %></title>
   <meta name="description" content="Webpack Guide">
   <meta name="keywords" content="webpack,guide">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
   <!--
-  <script src="<%= htmlWebpackPlugin.options.outputPublicAssetsUrlWithPort %>preflight.js"></script>
-  <link href="<%= htmlWebpackPlugin.options.outputPublicAssetsUrlWithPort %>preflight.css" rel="stylesheet" type="text/css">
+  <script src="<%= htmlWebpackPlugin.options.props.appPathUrlBuildPublicPath %>preflight.js"></script>
+  <link href="<%= htmlWebpackPlugin.options.props.appPathUrlBuildPublicPath %>preflight.css" rel="stylesheet" type="text/css">
   -->
-  <script><%= htmlWebpackPlugin.options.fsInlineContents['preflight.js'] %></script>
-  <style><%= htmlWebpackPlugin.options.fsInlineContents['preflight.css'] %></style>
-  <% for (let css in htmlWebpackPlugin.files.css) { %>
-    <link href="<%= htmlWebpackPlugin.files.css[css] %>" rel="stylesheet" type="text/css">
+  <script><%= htmlWebpackPlugin.options.props.inlineContents['preflight.js'] %></script>
+  <style><%= htmlWebpackPlugin.options.props.inlineContents['preflight.css'] %></style>
+  <% for (let key in htmlWebpackPlugin.files.css) { %>
+    <link href="<%= htmlWebpackPlugin.files.css[key] %>" rel="stylesheet" type="text/css">
   <% } %>
 </head>
 <body>
@@ -29,8 +29,8 @@
   <script>
     window.__TEMPLATE_DATA__ = {};
   </script>
-  <% for (let chunk in htmlWebpackPlugin.files.chunks) { %>
-    <script src="<%= htmlWebpackPlugin.files.chunks[chunk].entry %>"></script>
+  <% for (let key in htmlWebpackPlugin.files.chunks) { %>
+    <script src="<%= htmlWebpackPlugin.files.chunks[key].entry %>"></script>
   <% } %>
 </body>
 </html>

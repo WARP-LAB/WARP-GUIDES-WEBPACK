@@ -2,77 +2,79 @@
 
 ---
 # In this section
----
 
-* Building HTML
+* HTML building
 * Cache busting by using hashes
-* Inlining static assets in HTML using read from disk
-* Minify HTML including inlined stuff
+* Inline manually managed files into HTML
+* Minify HTML including inlined code
 
 ---
-# Prefligt
+# Preflight
+
+Use existing code base from previous guide stage (`webpacktest-04-devserver`). Either work on top of it or just make a copy.  
+The directory now is called `webpacktest-05-html-and-cache`.  
+Make changes in `package.json` name field.  
+Don't forget `npm install`.  
+Images and fonts have to be copied to `src/..` from `media/..`.
+
+```sh
+cd webpacktest-05-html-and-cache
+npm install
+```
 ---
+# Remove `public/index.html`
 
-Use existing `webpacktest-devserver` code base from previous guide stage. Either work on top of it or just make a copy. The directory now is called `webpacktest-htmlandcache`. Make changes in `package.json` *name* field and *fqdn* fields. Don't forget `npm install`.  
-Copy `images` to `src` and `spacemono` to `src/fonts` from `media`.
+Delete `public/index.html`.
 
----
-# Remove static `index.html`
----
+Change cleaning npm script to remove it too.
 
-Just delete `public/index.html`.
-
-And make cleaning part of our build script to remove it too.
-
-*package.json*
+_package.json_
 
 ```
-"clean:assets": "rm -rf $(pwd)/public/index.html && rm -rf $(pwd)/public/assets/*",
+    "clean:assets": "rm -rf $(pwd)/public/index.html && rm -rf $(pwd)/public/assets/**"
 ```
 
 ---
-# HTML building (`index.html`)
----
+# HTML building
 
-Till now we were using prefilled `assets/index.html` to serve the webpage. It was done two ways
+Till now a *manual* `assets/index.html` to serve the webpage was used.
 
-* either via  `webpacktest-xxx.test(:80)` where `public/index.html` in public dir was served by *nginx*
-*  or `localhost:4000` where `public/index.html` was served by webpack DevServer by specifying content base.
+That introduced issues when building for development (utilising webpack DevServer) and testing tiers as one needed to manually change *src/href* values in `public/index.html` as shown in previous chapter.
 
-That introduced issues when building for development (utilising webpack-dev-server) or testing tiers as we needed to go into the `public/index.html` and add or remove port number to the assets URIs. See notes in `webpacktest-devserver` guide stage.
+It is possible to build/generate `public/index.html` using webpack on the fly (note: *building* differs from *serving*).
 
-However - we can build/generate `public/index.html` using webpack on the fly (note: *building* differs from *serving*, mkay).
-
-And it is not only about development. Such generated `index.html` file really can be also used in staging and production tiers. Moreover the generated file can be actually some serverside template engine file that is then read by serverside app before dynamically serving it to the client.
+It is not only about development. Such generated `index.html` file really can be also used in staging and production tiers. Moreover the generated file can be actually some serverside template engine file that is then read by serverside app before dynamically serving it to the client (i.e. `index.php`).
 
 ## Install
 
 ### html-webpack-plugin
 
+[html-webpack-plugin](https://github.com/jantimon/html-webpack-plugin)
+
 ```sh
 npm install html-webpack-plugin --save-dev
 ```
 
-### html-webpack-harddisk-plugin, plugin for the plugin
+### html-webpack-harddisk-plugin
 
-There are [many](https://github.com/jantimon/html-webpack-plugin#plugins).
+There are [many](https://github.com/jantimon/html-webpack-plugin#plugins) plugins that extend *html-webpack-plugin*.
 
-The one we will use is to emit the generated html file in `public` directory. We could use in memory stuff, however that would introduce need for middlewares and configuration not for this guide (yet).
+The one used is [html-webpack-harddisk-plugin](https://github.com/jantimon/html-webpack-harddisk-plugin) which emits the generated html file in `public/` directory also when webpack DevServer is used.
 
 ```sh
 npm install html-webpack-harddisk-plugin --save-dev
 ```
 
-### Loader for template
+### HTML template engine
 
 Many template engines [are supported](https://github.com/jantimon/html-webpack-plugin/blob/master/docs/template-option.md).
 
-Let us just use built in *lodash* (underscore.js) template markup.
-Here is link to [html-webpack-template](https://github.com/jaketrent/html-webpack-template/blob/master/index.ejs) to give you idea what data gets exposed.
+Using built in [lodash](https://github.com/lodash/lodash) template markup.
+[html-webpack-template/index.js](https://github.com/jaketrent/html-webpack-template/blob/master/index.ejs) gives info what data gets exposed.
 
 ## Configure
 
-Make use of `src/html/index.template.ejs` file that till now has been empty.  
+Making use of `src/html/index.template.ejs` file that till now has been empty.  
 Explicitly define locations for CSS and JS.
 
 _src/index.template.ejs_
@@ -82,14 +84,14 @@ _src/index.template.ejs_
 <html lang="en" class="noscript incapable">
 <head>
   <meta charset="utf-8">
-  <title><%= htmlWebpackPlugin.options.title || 'Webpack Test' %></title>
+  <title><%= htmlWebpackPlugin.options.title || 'My Title' %></title>
   <meta name="description" content="Webpack Guide">
   <meta name="keywords" content="webpack,guide">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
-  <script src="<%= htmlWebpackPlugin.options.outputPublicPathWithPort %>preflight.js"></script>
-  <link href="<%= htmlWebpackPlugin.options.outputPublicPathWithPort %>preflight.css" rel="stylesheet" type="text/css">
-  <% for (let css in htmlWebpackPlugin.files.css) { %>
-    <link href="<%= htmlWebpackPlugin.files.css[css] %>" rel="stylesheet" type="text/css">
+  <script src="<%= htmlWebpackPlugin.options.props.appPathUrlBuildPublicPath %>preflight.js"></script>
+  <link href="<%= htmlWebpackPlugin.options.props.appPathUrlBuildPublicPath %>preflight.css" rel="stylesheet" type="text/css">
+  <% for (let key in htmlWebpackPlugin.files.css) { %>
+    <link href="<%= htmlWebpackPlugin.files.css[key] %>" rel="stylesheet" type="text/css">
   <% } %>
 </head>
 <body>
@@ -105,12 +107,11 @@ _src/index.template.ejs_
   <script>
     window.__TEMPLATE_DATA__ = {};
   </script>
-  <% for (let chunk in htmlWebpackPlugin.files.chunks) { %>
-    <script src="<%= htmlWebpackPlugin.files.chunks[chunk].entry %>"></script>
+  <% for (let key in htmlWebpackPlugin.files.chunks) { %>
+    <script src="<%= htmlWebpackPlugin.files.chunks[key].entry %>"></script>
   <% } %>
 </body>
 </html>
-
 ```
 
 _webpack.front.config.js_
@@ -124,26 +125,30 @@ const HtmlWebpackHarddiskPlugin = require('html-webpack-harddisk-plugin');
 // ----------------
 // HtmlWebpackPlugin
 config.plugins.push(new HtmlWebpackPlugin({
-  // just pass through some variables
-  outputPublicPathNoPort,
-  outputPublicPathWithPort,
+  // add user defined object to hold extra values to pass to template
+  props: {
+    appPathUrlBuildPublicPath
+  },
   //
-  title: `GUIDE - ${pConfig.name}`,
+  title: `GUIDE - ${require(path.resolve(__dirname, 'package.json')).name}`,
   filename: path.join(__dirname, 'public/index.html'),
-  template: path.join(__dirname, 'src/html/index.template.ejs'),
-  inject: false, // we specify manually where we want our entry outputs to be in the template
+  template: path.resolve(__dirname, 'src/html/index.template.ejs'),
+  // templateParameters: false,
+  inject: false, // currently specify manually entry outputs in template
   // favicon: favicon.ico,
-  hash: false,
+  // meta: {},
+  // base: false,
+  hash: false, // done at global level
   cache: true,
   showErrors: true,
   // chunks: [],
   chunksSortMode: 'auto',
   excludeChunks: [],
   xhtml: false,
-  alwaysWriteToDisk: true,
+  alwaysWriteToDisk: true, // HtmlWebpackHarddiskPlugin
   minify: false
 }));
-// HtmlWebpackHarddiskPlugin
+// HtmlWebpackPlugin - HtmlWebpackHarddiskPlugin
 config.plugins.push(new HtmlWebpackHarddiskPlugin());
 
 // ...
@@ -151,54 +156,47 @@ config.plugins.push(new HtmlWebpackHarddiskPlugin());
 
 ## First build
 
-Build it for dev and test.
+Building for different tiers.
 
 ```sh
-npm run build:front:dev
-npm run build:front:test
+npm run front:dev:serve
+npm run front:dev:static
+npm run front:build:dev
+npm run front:build:test
 ```
 
-Observe how (if) `index.html` is outputted into `public` directory and is served to the browser in both cases (and inspect how port number in outputted HTML changes based on ENV).
-
-## Automatically inject entries / outputs (optional)
-
-We are specifying manually where in the template entry outputs are injected. It can be automated by changing `inject` to `true` or location such as
-
-_webpack.front.config.js_
-
-```javascript
-inject: 'body'
-```
-
-and removing lines in *index.template.ejs*  where assets are manually specified. Currently we will keep our manual injection points.
+`src/index.template.ejs` is compiled and outputted to `public/index.html` which is then consumed in browser according to tier (opened via local filesystem or [http://localhost:4000/](http://localhost:4000/) or [http://webpacktest-05-html-and-cache.test/](http://webpacktest-05-html-and-cache.test/)).
 
 ---
 # Cache busting by using hashes
----
 
-Till now HTML always referenced to `index.js|css`. This is bad as those files in real world have to be cached. As the filenames do not change then user will not get our new webapp version! HTML building allows us to use cache busting by changing filenames of our outputs on new builds.
+Till now HTML has always referenced to `index.(js|css)`. As the filenames do not change then user will not get new webapp version if the files are cached. HTML building allows to use cache busting by changing filenames of built products.
 
 Currently when building HTML (and previously when doing *manual* `index.html`) the built output looks something like this
 
 ```html
-  <script src="//webpacktest-htmlandcache.test/assets/index.js"></script>
+  <script src="assets/index.js"></script>
 ```
 
-Include chunk-specific hash in the filename for JavaScript and CSS. In development we can leave the hash out as we would develop and test site with caching off in web browser anyways (see Chrome settings *Disable cache (while Dev Tools is open)*).
+Including chunk-specific hash in the filename for JavaScript and CSS. In development hashing can be left out as developing should be done with caching turned off for browser anyways.
 
-*webpack.front.config.js*
+webpack documentation on [caching](https://webpack.js.org/guides/caching/) and [possible placeholders](https://webpack.js.org/configuration/output/#outputfilename).
+
+_webpack.front.config.js_
 
 ```javascript
 // ...
 
   output: {
-    path: outputFsPath,
-    publicPath: outputPublicPathWithPort,
+    path: appPathFsBuild,
+    publicPath: appPathUrlBuildPublicPath,
     filename: (development) ? '[name].js' : '[name].[chunkhash].js',
   },
 
 // ...
 
+// ----------------
+// MiniCssExtractPlugin
 config.plugins.push(new MiniCssExtractPlugin({
   filename: (development) ? '[name].css' : '[name].[chunkhash].css',
   chunkFilename: (development) ? '[id].css' : '[id].[chunkhash].css',
@@ -207,95 +205,96 @@ config.plugins.push(new MiniCssExtractPlugin({
 // ...
 ```
 
-Build it for prod.
+Build for testing.
 
-Observe outputted filenames in *assets* directory. 
-
-Observe that built `index.html` correctly references them.
-
-```html
-  <script src="//webpacktest-htmlandcache.test/assets/index.1d945ec34689702b7722.js"></script>
+```sh
+npm run front:build:test
 ```
 
-Imagine if we would be still using selfmade `index.html`, how quite impossible it would be to track those outputted hashnames and manually reenter them in `index.html`.
+Outputted filenames in *public/assets/* directory contain hash.  
+The built `public/index.html` correctly references them.
 
-Note that in *HtmlWebpackPlugin* we have set `hash: false`, because we do not want *HtmlWebpackPlugin* to do filename hashing, we do it it more global level using webpack.
+If a change is made in code, i.e., `src/index.js` and app is built again, the hash changes.
+
+Note that *webpack.front.config.js* sets *HtmlWebpackPlugin* to `hash: false` as *HtmlWebpackPlugin* should not hash anything, it is done on global level using webpack.
 
 ---
 # Inline manually managed files into HTML (`preflight`)
----
 
-Note that proper inlining for *built assets* will be discussed later in code splitting section. This is a special road I take for CSS state machine, webpack runtime should be nowhere near these files.
+Note that proper inlining for *built assets* will be discussed later in code splitting section. This is a special road taken for CSS state machine, webpack runtime should be nowhere near these files.
 
-How about inlining inside HTML `preflight` files that currently are copied over to assets using *FileManagerPlugin*? Does avoiding two extra requests wins over having to return a bit bigger HTML? What about HTTP/1.1 vs HTTP/2 case? Due to their content and purpose it might be an OK idea.
+It is possible to inline `preflight` files inside HTML, files that currently are copied over to `public/assets` using *CopyPlugin*. Does avoiding two extra requests wins over having to return a bit bigger HTML? Due to their content and purpose is inlining reasonable? Yes.
 
-Note that from the current tools that are available another approach from what we will be taking would be
+From current [list of plugins](https://github.com/jantimon/html-webpack-plugin#plugins) no one does exactly what needed. It is possible to achieve the goal by combining multiple plugins together. It is much more straight forward to inject *preflight* sources manually.
 
-* to use same `filemanager-webpack-plugin` (yes, again this instead of `copy-webpack-plugin` because *filemanager* allows specifying actions that are executed before webpack begins the bundling process) to copy `preflight.js|css` over to output dir, just as we do it right now
-* after file is copied to output dir it could be fed to `html-webpack-include-assets-plugin` that in turn would add paths for the files to `html-webpack-plugin`
-* then files could be used in auto or manual injecting in template (accessible via `htmlWebpackPlugin` object inside template).
+## Configure
 
-What a hassle. Let us avoid copying files and then injecting pats to them using `html-webpack-include-assets-plugin` by creating self defined option key in `HtmlWebpackPlugin`.  
-Set its value to the contents(!) of `preflight` files
-
-*webpack.front.config.js*
+_webpack.front.config.js_
 
 ```javascript
 // ...
 
-config.plugins.push(new FileManagerPlugin({
-  onStart: {
-    copy: [
-      // {
-      //   source: path.join(__dirname, 'src/preflight/*.{js,css}'),
-      //   destination: outputFsPath
-      // }
-    ],
-    move: [],
-    delete: [],
-    mkdir: [],
-    archive: []
-  }
-}));
+const fs = require('fs');
+
+// ...
+
+// // ----------------
+// // CopyPlugin
+// config.plugins.push(new CopyPlugin([
+//   {
+//     from: path.join(__dirname, 'src/preflight/*.{js,css}'),
+//     to: appPathFsBuild,
+//     flatten: true,
+//     toType: 'dir'
+//   }
+// ]));
 
 // ...
 
 // ----------------
 // HtmlWebpackPlugin
-
 config.plugins.push(new HtmlWebpackPlugin({
-// ...
-  fsInlineContents: {
-    'preflight.js': fs.readFileSync(path.join(__dirname, 'src/preflight/preflight.js'), 'utf8'),
-    'preflight.css': fs.readFileSync(path.join(__dirname, 'src/preflight/preflight.css'), 'utf8')
+  // add user defined object to hold extra values to pass to template
+  props: {
+    appPathUrlBuildPublicPath,
+    inlineContents: {
+      'preflight.js': fs.readFileSync(path.resolve(__dirname, 'src/preflight/preflight.js'), 'utf8'),
+      'preflight.css': fs.readFileSync(path.resolve(__dirname, 'src/preflight/preflight.css'), 'utf8')
+    }
   },
 // ...
 }));
 ```
 
-Now just echo out the contents in the template head.
+Echoing out the contents in the template head.
 
-*index.template.ejs*
+_index.template.ejs_
 
 ```ejs
   <!--
-  <script src="<%= htmlWebpackPlugin.options.outputPublicPathWithPort %>preflight.js"></script>
-  <link href="<%= htmlWebpackPlugin.options.outputPublicPathWithPort %>preflight.css" rel="stylesheet" type="text/css">
+  <script src="<%= htmlWebpackPlugin.options.props.appPathUrlBuildPublicPath %>preflight.js"></script>
+  <link href="<%= htmlWebpackPlugin.options.props.appPathUrlBuildPublicPath %>preflight.css" rel="stylesheet" type="text/css">
   -->
-  <script><%= htmlWebpackPlugin.options.fsInlineContents['preflight.js'] %></script>
-  <style><%= htmlWebpackPlugin.options.fsInlineContents['preflight.css'] %></style>
+  <script><%= htmlWebpackPlugin.options.props.inlineContents['preflight.js'] %></script>
+  <style><%= htmlWebpackPlugin.options.props.inlineContents['preflight.css'] %></style>
 ```
 
-Note - if code of preflight state machine changes (which happens just few times during whole development process), webpack dev server has to be restarted.
+If code of preflight state machine changes (which, if even, then happens few times during whole development process), webpack DevServer has to be restarted.
 
-Build and observe how file contents get inlined!
+## Build
 
+```sh
+npm run front:build:test
+```
+
+*preflight* is inlined in *public/index.html* head.
 
 ---
-# Minify HTML and inline built assets
----
+# Minify HTML including inlined code
 
-Minify our HTML as well as that CSS state machine JS and CSS inline code when not in development.
+Minify HTML as well as inlined *preflight* javaScript and CSS when not in development. [Documentation](https://github.com/jantimon/html-webpack-plugin#minification).
+
+## Configure
 
 _webpack.front.config.js_
 
@@ -314,17 +313,27 @@ config.plugins.push(new HtmlWebpackPlugin({
       removeComments: true,
       removeRedundantAttributes: true,
       useShortDoctype: true
-    } // https://github.com/kangax/html-minifier#options-quick-reference
+    } // https://github.com/DanielRuf/html-minifier-terser#options-quick-reference
 }));
 
 // ...
 ```
 
-Build for testing tier and observe.
+## Build
 
+```sh
+npm run front:build:test
+```
+
+*public/index.html* is minified.
+
+---
+# Result
+
+See `webpacktest-05-html-and-cache` directory.  
+Images and fonts have to be copied to `src/..` from `media/..`.
 
 ---
 # Next
----
 
 ES6+, using Babel
