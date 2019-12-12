@@ -110,7 +110,7 @@ _webpack.front.config.js_
 ```javascript
 // ...
 
-const appProps = require('./properties.json');
+const appProps = require(path.resolve(__dirname, 'properties.json'));
 
 // ...
 

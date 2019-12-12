@@ -2,8 +2,8 @@
 
 'use strict';
 
-const appProps = require('./properties.json');
 const path = require('path');
+const appProps = require(path.resolve(__dirname, 'properties.json'));
 const webpack = require('webpack');
 const TerserPlugin = require('terser-webpack-plugin');
 const CopyPlugin = require('copy-webpack-plugin');
