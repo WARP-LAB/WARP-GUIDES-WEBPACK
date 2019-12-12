@@ -103,7 +103,7 @@ if (!relativeUrlType && !appFqdn.trim()) {
 }
 
 if (relativeUrlType === 'server-root-relative') {
-  appPathUrlBuildPublicPath = `/${appPathAboveServerRoot}${appPathUrlBuildRelativeToApp}`;
+  appPathUrlBuildPublicPath = `/${appUrlPathAboveServerRoot}${appPathUrlBuildRelativeToApp}`;
 }
 else if (relativeUrlType === 'app-index-relative') {
   appPathUrlBuildPublicPath = `${appPathUrlBuildRelativeToApp}`;
