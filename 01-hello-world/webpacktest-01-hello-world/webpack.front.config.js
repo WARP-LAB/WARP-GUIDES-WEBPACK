@@ -1,4 +1,7 @@
+// webpack config file
+
 'use strict';
+
 const path = require('path');
 const webpack = require('webpack');
 const TerserPlugin = require('terser-webpack-plugin');
@@ -31,7 +34,9 @@ const appPathFsBuild = path.join(appPathFsBase, 'assets/'); // file system path,
 
 // ----------------
 // Output URL path
-const appPathUrlBuildRelativeToApp = 'assets/';
+// File system paths do not necessarily reflect in URL paths, thus construct them separately
+const appPathUrlBuildRelativeToApp = 'assets/'; // URL path for appPathFsBuild, relative to app base path
+const appPathUrlBuildRelativeToServerRoot = `/${appPathUrlBuildRelativeToApp}`; // URL path for appPathFsBuild, relative to webserver root
 
 // ----------------
 // Setup log
@@ -48,7 +53,7 @@ let config = {
   context: __dirname,
   entry: {
     index: [
-      path.join(__dirname, 'src/index.js')
+      path.resolve(__dirname, 'src/index.js')
     ]
   },
   output: {
@@ -58,11 +63,13 @@ let config = {
   },
   resolve: {
     modules: [
-      path.resolve('./src/'),
-      'src',
+      path.resolve(__dirname, 'src/'),
       'node_modules',
       'bower_components'
-    ]
+    ],
+    alias: {
+      extras: path.resolve(__dirname, 'src/helpers/')
+    }
   }
 };
 
@@ -105,7 +112,6 @@ config.module = {
 
 // ----------------
 // OPTIMISATION
-// https://webpack.js.org/configuration/optimization/
 config.optimization = {
   minimize: true, // can override
   minimizer: [
@@ -113,16 +119,17 @@ config.optimization = {
       test: /\.js(\?.*)?$/i,
       // include: '',
       // exclude: '',
-      // chunkFilter: (chunk) => { return true; },
+      chunkFilter: (chunk) => { return true; },
       cache: true,
-      // cacheKeys: (defaultCacheKeys, file) => {},
+      cacheKeys: (defaultCacheKeys, file) => { return defaultCacheKeys; },
       parallel: true,
       sourceMap: false,
       // minify: (file, sourceMap) => {},
       // warningsFilter: (warning, source, file) => { return true; },
       extractComments: false,
+      warningsFilter: (warning, source, file) => { return true; },
       terserOptions: {
-        ecma: undefined,
+        // ecma: undefined,
         warnings: true,
         parse: {},
         compress: {},
@@ -187,23 +194,6 @@ config.plugins.push(new webpack.DefinePlugin({
 }));
 
 // ----------------
-// ModuleConcatenationPlugin
-// enabled in production mode by default
-if (!development) {
-  // enabled in production mode by default
-  // https://webpack.js.org/plugins/module-concatenation-plugin/
-  // https://webpack.js.org/configuration/mode/
-  // config.plugins.push(new webpack.optimize.ModuleConcatenationPlugin());
-}
-
-// ----------------
-// MiniCssExtractPlugin
-config.plugins.push(new MiniCssExtractPlugin({
-  filename: '[name].css',
-  chunkFilename: '[id].css',
-}));
-
-// ----------------
 // CopyPlugin
 config.plugins.push(new CopyPlugin([
   {
@@ -213,5 +203,12 @@ config.plugins.push(new CopyPlugin([
     toType: 'dir'
   }
 ]));
+
+// ----------------
+// MiniCssExtractPlugin
+config.plugins.push(new MiniCssExtractPlugin({
+  filename: '[name].css',
+  chunkFilename: '[id].css',
+}));
 
 module.exports = config;
