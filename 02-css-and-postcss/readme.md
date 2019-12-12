@@ -336,7 +336,7 @@ _webpack.front.config.js_
             loader: 'sass-loader',
             options: {
               sourceMap: true,
-              prependData: `$env: ${JSON.stringify(process.env.NODE_ENV || 'development')};`
+              prependData: `$env: ${tierName};`
             }
           }
 // ...
