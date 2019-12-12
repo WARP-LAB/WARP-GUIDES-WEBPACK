@@ -9,12 +9,12 @@
 * Making SCSS tier aware
 
 ---
-# Prefligt
+# Preflight
 
 Use existing code base from previous guide stage (`webpacktest-01-hello-world`). Either work on top of it or just make a copy.  
 The directory now is called `webpacktest-02-css-and-postcss`.  
 Make changes in `package.json` name field.  
-Dont forget `npm install`.
+Don't forget `npm install`.
 
 ```sh
 cd webpacktest-02-css-and-postcss
@@ -108,7 +108,7 @@ _.browserslistrc_
 last 1 version
 ```
 
-Makeing use of [browserslist environments](https://github.com/browserslist/browserslist#configuring-for-different-environments).
+Making use of [browserslist environments](https://github.com/browserslist/browserslist#configuring-for-different-environments).
 
 ## `postcss-loader`
 
@@ -191,7 +191,7 @@ config.module = {
 
 ## Remove `optimize-css-assets-webpack-plugin`
 
-`optimize-css-assets-webpack-plugin` is not needed any more, as CSS optimization is done via PostCSS plugins. Remove it from _webpack.front.config.js_.
+`optimize-css-assets-webpack-plugin` is not needed any more, as CSS optimisation is done via PostCSS plugins. Remove it from _webpack.front.config.js_.
 
 If one really wants to use `optimize-css-assets-webpack-plugin`, then nanocss options can be specified [as per docs](https://github.com/NMFR/optimize-css-assets-webpack-plugin#configuration) in _webpack.front.config.js_
 
@@ -234,7 +234,7 @@ Prefixes for `display: flex` and `transform` and CSS is minimised.
 ---
 # normalize.css
 
-Use [Normalize.css](https://necolas.github.io/normalize.css/). Although our usual *cut the mustard* at preflight enables fallback page for anything below IE11 *the fallback has to be readbale*. There are alternatives such as [sanitize.css](https://github.com/csstools/sanitize.css) and [modern-normalize](https://github.com/sindresorhus/modern-normalize).
+Use [Normalize.css](https://necolas.github.io/normalize.css/). Although our usual *cut the mustard* at preflight enables fallback page for anything below IE11 *the fallback has to be readable*. There are alternatives such as [sanitize.css](https://github.com/csstools/sanitize.css) and [modern-normalize](https://github.com/sindresorhus/modern-normalize).
 
 ```sh
 npm install normalize.css --save-dev
@@ -263,7 +263,7 @@ Compiled CSS at `public/assets/index.css` should hold *normalize.css* code.
 ---
 # Webpack CSS source maps
 
-As one can see `sourceMap` option is pased to (S)CSS related loaders in *webpack.front.config.js*. But where are the source maps? No inline or map files are present, when inspecting `.app` class in browser's devtools - it references to compiled `index.css`, not `index.global.scss` which is the actual *source*.
+As one can see `sourceMap` option is passed to (S)CSS related loaders in *webpack.front.config.js*. But where are the source maps? No inline or map files are present, when inspecting `.app` class in browser's devtools - it references to compiled `index.css`, not `index.global.scss` which is the actual *source*.
 
 Use webpack [devtool](https://webpack.js.org/configuration/devtool/) configuration.
 
@@ -306,7 +306,7 @@ let config = {
 While running webpack for testing and inspecting `.app` class in browser's inspector one can see the original definitions in `index.global.scss`.  
 Inspect where console logs in JavaScript console are coming from.  
 It all refers to original sources.  
-Compiled files `index.js` and `index.css` at `public/assets/` hold inlined spurcemaps.
+Compiled files `index.js` and `index.css` at `public/assets/` hold inlined sourcemaps.
 
 Now running webpack for testing with external map file
 
@@ -393,7 +393,7 @@ $paragarphColor: black;
 }
 ```
 
-Building for *development* and *testing* tiers yields different font color for *Lorem ipsum* in rendered HTML as observed in browser.
+Building for *development* and *testing* tiers yields different font colour for *Lorem ipsum* in rendered HTML as observed in browser.
 
 ---
 # Result
