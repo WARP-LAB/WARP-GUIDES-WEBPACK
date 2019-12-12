@@ -39,6 +39,13 @@ const appPathUrlBuildRelativeToApp = 'assets/'; // URL path for appPathFsBuild, 
 const appPathUrlBuildRelativeToServerRoot = `/${appPathUrlBuildRelativeToApp}`; // URL path for appPathFsBuild, relative to webserver root
 
 // ----------------
+// Host, port, output public path based on env and props
+// Declarations
+let appPathUrlBuildPublicPath; // will be constructed along the way and used in webpack.config.output.publicPath a.o.
+// Definitions
+appPathUrlBuildPublicPath = appPathUrlBuildRelativeToApp;
+
+// ----------------
 // Source map type
 const sourceMapType = (development) ? 'inline-source-map' : false;
 
@@ -48,6 +55,7 @@ console.log('\x1b[42m\x1b[30m                                                   
 console.log('\x1b[44m%s\x1b[0m -> \x1b[36m%s\x1b[0m', 'TIER', tierName);
 console.log('\x1b[44m%s\x1b[0m -> \x1b[36m%s\x1b[0m', 'appPathUrlBuildRelativeToApp', appPathUrlBuildRelativeToApp);
 console.log('\x1b[44m%s\x1b[0m -> \x1b[36m%s\x1b[0m', 'appPathUrlBuildRelativeToServerRoot', appPathUrlBuildRelativeToServerRoot);
+console.log('\x1b[44m%s\x1b[0m -> \x1b[36m%s\x1b[0m', 'appPathUrlBuildPublicPath', appPathUrlBuildPublicPath);
 console.log('\x1b[42m\x1b[30m                                                               \x1b[0m');
 
 // ----------------
@@ -63,7 +71,7 @@ let config = {
   },
   output: {
     path: appPathFsBuild,
-    publicPath: appPathUrlBuildRelativeToApp,
+    publicPath: appPathUrlBuildPublicPath,
     filename: '[name].js'
   },
   resolve: {
@@ -85,7 +93,15 @@ config.module = {
     {
       test: /\.(css)$/,
       use: [
-        development ? 'style-loader' : MiniCssExtractPlugin.loader,
+        development
+        ? {
+          loader: 'style-loader',
+          options: {}
+        }
+        : {
+          loader: MiniCssExtractPlugin.loader,
+          options: {}
+        },
         {
           loader: 'css-loader',
           options: {
@@ -104,7 +120,15 @@ config.module = {
     {
       test: /\.(scss)$/,
       use: [
-        development ? 'style-loader' : MiniCssExtractPlugin.loader,
+        development
+        ? {
+          loader: 'style-loader',
+          options: {}
+        }
+        : {
+          loader: MiniCssExtractPlugin.loader,
+          options: {}
+        },
         {
           loader: 'css-loader',
           options: {

@@ -126,7 +126,15 @@ config.module = {
     {
       test: /\.(css)$/,
       use: [
-        development ? 'style-loader' : MiniCssExtractPlugin.loader,
+        development
+        ? {
+          loader: 'style-loader',
+          options: {}
+        }
+        : {
+          loader: MiniCssExtractPlugin.loader,
+          options: {}
+        },
         {
           loader: 'css-loader',
           options: {
@@ -145,7 +153,15 @@ config.module = {
     {
       test: /\.(scss)$/,
       use: [
-        development ? 'style-loader' : MiniCssExtractPlugin.loader,
+        development
+        ? {
+          loader: 'style-loader',
+          options: {}
+        }
+        : {
+          loader: MiniCssExtractPlugin.loader,
+          options: {}
+        },
         {
           loader: 'css-loader',
           options: {
