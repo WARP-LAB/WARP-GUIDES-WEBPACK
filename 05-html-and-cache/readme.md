@@ -199,7 +199,7 @@ _webpack.front.config.js_
 // MiniCssExtractPlugin
 config.plugins.push(new MiniCssExtractPlugin({
   filename: (development) ? '[name].css' : '[name].[chunkhash].css',
-  chunkFilename: (development) ? '[id].css' : '[id].[chunkhash].css'
+  chunkFilename: (development) ? '[name].css' : '[name].[chunkhash].css'
 }));
 
 // ...
