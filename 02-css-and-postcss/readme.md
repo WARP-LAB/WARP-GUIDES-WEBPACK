@@ -70,9 +70,9 @@ module.exports = (ctx) => ({
       : require('cssnano')({
         // https://cssnano.co/guides/optimisations
         preset: ['default', {
-          autoprefixer: false, // do not remove prefixes  
+          autoprefixer: false, // do not remove prefixes
           discardComments: {
-            removeAll: true,
+            removeAll: true
           },
           normalizeUrl: false,
           normalizeWhitespace: true,
@@ -81,6 +81,7 @@ module.exports = (ctx) => ({
       })
   ].filter((e) => e !== null)
 });
+
 ```
 
 ## cssnano
@@ -127,14 +128,14 @@ config.module = {
       test: /\.(css)$/,
       use: [
         development
-        ? {
-          loader: 'style-loader',
-          options: {}
-        }
-        : {
-          loader: MiniCssExtractPlugin.loader,
-          options: {}
-        },
+          ? {
+            loader: 'style-loader',
+            options: {}
+          }
+          : {
+            loader: MiniCssExtractPlugin.loader,
+            options: {}
+          },
         {
           loader: 'css-loader',
           options: {
@@ -148,20 +149,20 @@ config.module = {
             sourceMap: true
           }
         }
-      ],
+      ]
     },
     {
       test: /\.(scss)$/,
       use: [
         development
-        ? {
-          loader: 'style-loader',
-          options: {}
-        }
-        : {
-          loader: MiniCssExtractPlugin.loader,
-          options: {}
-        },
+          ? {
+            loader: 'style-loader',
+            options: {}
+          }
+          : {
+            loader: MiniCssExtractPlugin.loader,
+            options: {}
+          },
         {
           loader: 'css-loader',
           options: {
@@ -181,7 +182,7 @@ config.module = {
             sourceMap: true
           }
         }
-      ],
+      ]
     }
   ]
 };

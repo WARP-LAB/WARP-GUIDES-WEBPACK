@@ -190,7 +190,7 @@ _webpack.front.config.js_
   output: {
     path: appPathFsBuild,
     publicPath: appPathUrlBuildPublicPath,
-    filename: (development) ? '[name].js' : '[name].[chunkhash].js',
+    filename: (development) ? '[name].js' : '[name].[chunkhash].js'
   },
 
 // ...
@@ -199,7 +199,7 @@ _webpack.front.config.js_
 // MiniCssExtractPlugin
 config.plugins.push(new MiniCssExtractPlugin({
   filename: (development) ? '[name].css' : '[name].[chunkhash].css',
-  chunkFilename: (development) ? '[id].css' : '[id].[chunkhash].css',
+  chunkFilename: (development) ? '[id].css' : '[id].[chunkhash].css'
 }));
 
 // ...
@@ -235,6 +235,10 @@ _webpack.front.config.js_
 // ...
 
 const fs = require('fs');
+
+// ...
+
+// const CopyPlugin = require('copy-webpack-plugin');
 
 // ...
 

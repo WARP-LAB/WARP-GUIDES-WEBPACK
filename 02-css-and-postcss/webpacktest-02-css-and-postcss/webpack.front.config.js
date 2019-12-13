@@ -1,5 +1,7 @@
 // webpack config file
 
+/* eslint-disable prefer-const, brace-style */
+
 'use strict';
 
 const path = require('path');
@@ -94,14 +96,14 @@ config.module = {
       test: /\.(css)$/,
       use: [
         development
-        ? {
-          loader: 'style-loader',
-          options: {}
-        }
-        : {
-          loader: MiniCssExtractPlugin.loader,
-          options: {}
-        },
+          ? {
+            loader: 'style-loader',
+            options: {}
+          }
+          : {
+            loader: MiniCssExtractPlugin.loader,
+            options: {}
+          },
         {
           loader: 'css-loader',
           options: {
@@ -115,20 +117,20 @@ config.module = {
             sourceMap: true
           }
         }
-      ],
+      ]
     },
     {
       test: /\.(scss)$/,
       use: [
         development
-        ? {
-          loader: 'style-loader',
-          options: {}
-        }
-        : {
-          loader: MiniCssExtractPlugin.loader,
-          options: {}
-        },
+          ? {
+            loader: 'style-loader',
+            options: {}
+          }
+          : {
+            loader: MiniCssExtractPlugin.loader,
+            options: {}
+          },
         {
           loader: 'css-loader',
           options: {
@@ -149,7 +151,7 @@ config.module = {
             prependData: `$env: ${tierName};`
           }
         }
-      ],
+      ]
     }
   ]
 };
@@ -222,8 +224,8 @@ config.plugins = [];
 // DefinePlugin
 config.plugins.push(new webpack.DefinePlugin({
   'process.env': {
-    'NODE_ENV': (development) ? 'development' : 'production',
-    'BROWSER': true
+    NODE_ENV: (development) ? 'development' : 'production',
+    BROWSER: true
   },
   __CLIENT__: true,
   __SERVER__: false,
@@ -251,7 +253,15 @@ config.plugins.push(new CopyPlugin([
 // MiniCssExtractPlugin
 config.plugins.push(new MiniCssExtractPlugin({
   filename: '[name].css',
-  chunkFilename: '[id].css',
+  chunkFilename: '[id].css'
 }));
+
+// ----------------
+// POSTCSS LOADER CONFIG
+// defined in .postcssrc.js
+
+// ----------------
+// BROWSERSLIST CONFIG
+// defined in .browserslistrc
 
 module.exports = config;

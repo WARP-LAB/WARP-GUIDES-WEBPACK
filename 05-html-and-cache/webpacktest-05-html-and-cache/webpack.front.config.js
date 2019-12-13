@@ -1,5 +1,7 @@
 // webpack config file
 
+/* eslint-disable prefer-const, brace-style */
+
 'use strict';
 
 const fs = require('fs');
@@ -7,7 +9,7 @@ const path = require('path');
 const appProps = require(path.resolve(__dirname, 'properties.json'));
 const webpack = require('webpack');
 const TerserPlugin = require('terser-webpack-plugin');
-const CopyPlugin = require('copy-webpack-plugin');
+// const CopyPlugin = require('copy-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 // const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin'); // Use while PostCSS is not introduced
 const HtmlWebpackPlugin = require('html-webpack-plugin');
@@ -159,7 +161,7 @@ let config = {
   output: {
     path: appPathFsBuild,
     publicPath: appPathUrlBuildPublicPath,
-    filename: (development) ? '[name].js' : '[name].[chunkhash].js',
+    filename: (development) ? '[name].js' : '[name].[chunkhash].js'
   },
   resolve: {
     modules: [
@@ -264,16 +266,16 @@ config.module = {
       test: /\.(css)$/,
       use: [
         development
-        ? {
-          loader: 'style-loader',
-          options: {}
-        }
-        : {
-          loader: MiniCssExtractPlugin.loader,
-          options: {
-            publicPath: miniCssExtractPublicPath
+          ? {
+            loader: 'style-loader',
+            options: {}
           }
-        },
+          : {
+            loader: MiniCssExtractPlugin.loader,
+            options: {
+              publicPath: miniCssExtractPublicPath
+            }
+          },
         {
           loader: 'css-loader',
           options: {
@@ -294,22 +296,22 @@ config.module = {
             keepQuery: true
           }
         }
-      ],
+      ]
     },
     {
       test: /\.(scss)$/,
       use: [
         development
-        ? {
-          loader: 'style-loader',
-          options: {}
-        }
-        : {
-          loader: MiniCssExtractPlugin.loader,
-          options: {
-            publicPath: miniCssExtractPublicPath
+          ? {
+            loader: 'style-loader',
+            options: {}
           }
-        },
+          : {
+            loader: MiniCssExtractPlugin.loader,
+            options: {
+              publicPath: miniCssExtractPublicPath
+            }
+          },
         {
           loader: 'css-loader',
           options: {
@@ -337,7 +339,7 @@ config.module = {
             prependData: `$env: ${tierName};`
           }
         }
-      ],
+      ]
     },
     {
       test: /\.(png|jpe?g|gif|svg)$/,
@@ -435,8 +437,8 @@ config.plugins = [];
 // DefinePlugin
 config.plugins.push(new webpack.DefinePlugin({
   'process.env': {
-    'NODE_ENV': (development) ? 'development' : 'production',
-    'BROWSER': true
+    NODE_ENV: (development) ? 'development' : 'production',
+    BROWSER: true
   },
   __CLIENT__: true,
   __SERVER__: false,
@@ -515,7 +517,15 @@ config.plugins.push(new HtmlWebpackHarddiskPlugin());
 // MiniCssExtractPlugin
 config.plugins.push(new MiniCssExtractPlugin({
   filename: (development) ? '[name].css' : '[name].[chunkhash].css',
-  chunkFilename: (development) ? '[id].css' : '[id].[chunkhash].css',
+  chunkFilename: (development) ? '[id].css' : '[id].[chunkhash].css'
 }));
+
+// ----------------
+// POSTCSS LOADER CONFIG
+// defined in .postcssrc.js
+
+// ----------------
+// BROWSERSLIST CONFIG
+// defined in .browserslistrc
 
 module.exports = config;

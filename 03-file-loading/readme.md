@@ -131,14 +131,14 @@ config.module = {
       test: /\.(css)$/,
       use: [
         development
-        ? {
-          loader: 'style-loader',
-          options: {}
-        }
-        : {
-          loader: MiniCssExtractPlugin.loader,
-          options: {}
-        },
+          ? {
+            loader: 'style-loader',
+            options: {}
+          }
+          : {
+            loader: MiniCssExtractPlugin.loader,
+            options: {}
+          },
         {
           loader: 'css-loader',
           options: {
@@ -159,20 +159,20 @@ config.module = {
             keepQuery: true
           }
         }
-      ],
+      ]
     },
     {
       test: /\.(scss)$/,
       use: [
         development
-        ? {
-          loader: 'style-loader',
-          options: {}
-        }
-        : {
-          loader: MiniCssExtractPlugin.loader,
-          options: {}
-        },
+          ? {
+            loader: 'style-loader',
+            options: {}
+          }
+          : {
+            loader: MiniCssExtractPlugin.loader,
+            options: {}
+          },
         {
           loader: 'css-loader',
           options: {
@@ -200,7 +200,7 @@ config.module = {
             prependData: `$env: ${tierName};`
           }
         }
-      ],
+      ]
     },
     {
       test: /\.(png|jpe?g|gif|svg)$/,
@@ -289,16 +289,16 @@ config.module = {
       test: /\.(css)$/,
       use: [
         development
-        ? {
-          loader: 'style-loader',
-          options: {}
-        }
-        : {
-          loader: MiniCssExtractPlugin.loader,
-          options: {
-            publicPath: miniCssExtractPublicPath
+          ? {
+            loader: 'style-loader',
+            options: {}
           }
-        },
+          : {
+            loader: MiniCssExtractPlugin.loader,
+            options: {
+              publicPath: miniCssExtractPublicPath
+            }
+          },
         {
           loader: 'css-loader',
           options: {
@@ -319,22 +319,22 @@ config.module = {
             keepQuery: true
           }
         }
-      ],
+      ]
     },
     {
       test: /\.(scss)$/,
       use: [
         development
-        ? {
-          loader: 'style-loader',
-          options: {}
-        }
-        : {
-          loader: MiniCssExtractPlugin.loader,
-          options: {
-            publicPath: miniCssExtractPublicPath
+          ? {
+            loader: 'style-loader',
+            options: {}
           }
-        },
+          : {
+            loader: MiniCssExtractPlugin.loader,
+            options: {
+              publicPath: miniCssExtractPublicPath
+            }
+          },
         {
           loader: 'css-loader',
           options: {
@@ -362,7 +362,7 @@ config.module = {
             prependData: `$env: ${tierName};`
           }
         }
-      ],
+      ]
     },
     {
       test: /\.(png|jpe?g|gif|svg)$/,

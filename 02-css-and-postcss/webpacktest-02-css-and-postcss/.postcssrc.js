@@ -15,9 +15,9 @@ module.exports = (ctx) => ({
       : require('cssnano')({
         // https://cssnano.co/guides/optimisations
         preset: ['default', {
-          autoprefixer: false, // do not remove prefixes  
+          autoprefixer: false, // do not remove prefixes
           discardComments: {
-            removeAll: true,
+            removeAll: true
           },
           normalizeUrl: false,
           normalizeWhitespace: true,
