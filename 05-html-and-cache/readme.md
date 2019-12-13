@@ -156,7 +156,7 @@ config.plugins.push(new HtmlWebpackHarddiskPlugin());
 
 ## First build
 
-Building for different tiers.
+Runing webpack DevServer, building for different tiers.
 
 ```sh
 npm run front:dev:serve

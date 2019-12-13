@@ -266,13 +266,15 @@ config.module = {
     {
       test: /\.js$/,
       exclude: [/node_modules/, /bower_components/, /preflight\.js$/],
-      use: {
-        loader: 'babel-loader',
-        options: {
-          cacheDirectory: false,
-          babelrc: true
+      use: [
+        {
+          loader: 'babel-loader',
+          options: {
+            cacheDirectory: false,
+            babelrc: true
+          }
         }
-      }
+      ]
     },
     {
       test: /\.(css)$/,
