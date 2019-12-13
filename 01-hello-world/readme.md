@@ -170,7 +170,8 @@ let config = {
   output: {
     path: appPathFsBuild,
     publicPath: appPathUrlBuildPublicPath,
-    filename: '[name].js'
+    filename: '[name].js',
+    chunkFilename: '[id].js'
   },
   resolve: {
     modules: [
@@ -794,7 +795,8 @@ let config = {
   output: {
     path: appPathFsBuild,
     publicPath: appPathUrlBuildPublicPath,
-    filename: '[name].js'
+    filename: '[name].js',
+    chunkFilename: '[id].js'
   },
   resolve: {
     modules: [

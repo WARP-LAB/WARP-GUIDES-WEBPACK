@@ -190,7 +190,8 @@ _webpack.front.config.js_
   output: {
     path: appPathFsBuild,
     publicPath: appPathUrlBuildPublicPath,
-    filename: (development) ? '[name].js' : '[name].[chunkhash].js'
+    filename: (development) ? '[name].js' : '[name].[chunkhash].js',
+    chunkFilename: (development) ? '[id].js' : '[id].[chunkhash].js'
   },
 
 // ...
