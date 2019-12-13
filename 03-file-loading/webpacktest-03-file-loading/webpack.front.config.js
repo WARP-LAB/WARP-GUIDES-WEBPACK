@@ -306,7 +306,7 @@ config.plugins.push(new CopyPlugin([
 // MiniCssExtractPlugin
 config.plugins.push(new MiniCssExtractPlugin({
   filename: '[name].css',
-  chunkFilename: '[name].css'
+  chunkFilename: '[id].css'
 }));
 
 // ----------------

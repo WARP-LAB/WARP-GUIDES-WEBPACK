@@ -550,7 +550,7 @@ config.plugins.push(new HtmlWebpackHarddiskPlugin());
 // MiniCssExtractPlugin
 config.plugins.push(new MiniCssExtractPlugin({
   filename: (development) ? '[name].css' : '[name].[chunkhash].css',
-  chunkFilename: (development) ? '[name].css' : '[name].[chunkhash].css'
+  chunkFilename: (development) ? '[id].css' : '[id].[chunkhash].css'
 }));
 
 // // ----------------
