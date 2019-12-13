@@ -17,7 +17,7 @@ package-lock.json
 *.woff
 *.woff2
 
-**/src/fonts/*.scss
+# **/src/fonts/*.scss
 
 # unignore images and fonts from media dir
 
