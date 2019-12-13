@@ -5,9 +5,10 @@
     	{
         "modules": false,
         "useBuiltIns": "usage",
+        "corejs": 3,
         "forceAllTransforms": false,
         "ignoreBrowserslistConfig": false,
-        "debug": true
+        "debug": false
       }
     ]
   ],

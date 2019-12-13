@@ -1,47 +1,53 @@
 # Linting JavaScript and CSS/SCSS
 
-
 ---
 # In this section
----
 
 * ESlint
 * JavaScript Standard Style with ;
-* stylelint
+* Stylelint
 
 ---
 # Preflight
----
 
-Use existing `webpacktest-babel` code base from previous guide stage. Either work on top of it or just make a copy. The directory now is called `webpacktest-lint`. Make changes in `package.json` name field. Don't forget `npm install`.
+Use existing code base from previous guide stage (`webpacktest-06-babel`). Either work on top of it or just make a copy.  
+The directory now is called `webpacktest-07-lint`.  
+Make changes in `package.json` name field.  
+Don't forget `npm install`.  
+Images and fonts have to be copied to `src/..` from `media/..`.
+
+```sh
+cd webpacktest-07-lint
+npm install
+```
 
 ---
 # ESLint
----
 
-Apart from writing modern JavaScript you will have to obey syntax rules as well as formating rules. Oh well.
+Apart from writing modern JavaScript one should follow some syntax as well as formating rules. Oh well.
 
-## ESLint
+[Eslint](https://eslint.org)
 
+[Specifying Parser](http://eslint.org/docs/user-guide/configuring#specifying-parser)  
+[Ignoring Files and Directories](http://eslint.org/docs/user-guide/configuring#ignoring-files-and-directories)
 
-<http://eslint.org/docs/user-guide/configuring#specifying-parser>  
-<http://eslint.org/docs/user-guide/configuring#ignoring-files-and-directories>
+## Install
 
-When installing stuff below check [inter-compatability](https://github.com/babel/babel-eslint#supported-eslint-versions)
-
-Install ESLint
+Install [ESLint](https://github.com/eslint/eslint)
 
 ```sh
 npm install eslint --save-dev
 ```
 
-Install plugin for Babel
+Install [babel-eslint](https://github.com/babel/babel-eslint)
+
+> ESLint's default parser and core rules only support the latest final ECMAScript standard and do not support experimental (such as new features) and non-standard (such as Flow or TypeScript types) syntax provided by Babel. babel-eslint is a parser that allows ESLint to run on source code that is transformed by Babel.
 
 ```sh
 npm install babel-eslint --save-dev
 ```
 
-As well as *`eslint` plugin companion to `babel-eslint`*
+Install [eslint-plugin-babel](https://github.com/babel/eslint-plugin-babel), *an `eslint` plugin companion to `babel-eslint`*.
 
 ```sh
 npm install eslint-plugin-babel --save-dev
@@ -49,19 +55,23 @@ npm install eslint-plugin-babel --save-dev
 
 ## JavaScript Standard Style
 
-We will be coding and linting our code against [**JavaScript Standard Style**](https://github.com/feross/standard#who-uses-javascript-standard-style) (yes, not using AirBNB)
+This tutorial will use [**JavaScript Standard Style**](https://github.com/feross/standard#who-uses-javascript-standard-style), but with a catch - enforcing semicolons.  
 
-However we will not be using [*pure standard*](https://standardjs.com), but sharable config version of it - [ESLint Shareable Config for JavaScript Standard Style](https://github.com/feross/eslint-config-standard)
+There is [JavaScript Semi-Standard Style](https://www.npmjs.com/package/semistandard) already, which is *All the goodness of standard/standard with semicolons sprinkled on top.* This tutorial will create such standard from scratch - will take *JavaScript Standard Style*, enforce semicolons and ass some *sprinkles on top*.
 
-**Whatever they say - we will be using semicolons; end of story.**
+Not using AirBnB, Google.
 
-Basically we will be creating our own [JavaScript Semi-Standard Style](https://www.npmjs.com/package/semistandard) from scratch, plus some more *sprinkles on top*.
+However [Pure Standard](https://standardjs.com) will not be used to set up everything, but sharable config version of it - [ESLint Shareable Config for JavaScript Standard Style](https://github.com/feross/eslint-config-standard).
 
-Install ESLint plugins that are needed for our current state of code complexity. Basically plugins listed below are demanded (peer dependencies) by [eslint-config-standard](https://github.com/standard/eslint-config-standard#usage) that we will be using, see below.
+Documentation on what *sharable config* is can be found [here](https://eslint.org/docs/developer-guide/shareable-configs).
+
+### Install
+
+Install ESLint plugins that are needed for the current state of code complexity. Plugins listed below are demanded (peer dependencies) by [eslint-config-standard](https://github.com/standard/eslint-config-standard).
 
 ```sh
-npm install eslint-plugin-import --save-dev
 npm install eslint-plugin-node --save-dev
+npm install eslint-plugin-import --save-dev
 npm install eslint-plugin-promise --save-dev
 npm install eslint-plugin-standard --save-dev
 ```
@@ -73,29 +83,38 @@ npm install eslint-config-standard --save-dev
 
 ## Configuration file
 
-Crete new file _.eslintrc.js_ under master directory and fill it
+Creting new [configuration file](https://eslint.org/docs/user-guide/configuring) under master directory.
+
+_.eslintrc.js_
 
 ```javascript
-// keep json compatible key naming and comma trailing!
+// keep json compatible key naming and comma trailing
 
-/* eslint-disable quotes */
+/* eslint-disable quotes, quote-props */
 
 module.exports = {
+  "extends": [
+    "eslint-config-standard"
+  ],
   "plugins": [
-    // "standard",
-    // "promise",
-    // "import",
-    "babel"
+    // "eslint-plugin-standard",
+    // "eslint-plugin-promise",
+    // "eslint-plugin-import",
+    // "eslint-plugin-node",
+    "eslint-plugin-babel"
   ],
   "parser": "babel-eslint",
+  // https://eslint.org/docs/user-guide/configuring#specifying-parser-options
   "parserOptions": {
+    "ecmaVersion": 6,
     "sourceType": "module",
     "allowImportExportEverywhere": false,
     "codeFrame": true,
-    "ecmaVersion": 6,
+    // https://eslint.org/docs/1.0.0/user-guide/configuring#specifying-language-options
     "ecmaFeatures": {
-      "impliedStrict": true,
       "globalReturn": true,
+      "impliedStrict": true,
+      "jsx": true,
       "experimentalObjectRestSpread": true
     }
   },
@@ -103,38 +122,48 @@ module.exports = {
     "browser": true,
     "node": true
   },
-  "extends": [
-    "eslint-config-standard"
-  ],
   "rules": {
     // "off" or 0 - turn the rule off
     // "warn" or 1 - turn the rule on as a warning (doesn’t affect exit code)
     // "error" or 2 - turn the rule on as an error (exit code is 1 when triggered)
 
+    // Semicolons
     "semi": [2, "always"], // https://eslint.org/docs/rules/semi
     "no-extra-semi": 2, // https://eslint.org/docs/rules/no-extra-semi
     "semi-spacing": [2, {"before": false, "after": true}], // https://eslint.org/docs/rules/semi-spacing
-    "generator-star-spacing": 1, // https://eslint.org/docs/rules/generator-star-spacing
-    "object-shorthand": 1, // https://eslint.org/docs/rules/object-shorthand
-    "arrow-parens": 1, // https://eslint.org/docs/rules/arrow-parens
 
+    // Spacing
+    // curly spacing, keep "consistent" with array-bracket-spacing
+    "object-curly-spacing": [1, "never"], // https://eslint.org/docs/rules/object-curly-spacing
+    "generator-star-spacing": [1, {"before": true, "after": false}], // https://eslint.org/docs/rules/generator-star-spacing
+
+    // Others
+    "brace-style": [1, "stroustrup"], // https://eslint.org/docs/rules/brace-style
+    "object-shorthand": [1, "always"], // https://eslint.org/docs/rules/object-shorthand
+    "arrow-parens": [1, "always"], // https://eslint.org/docs/rules/arrow-parens
+
+    // Babel, https://github.com/babel/eslint-plugin-babel#rules
     "babel/new-cap": 1, // https://github.com/babel/eslint-plugin-babel#rules
     "babel/object-curly-spacing": 1, // https://github.com/babel/eslint-plugin-babel#rules
 
+    // Ensure consistent use of file extension within the import path
     "import/extensions": [0, {"js": "always", "json": "always"}] // https://github.com/benmosher/eslint-plugin-import/blob/master/docs/rules/extensions.md
   }
 };
+
 ```
 
-For base ESLINT (ES2015 - ES6)
+For base ESLint (ES2015/ES6)
 
 * Parser option syntax is discussed in [ESlint Language Options](https://eslint.org/docs/user-guide/migrating-to-2.0.0#language-options).
 * ESlint level rules are documented in [ESlint Rules](https://eslint.org/docs/rules/).
-* ESLint Shareable Config for JavaScript Standard Style rules are [defined here](https://github.com/standard/standard/blob/master/docs/RULES-en.md).
+* ESLint Shareable Config for JavaScript Standard Style rules are [defined here](https://github.com/standard/standard/blob/master/RULES.md).
 * Other plugin rules are defined in plugin docs.
 
 
-Crete new file _.eslintignore_ under master directory and fill it so that we do not lint build products but we do lint hidden configuration files.
+Creting [eslintignore](https://eslint.org/docs/user-guide/configuring#eslintignore) configuration under master directory. Setting up ESlint so that it lints only what necessary.
+
+_.eslintignore_
 
 ```
 # by default: node_modules/**
@@ -148,80 +177,92 @@ static/**
 
 ## Webpack ESLint loader
 
-Add new loader to our webpack - it is _preloader_, thus it pre-lints our JavaScript files.
+Adding loader to webpack.
+
+[elint-loader](https://github.com/webpack-contrib/eslint-loader)
 
 ```sh
 npm install eslint-loader --save-dev
 ```
 
-Update _webpack.front.config.js_  
-webpack does not have `pre/postLoaders` any more, we have to use `enforce`.  
-And add ESLint configuration. It will fail on any error or warning when `!development`, it will build, but scream when `development` (note that this is very restrictive setup, in real world it can bee loosened).
+Updating *webpack.front.config.js*  
+
+* When `!development` webpack build will not fail on warning, will fail on error, and will output all warnings an errors on terminal.  
+*  When `development` webpack build will not fail on warning, will not fail on error (the error of course may be such that webpack is unable to compile), and will output all warnings an errors on terminal.
+* This is a very verbose setup, `quiet` might be set to true to output only errors.
+
+Enforcing the loader as *preloader*. Hence it lints JavaScript source as written by developer, before the source is touched (and changed) by other loaders, i.e, *babel-loader*.
+
+_webpack.front.config.js_  
 
 ```javascript
 // ...
 
+// ----------------
+// MODULE RULES
+config.module = {
+  rules: [
     {
       enforce: 'pre',
       test: /\.js$/,
-      exclude: [/node_modules/, /preflight\.js$/],
-      loader: 'eslint-loader',
-      options: {
-        emitError: true,
-        emitWarning: true,
-        failOnWarning: !development,
-        failOnError: !development,
-        quiet: true,
-        outputReport: false
-      }
+      exclude: [/node_modules/, /bower_components/, /preflight\.js$/],
+      use: [
+        {
+          loader: 'eslint-loader',
+          options: {
+            emitError: true,
+            emitWarning: true,
+            failOnError: !development,
+            failOnWarning: false,
+            quiet: false,
+            outputReport: false
+          }
+        }
+      ]
     },
 
-// ...
+    // ...
+    
 ```
 
-In _src/index.js_ do something questionable LIKE REMOVING SEMICOLON :)
+In _src/index.js_ removing a semicolon.
 
-Build it for development.
-
-Observe webpack building notices/warnings/errors. Console should contain something like this
+Run webpack DevServer
 
 ```sh
-ERROR in ./src/index.js
-Module build failed: Module failed because of a eslint error.
-
-  error  Missing semicolon  semi
-
-✖ 1 problem (1 error, 0 warnings)
-  1 error, 0 warnings potentially fixable with the `--fix` option.
+npm run front:dev:static
 ```
 
-as well as webapp in browser should contain such overlay.
+Error is outputted in terminal and built HTML in [http://localhost:4000/](http://localhost:4000/) also shows the error. After adding back the semicolon and saving file webpack DevServer auto reloads without error.
 
-Add back semicolon, save file, *DevServer* will auto rebuild it and error is gone. 
 
-## ESLint in text editors
-
-### Atom
-
-Just ask sharable Atom package settings, but basically it consists of
+Build for testing
 
 ```sh
-apm install linter
-apm install linter-ui-default
-apm install linter-eslint
+npm run front:build:test
 ```
 
-It will use the same `.eslintrc.js`
+If there is an error, build will be stopped and no build products will be found in `public/`.
+
+## ESLint in source-code editors
+
+This tutorial has held small tuts for Sublime, Atom, Visual Studio Code. Dropping that, refer to editors manual, which most probably will be
+
+* install plugin for ESLint
+* the plugin will use installed ESLint related `node_modules` in the project's directory or global ones
+* the plugin will automatically pick up `.eslintrc.js` and `.eslintignore`
+* plugun will applie the rules and visually report errors and warnings in the source
+
+There are many plugins for the editor-of-choice that deal with adding ESLint support. Alternative is Prettier with ESLint integration prettier-eslint.
 
 ---
-# stylelint
----
+# Stylelint
 
-Add linting also to your (S)CSS.
+Add linting to your (S)CSS.
 
 ## Webpack stylelint
 
-Stylelint is tricky, so stylelint errors are not allowed to abort building process. It is even disabled in webpack config and used only in editor as guidance.
+Stylelint is tricky, so stylelint warning or errors are not allowed to abort building process. In real world scenario it is even disabled in webpack config and used only in editor as *guidance*.
 
 Install [Stylelint](https://stylelint.io)
 
@@ -229,29 +270,37 @@ Install [Stylelint](https://stylelint.io)
 npm install stylelint --save-dev
 ```
 
-Install [Webpack plugin for stylelint](https://github.com/JaKXz/stylelint-webpack-plugin)  
+Install [Webpack plugin for stylelint](https://github.com/webpack-contrib/stylelint-webpack-plugin)  
 
 ```sh
 npm install stylelint-webpack-plugin --save-dev
 ```
 
-Install Stylelint plugins and configs
+Install Stylelint [configuration](https://github.com/stylelint/stylelint#extend-a-shared-configuration), choosing [stylelint-config-standard](https://github.com/stylelint/stylelint-config-standard) which apart for *possible error rules* turns on also ~60 [stylistic rules](https://github.com/stylelint/stylelint/blob/master/docs/user-guide/rules.md#stylistic-issues).
+
+```sh
+npm install stylelint-config-standard --save-dev
+```
+
+Skipping [stylelint-config-recommended-scss](https://github.com/kristerkari/stylelint-config-recommended-scss), but installing Stylelint plugin for SCSS [https://github.com/kristerkari/stylelint-scss](stylelint-scss) *directly* (`stylelint-config-recommended-scss` uses `stylelint-scss`)
 
 ```sh
 npm install stylelint-scss --save-dev
-npm install stylelint-config-standard --save-dev
 ```
 
 ## Configuration file
 
-Create _.stylelintrc.js_ and fill in some general values. See
-* [stylelint configuration](https://github.com/stylelint/stylelint/blob/master/docs/user-guide/configuration.md).
+Creating *.stylelintrc.js* and filling in some general values.
+
+* [Stylelint Configuration](https://github.com/stylelint/stylelint/blob/master/docs/user-guide/configuration.md).
 * [stylelint-scss plugin rules](https://github.com/kristerkari/stylelint-scss#list-of-rules)
 
-```javascript
-// keep json compatible key naming and comma trailing!
+_.stylelintrc.js_
 
-/* eslint-disable quotes */
+```javascript
+// keep json compatible key naming and comma trailing
+
+/* eslint-disable quotes, quote-props */
 
 module.exports = {
   "extends": [
@@ -262,10 +311,12 @@ module.exports = {
   ],
   "rules": {
 
-    "rule-empty-line-before": "always",
+    "no-empty-source": null, // https://stylelint.io/user-guide/rules/no-empty-source
 
-    "block-closing-brace-empty-line-before": null,
-    "max-empty-lines": [
+    "rule-empty-line-before": "always", // https://stylelint.io/user-guide/rules/rule-empty-line-before
+
+    "block-closing-brace-empty-line-before": null, // https://stylelint.io/user-guide/rules/block-closing-brace-empty-line-before
+    "max-empty-lines": [ // https://stylelint.io/user-guide/rules/max-empty-lines
       2,
       {
         "ignore": [
@@ -274,11 +325,13 @@ module.exports = {
       }
     ],
 
+    "at-rule-no-unknown": null, // disable and use scss/at-rule-no-unknown
+
     // --------------------------------------------
     // RULES FOR SCSS TO WORK (KIND OF)
 
-    "block-opening-brace-space-before": "always",
-    "block-closing-brace-newline-after": [
+    "block-opening-brace-space-before": "always", // https://stylelint.io/user-guide/rules/block-opening-brace-space-before
+    "block-closing-brace-newline-after": [ // https://stylelint.io/user-guide/rules/block-closing-brace-newline-after
       "always",
       {
         "ignoreAtRules": [
@@ -288,7 +341,7 @@ module.exports = {
       }
     ],
 
-    "at-rule-empty-line-before": [
+    "at-rule-empty-line-before": [ // https://stylelint.io/user-guide/rules/at-rule-empty-line-before
       "always",
       {
         "ignoreAtRules": [
@@ -297,107 +350,108 @@ module.exports = {
         ]
       }
     ],
-    "at-rule-name-space-after": "always",
+    "at-rule-name-space-after": "always", // https://stylelint.io/user-guide/rules/at-rule-name-space-after
 
-    "at-rule-no-unknown": [
-      true,
-      {
-        "ignoreAtRules": [
-          "charset",
-          "import",
-          "extend",
-          "at-root",
-          "debug",
-          "warn",
-          "error",
-          "if",
-          "else",
-          "for",
-          "each",
-          "while",
-          "mixin",
-          "include",
-          "content",
-          "return",
-          "function"
-        ]
-      }
-    ],
-
-    "scss/at-else-closing-brace-newline-after": "always-last-in-chain",
-    "scss/at-else-closing-brace-space-after": "always-intermediate",
-    "scss/at-if-closing-brace-newline-after": "always-last-in-chain",
-    "scss/at-if-closing-brace-space-after": "always-intermediate"
+    "scss/at-rule-no-unknown": true, // https://github.com/kristerkari/stylelint-scss/blob/master/src/rules/at-rule-no-unknown/README.md
+    "scss/at-else-closing-brace-newline-after": "always-last-in-chain", // https://github.com/kristerkari/stylelint-scss/blob/master/src/rules/at-else-closing-brace-newline-after/README.md
+    "scss/at-else-closing-brace-space-after": "always-intermediate", // https://github.com/kristerkari/stylelint-scss/blob/master/src/rules/at-else-closing-brace-space-after/README.md
+    "scss/at-if-closing-brace-newline-after": "always-last-in-chain", // https://github.com/kristerkari/stylelint-scss/blob/master/src/rules/at-if-closing-brace-newline-after/README.md
+    "scss/at-if-closing-brace-space-after": "always-intermediate" // https://github.com/kristerkari/stylelint-scss/blob/master/src/rules/at-if-closing-brace-space-after/README.md
   }
 };
 
 ```
 
-Add also `.stylelintignore` to ignore compiled CSS (note that currently *Atom* ignores `.stylelintignore`, meh)
+Adding `.stylelintignore` to ignore compiled CSS.
+
+_.stylelintignore_
 
 ```
 public/**
 static/**
 ```
 
-Add plugin to _webpack.config.js_
+Adding plugin to *webpack.config.js* and setting [options](https://stylelint.io/user-guide/node-api#options).
+
+_webpack.config.js_
 
 ```javascript
 // ...
 
-const StyleLintPlugin = require('stylelint-webpack-plugin'); // eslint-disable-line no-unused-vars
+const StylelintPlugin = require('stylelint-webpack-plugin'); // eslint-disable-line no-unused-vars
 
 // ...
 
 // ----------------
 // StyleLint
-config.plugins.push(new StyleLintPlugin({
+config.plugins.push(new StylelintPlugin({
   configFile: '.stylelintrc.js',
-  emitErrors: false, // emit warnings instead of errors, continue building
-  failOnError: false, // do not throw fatal, continue building
   files: ['**/*.s?(a|c)ss'],
+  fix: false,
   lintDirtyModulesOnly: false,
-  syntax: 'scss',
-  quiet: false // error output to the console
+  emitError: false,
+  emitWarning: false,
+  failOnError: false,
+  failOnWarning: false,
+  quiet: false
 }));
 
 // ...
 ```
 
-With this config build will not fail on S(C)SS errors, only warn about them.
+With this config build will not stop on S(C)SS errors.
 
-In _src/index.global.scss_ do something questionable, like incorrect (S)CSS
+Adding some questionable code to SCSS.
+
+_src/index.global.scss_
 
 ```scss
+// ...
+
 yolo {
   colooor: bluez
 }
+
+// ...
 ```
 
-Build the project for development, observe how build contains warnings
-
-```
-WARNING in
-src/index.global.scss
- 33:1   ✖  Unexpected unknown type selector "yolo"   selector-type-no-unknown
- 34:3   ✖  Unexpected unknown property "colooor"     property-no-unknown
- 34:16  ✖  Expected a trailing semicolon             declaration-block-trailing-semicolon
-```
-
-At any point you can disable *StyleLintPlugin* in webpack config and run it just time to time.
-
-## stylelint in text editors
-
-### Atom
+Run webpack DevServer
 
 ```sh
-apm install linter-stylelint
+npm run front:dev:static
 ```
 
-It will use the same `.stylelintrc.js`
+Console outputs
+
+```
+ERROR in
+src/index.global.scss
+ 35:1  ✖  Expected empty line before rule        rule-empty-line-before
+ 35:8  ✖  Unexpected empty block                 block-no-empty
+ 36:2  ✖  Unexpected whitespace at end of line   no-eol-whitespace
+```
+
+Building the project for testing.
+
+```sh
+npm run front:built:test
+```
+
+Console outputs notes about error, but continues to build.
+
+Normally *StylelintPlugin* can be disabled in webpack config and run just time to time. Mostly Stylelint is used within source-code editor as a hinting mechanism.
+
+## Stylelint in in source-code editors
+
+Same principles as for ESLint applies (noted above). Alternative is Prettier with Stylelint integration prettier-stylelint.
+
+---
+# Result
+
+See `webpacktest-07-lint` directory.  
+Images and fonts have to be copied to `src/..` from `media/..`.
 
 ---
 # Next
----
 
 Bundle analyzing and chunk splitting.
