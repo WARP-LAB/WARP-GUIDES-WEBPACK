@@ -3,7 +3,7 @@
 ---
 # In this section
 
-* ESlint
+* ESLint
 * JavaScript Standard Style with ;
 * Stylelint
 
@@ -24,9 +24,9 @@ npm install
 ---
 # ESLint
 
-Apart from writing modern JavaScript one should follow some syntax as well as formating rules. Oh well.
+Apart from writing modern JavaScript one should follow some syntax as well as formatting rules. Oh well.
 
-[Eslint](https://eslint.org)
+[ESLint](https://eslint.org)
 
 [Specifying Parser](http://eslint.org/docs/user-guide/configuring#specifying-parser)  
 [Ignoring Files and Directories](http://eslint.org/docs/user-guide/configuring#ignoring-files-and-directories)
@@ -75,7 +75,7 @@ npm install eslint-plugin-import --save-dev
 npm install eslint-plugin-promise --save-dev
 npm install eslint-plugin-standard --save-dev
 ```
-And install the config itself
+And installing the config itself
 
 ```sh
 npm install eslint-config-standard --save-dev
@@ -83,7 +83,7 @@ npm install eslint-config-standard --save-dev
 
 ## Configuration file
 
-Creting new [configuration file](https://eslint.org/docs/user-guide/configuring) under master directory.
+Creating new [configuration file](https://eslint.org/docs/user-guide/configuring) under master directory.
 
 _.eslintrc.js_
 
@@ -155,13 +155,13 @@ module.exports = {
 
 For base ESLint (ES2015/ES6)
 
-* Parser option syntax is discussed in [ESlint Language Options](https://eslint.org/docs/user-guide/migrating-to-2.0.0#language-options).
-* ESlint level rules are documented in [ESlint Rules](https://eslint.org/docs/rules/).
+* Parser option syntax is discussed in [ESLint Language Options](https://eslint.org/docs/user-guide/migrating-to-2.0.0#language-options).
+* ESLint level rules are documented in [ESLint Rules](https://eslint.org/docs/rules/).
 * ESLint Shareable Config for JavaScript Standard Style rules are [defined here](https://github.com/standard/standard/blob/master/RULES.md).
 * Other plugin rules are defined in plugin docs.
 
 
-Creting [eslintignore](https://eslint.org/docs/user-guide/configuring#eslintignore) configuration under master directory. Setting up ESlint so that it lints only what necessary.
+Creating [eslintignore](https://eslint.org/docs/user-guide/configuring#eslintignore) configuration under master directory. Setting up ESLint so that it lints only what necessary.
 
 _.eslintignore_
 
@@ -175,7 +175,7 @@ static/**
 !.stylelintrc.js
 ```
 
-## Webpack ESLint loader
+## webpack ESLint loader
 
 Adding loader to webpack.
 
@@ -251,7 +251,7 @@ This tutorial has held small tuts for Sublime, Atom, Visual Studio Code. Droppin
 * install plugin for ESLint
 * the plugin will use installed ESLint related `node_modules` in the project's directory or global ones
 * the plugin will automatically pick up `.eslintrc.js` and `.eslintignore`
-* plugun will applie the rules and visually report errors and warnings in the source
+* plugin will apply the rules and visually report errors and warnings in the source
 
 There are many plugins for the editor-of-choice that deal with adding ESLint support. Alternative is Prettier with ESLint integration prettier-eslint.
 
@@ -260,9 +260,7 @@ There are many plugins for the editor-of-choice that deal with adding ESLint sup
 
 Add linting to your (S)CSS.
 
-## Webpack stylelint
-
-Stylelint is tricky, so stylelint warning or errors are not allowed to abort building process. In real world scenario it is even disabled in webpack config and used only in editor as *guidance*.
+Stylelint is tricky, so Stylelint warning or errors are not normally allowed to abort building process. In real world scenario it is even disabled in webpack config and used only in editor as *guidance*.
 
 Install [Stylelint](https://stylelint.io)
 
@@ -439,7 +437,7 @@ npm run front:built:test
 
 Console outputs notes about error, but continues to build.
 
-Normally *StylelintPlugin* can be disabled in webpack config and run just time to time. Mostly Stylelint is used within source-code editor as a hinting mechanism.
+Normally *StylelintPlugin* can be disabled in webpack config and run just time to time. One can use Stylelint within source-code editor as a hinting tool.
 
 ## Stylelint in in source-code editors
 
@@ -454,4 +452,4 @@ Images and fonts have to be copied to `src/..` from `media/..`.
 ---
 # Next
 
-Bundle analyzing and chunk splitting.
+Bundle analysing and chunk splitting.
