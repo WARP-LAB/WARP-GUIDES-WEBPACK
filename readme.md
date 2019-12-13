@@ -4,7 +4,7 @@
 
 This is a quick, on demand and yet unedited/untested guide how to set up [webpack](https://webpack.js.org) build system (in the moment you drop [gulp](http://gulpjs.com) on when you haven't used any building/packing system before).
 
-Originally this was written in times when webpack just came out and documentation, both official as well as users', was sparse and bad. Now there are many excellent *Hello World* as well as in in-depth tutorials on webpack. Many projects offer boilerplates to stydy from. But I try to keep this up to date anyways.
+Originally this was written in times when webpack just came out and documentation, both official as well as users', was sparse and bad. Now there are many excellent *Hello World* as well as in in-depth tutorials on webpack. Many projects offer boilerplates to study from. But I try to keep this up to date anyways.
 
 Put together by @kroko for the new colleagues that see webpack for the first time. However I tried to formulate things in a way so that other random readers may also benefit.  
 _While doing edits I realised that notes should be made for some basic npm stuff as the reality is - there are people who haven't used any building tools or even npm before (not-Node.js backend guys - PHP/ROR/... - leaning towards full stack of frontend), but want to jump in webpack. So this assumes entry level knowledge in Node/NPM._
