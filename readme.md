@@ -4,7 +4,7 @@
 
 This is a quick, on demand and yet unedited/untested guide how to set up [webpack](https://webpack.js.org) build system (in the moment you drop [gulp](http://gulpjs.com) on when you haven't used any building/packing system before).
 
-Originally this was written in times when webpack just came out and documentation, both official as well as users', was sparse and bad. Now there are many excellent *Hello World* as well as in in-depth tutorials on webpack. But I try to keep this up to date anyways.
+Originally this was written in times when webpack just came out and documentation, both official as well as users', was sparse and bad. Now there are many excellent *Hello World* as well as in in-depth tutorials on webpack. Many projects offer boilerplates to stydy from. But I try to keep this up to date anyways.
 
 Put together by @kroko for the new colleagues that see webpack for the first time. However I tried to formulate things in a way so that other random readers may also benefit.  
 _While doing edits I realised that notes should be made for some basic npm stuff as the reality is - there are people who haven't used any building tools or even npm before (not-Node.js backend guys - PHP/ROR/... - leaning towards full stack of frontend), but want to jump in webpack. So this assumes entry level knowledge in Node/NPM._
@@ -14,56 +14,65 @@ _While doing edits I realised that notes should be made for some basic npm stuff
 ### 1. webpack says *Hello World*
 
 * OS requirements
-* Project structure
-* 4-tier system
-* Basic config
-* Loading JavaScript
-* Minimising JavaScript
-* Copying files from source to public without compiling
-* Loading CSS and SCSS
+* Directory structure
+* npm
+* Server side
+* First build of JavaScript
+* Webpack mode, deploy tiers and environments (`NODE_ENV`)
+* JavaScript modules and webpack resolve alias
+* Minimise JavaScript with custom options
+* Copy files to destination without compiling
+* First build of SCSS/CSS
 * Scope hoisting
 * Define plugin
-* Notes on other loaders
+* npm scripts
 
-### 2. Extra CSS, PostCSS settings and file loading
+### 2. SCSS, CSS, PostCSS settings
 
 * PostCSS
 * Bootstrapping CSS with *normalize.css*
 * CSS source maps
 * Making SCSS tier aware
-* Image loading
+
+### 3. File loading
+
+* File loading
 * Image compressing
 * Font loading (example for old bulletproof syntax)
 
-### 3. webpack DevServer and hot reloading
+### 4. webpack DevServer and hot reloading
 
+* Custom `properties.json` (helper) file
 * webpack DevServer setup
 * CORS
 * making it hot
-* Introducing npm scripts and config example
 
-### 4. HTML building, asset injecting and inlining, cache busting
+### 5. HTML building, asset injecting and inlining, cache busting
 
-* Building HTML
+* HTML building
 * Cache busting by using hashes
-* Inlining static assets in HTML using read from disk
-* Minify HTML including inlined stuff
+* Inline manually managed files into HTML
+* Minify HTML including inlined code
 
 ### 5. Babel
 
 * Short explanation what Babel does
 * Installing Babel
+* Core
+* preset-env
+* babelrc
+* Babel loader
 * Module system and Tree Shaking
-* Babel env preset and polyfills
-* browserslist and Babel
-* Other polyfills and shims
+* Babel polyfill and browserslist
 * Babel plugins
+* Other polyfills
+* Shims
 
-### 6. Linting JavaScript and SCSS/CSS
+### 6. Linting JavaScript and CSS/SCSS
 
-* ESlint
+* ESLint
 * JavaScript Standard Style with ;
-* stylelint
+* Stylelint
 
 ### 7. Analysing bundle and code chunk splitting
 
@@ -86,50 +95,21 @@ _While doing edits I realised that notes should be made for some basic npm stuff
 * preload fonts and images
 * preload async chunks
 
-### X. React.js
-
-* Out of date, will be revisited
-
-### X. CSS modules
-
-* Out of date, will be revisited
-
-## Summary
-
-* In the beginning examples will use JavaScript ES3/ES5 and SCSS.
-* Then we will drop in loaders/plugins for SCSS ([PostCSS](http://postcss.org) + plugins).
-* Then we will look how to set up basic hot-reloading DevServer.
-* At this point you should be able to code oldschool sites using modern building system - ES3/ES5 JavaScript, use SCSS (I said _oldschool_, writing CSS directly is just _archaic_), hot reloading.
-* Then we set up system so that we can code in at least ES6/ES2015 as well as check our code ([Babel](https://babeljs.io), [ESLint](http://eslint.org)).
-* We add polyfills that we get out of the box from Babel.
-* As a sidestep we look how to enable linter for text editors.
-* Analyzing and splitting chunks.
-* Notes in PWAs.
-* Finally we add [React.js](https://facebook.github.io/react/) and [CSS Modules](https://github.com/css-modules/css-modules) in the mix, needed loaders and configuration.
-
 ### Assumptions
 
 * As of writing webpack version is 4.41.2.
-* I wrote this and tested locally on macOS and used `nginx` to serve `public` directory with wildcarding routes, under `test` TLD (`webpacktest-chaptername.test` in this case). However most of examples will run by simply *opening index.html in browser from local filesystem*.
-
-### Your task
-
-* clone it
-* read it
-* learn it
-* create new project on your OS or in our server and test it step by step
-* there are things that are left out, so ask if you don't see how to get from A to B
-* watch out for errors (some stuff here is untested + things that simply do not work anymore, because there is better way to do it and/or webpack gets updates, you know...)
-* add, commit and push fixes/changes/additions to this repo so that we can make this the ultimate beginners webpack + npm guide.
 
 ### Node.js / npm version
 
-Make sure you have latest LTS, at least `node` version 8.x+, `npm` version 5.7.1+  (note that webpack 5 will drop support for `node` 8 and will support 10.13+)
-This tut has been tested on node 12.13.0 / npm 6.12.0.
+Latest LTS, at least `node` version 8.x+, `npm` version 5.7.1+  (note that webpack 5 will drop support for `node` 8 and will support 10.13+)
+This tut has been tested on node 12.13.1 / npm 6.13.2.
 
 ### Todo / notes to self
 
-* Extend more on `index.html` (or any other template, evern *PHP*) building via [*HtmlWebpackPlugin*](https://www.npmjs.com/package/html-webpack-plugin) - talk about plugins.
-* TTFMP stuff
-* PWA stuff
-* Maybe discuss how *webpack-dev-server* can be launched via API
+* Expand on TTFMP stuff
+* Expand on PWA stuff
+* Discuss how *webpack-dev-server* can be launched via API
+
+### License
+
+[The MIT License](https://raw.githubusercontent.com/WARP-LAB/WARP-GUIDES-WEBPACK/master/LICENSE).
