@@ -623,6 +623,7 @@ Hot replacement of inlined scripts will only work if caching is switched off for
 
 Inline *runtime.chunkhash.js* which contents is few KB when gzipped. There are [multiple plugins for html-weback-plugin](https://github.com/jantimon/html-webpack-plugin#plugins) for doing so.
 
+[script-ext-html-webpack-plugin](https://github.com/numical/script-ext-html-webpack-plugin) cannot be used due to [this issue](https://github.com/numical/script-ext-html-webpack-plugin/issues/29).
 
 [html-webpack-scripts-plugin](https://github.com/hypotenuse/html-webpack-scripts-plugin)
 
@@ -649,6 +650,7 @@ if (!development) {
 
 // ...
 ```
+
 
 ---
 # Lazy loading
