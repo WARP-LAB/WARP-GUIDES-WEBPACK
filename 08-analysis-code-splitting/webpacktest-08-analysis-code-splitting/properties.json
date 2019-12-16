@@ -1,0 +1,33 @@
+{
+  "useProtocolRelativeUrls": false,
+  "tiers": {
+    "development": {
+      "fqdn": "localhost",
+      "tls": false,
+      "port": "4000",
+      "appPathUrlAboveServerRoot": "",
+      "relativeUrlType": "app-index-relative"
+    },
+    "testing": {
+      "fqdn": "",
+      "tls": false,
+      "port": "",
+      "appPathUrlAboveServerRoot": "",
+      "relativeUrlType": "app-index-relative"
+    },
+    "staging": {
+      "fqdn": "webpacktest-08-analysis-code-splitting.test",
+      "tls": false,
+      "port": "",
+      "appPathUrlAboveServerRoot": "",
+      "relativeUrlType": false
+    },
+    "production": {
+      "fqdn": "webpacktest-08-analysis-code-splitting.test",
+      "tls": true,
+      "port": "",
+      "appPathUrlAboveServerRoot": "",
+      "relativeUrlType": false
+    }
+  }
+}

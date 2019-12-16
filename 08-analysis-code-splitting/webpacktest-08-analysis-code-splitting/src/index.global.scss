@@ -1,4 +1,7 @@
 @charset 'UTF-8';
+
+// This is example of SCSS
+
 @import '~normalize.css';
 @import 'typography.global.scss';
 @import 'index.legacy.css';
@@ -8,24 +11,24 @@ $mycolor: red;
 $paragarphColor: black;
 
 @if $env == 'development' {
-  $paragarphColor: magenta;
+  $paragarphColor: green;
 } @else {
   $paragarphColor: yellow;
 }
 
 body {
-  background-image: url('./images/my-large-image.jpg');
+  background-image: url('images/my-large-image.jpg');
 }
 
 .app {
   background-color: $mycolor;
   display: flex;
-  transform: translateY(50px);
+  transform: translateY(70px);
   height: 200px;
 
   p {
     color: $paragarphColor;
   }
 
-  background-image: url('./images/my-small-image.jpg');
+  background-image: url('images/my-small-image.jpg');
 }
