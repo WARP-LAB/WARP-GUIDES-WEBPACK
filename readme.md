@@ -76,15 +76,14 @@ _While doing edits I realised that notes should be made for some basic npm stuff
 
 ### 7. Analysing bundle and code chunk splitting
 
-* Analysing the built product by webpack
+* Analysing the built products
 * The issue that code splitting solves
-* Introducing extra entry point
-* Introducing lazy loading
 * Code splitting setup
-* Different approaches - common, vendor, runtime (manifest) chunks
-* Keeping the chunkhashes under control for caching
-* Lazy loading, naming lazy loaded chunks
-* Inlining runtime (manifest)
+* Different approaches - common, vendor a.o. chunks
+* Chunk naming
+* Runtime and Manifest
+* Inlining Runtime
+* Lazy loading
 
 ### 8. PWA and TTFMP
 
