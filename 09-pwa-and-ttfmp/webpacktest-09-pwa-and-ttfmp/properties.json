@@ -1,0 +1,33 @@
+{
+  "useProtocolRelativeUrls": false,
+  "tiers": {
+    "development": {
+      "fqdn": "webpacktest-09-pwa-and-ttfmp.test",
+      "tls": true,
+      "port": "4000",
+      "appPathUrlAboveServerRoot": "",
+      "relativeUrlType": false
+    },
+    "testing": {
+      "fqdn": "webpacktest-09-pwa-and-ttfmp.test",
+      "tls": true,
+      "port": "",
+      "appPathUrlAboveServerRoot": "",
+      "relativeUrlType": false
+    },
+    "staging": {
+      "fqdn": "webpacktest-09-pwa-and-ttfmp.test",
+      "tls": false,
+      "port": "",
+      "appPathUrlAboveServerRoot": "",
+      "relativeUrlType": false
+    },
+    "production": {
+      "fqdn": "webpacktest-09-pwa-and-ttfmp.test",
+      "tls": true,
+      "port": "",
+      "appPathUrlAboveServerRoot": "",
+      "relativeUrlType": false
+    }
+  }
+}

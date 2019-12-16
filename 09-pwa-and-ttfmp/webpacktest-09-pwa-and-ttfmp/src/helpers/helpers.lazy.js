@@ -1,3 +1,5 @@
+// helpers.lazy.js
+
 import './helpers.lazy.scss';
 
 export function helperLazyA () {

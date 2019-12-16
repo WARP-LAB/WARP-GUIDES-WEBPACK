@@ -1,98 +1,84 @@
-<!DOCTYPE html>
-<html lang="en" class="noscript incapable">
+<% let item, key;
+htmlWebpackPlugin.options.appMountIds = htmlWebpackPlugin.options.appMountIds || [];
+htmlWebpackPlugin.options.lang = htmlWebpackPlugin.options.lang || 'en';
+htmlWebpackPlugin.options.links = htmlWebpackPlugin.options.links || [];
+htmlWebpackPlugin.options.meta = htmlWebpackPlugin.options.meta || [];
+htmlWebpackPlugin.options.scripts = htmlWebpackPlugin.options.scripts || [];
+%><!DOCTYPE html>
+<html lang="<%= htmlWebpackPlugin.options.lang %>" class="noscript incapable" <% if (htmlWebpackPlugin.files.manifest) { %>manifest="<%= htmlWebpackPlugin.files.manifest %>"<% } %>>
 <head>
+
   <meta charset="utf-8">
-  <title><%= htmlWebpackPlugin.options.title || 'Webpack Test' %></title>
+
+  <% if (htmlWebpackPlugin.options.baseHref) { %>
+    <base href="<%= htmlWebpackPlugin.options.baseHref %>">
+  <% } %>
+
+  <title><%= htmlWebpackPlugin.options.title || 'My Title' %></title>
+
   <meta name="description" content="Webpack Guide">
   <meta name="keywords" content="webpack,guide">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
-  <!--
-  <script src="<%= htmlWebpackPlugin.options.outputPublicPathNoPort %>preflight.js"></script>
-  <link href="<%= htmlWebpackPlugin.options.outputPublicPathNoPort %>preflight.css" rel="stylesheet" type="text/css">
-  -->
-  <script><%= htmlWebpackPlugin.options.fsInlineContents['preflight.js'] %></script>
-  <style><%= htmlWebpackPlugin.options.fsInlineContents['preflight.css'] %></style>
 
-  <!-- PRELOAD WOFF2 -->
+  <% if (Array.isArray(htmlWebpackPlugin.options.meta)) {
+      for (item of htmlWebpackPlugin.options.meta) { %>
+        <meta<% for (key in item) { %> <%= key %>="<%= item[key] %>"<% } %>>
+      <% } %>
+  <% } %>
+
+  <% if (htmlWebpackPlugin.files.favicon) { %>
+      <link href="<%= htmlWebpackPlugin.files.favicon %>" rel="shortcut icon" />
+  <% } %>
+
+  <!--
+  <script src="<%= htmlWebpackPlugin.options.props.appPathUrlBuildPublicPath %>preflight.js"></script>
+  <link href="<%= htmlWebpackPlugin.options.props.appPathUrlBuildPublicPath %>preflight.css" rel="stylesheet" type="text/css">
+  -->
+  <script><%= htmlWebpackPlugin.options.props.inlineContents['preflight.js'] %></script>
+  <style><%= htmlWebpackPlugin.options.props.inlineContents['preflight.css'] %></style>
+
+  <% for (item of htmlWebpackPlugin.options.links) {
+      if (typeof item === 'string' || item instanceof String) { item = { href: item, rel: 'stylesheet' } } %>
+        <link<% for (key in item) { %> <%= key %>="<%= item[key] %>"<% } %> />
+  <% } %>
+
   <%
     for (let fileName in compilation.assets) {
       const passes = /\.(woff2)$/.test(fileName);
       if (passes) {
   %>
-      <link rel="preload" href="<%= htmlWebpackPlugin.options.outputPublicPathBuilt %><%= fileName %>" as="font" type="font/woff2" crossorigin="anonymous">
+      <link rel="preload" href="<%= webpackConfig.output.publicPath %><%= fileName %>" as="font" type="font/woff2" crossorigin="anonymous" />
   <%
       }
     }
   %>
-  <!-- // PRELOAD WOFF2 -->
 
-  <!-- PRELOAD IMAGES -->
   <%
     for (let fileName in compilation.assets) {
       const passes = /\.(png|jpe?g|gif)$/.test(fileName);
       if (passes) {
   %>
-      <link rel="preload" href="<%= htmlWebpackPlugin.options.outputPublicPathBuilt %><%= fileName %>" as="image">
+      <link rel="preload" href="<%= webpackConfig.output.publicPath %><%= fileName %>" as="image" />
   <%
       }
     }
   %>
-  <!-- // PRELOAD IMAGES -->
 
-  <!-- CSS LOGIC -->
-  <%
-  // GET CSS ARRAY IDS THAT SHOULD BE INLINED
-
-  const cssIdxToInline = [];
-
-  if ('inlineCSSRegex' in htmlWebpackPlugin.options) {
-    for (let cssIdx in htmlWebpackPlugin.files.css) {
-      // Get path of this file
-      const fullPublicPath = htmlWebpackPlugin.files.css[cssIdx];
-      // For all inlineCSSRegex specified in HtmlWebpackPlugin check for match
-      // We allow regex to find in full public path, not just filename, as it may be handy
-      for (let rIdx in htmlWebpackPlugin.options.inlineCSSRegex) {
-        const regExp = new RegExp(htmlWebpackPlugin.options.inlineCSSRegex[rIdx]);
-        if (regExp.test(fullPublicPath)) {
-          if (!cssIdxToInline.includes(cssIdx)) {
-            cssIdxToInline.push(cssIdx);
-          }
-          // break; // possible to break in first match
-        }
-      }
-    }
-  }
-  %>
-
-  <% for (let cssIdx in htmlWebpackPlugin.files.css) {
-    // INLINE CSS
-    // If this cssIdx is not in cssIdxToInline, then skip
-    if (!cssIdxToInline.includes(cssIdx)) {
-      continue;
-    }
-    // Get path of this file
-    const fullPublicPath = htmlWebpackPlugin.files.css[cssIdx];
-    // Get filename
-    const fileName = /[^/]*$/.exec(fullPublicPath)[0];
-    // Get source
-    const source = compilation.assets[fileName].source();
-    // Echo source in style tags
-  %>
-    <style>
-      <%= source %>
-    </style>
+  <% for (key in htmlWebpackPlugin.files.css) {
+      if (htmlWebpackPlugin.files.cssIntegrity) { %>
+        <link
+          href="<%= htmlWebpackPlugin.files.css[key] %>"
+          rel="stylesheet"
+          integrity="<%= htmlWebpackPlugin.files.cssIntegrity[key] %>"
+          crossorigin="<%= webpackConfig.output.crossOriginLoading %>" />
+      <% } else { %>
+        <link href="<%= htmlWebpackPlugin.files.css[key] %>" rel="stylesheet" type="text/css" />
+      <% } %>
   <% } %>
 
-  <% for (let cssIdx in htmlWebpackPlugin.files.css) {
-    // LINK CSS
-    // If this cssIdx is in cssIdxToInline, then skip
-    if (cssIdxToInline.includes(cssIdx)) {
-      continue;
-    }
-  %>
-    <link href="<%= htmlWebpackPlugin.files.css[cssIdx] %>" rel="stylesheet" type="text/css">
+  <% if (htmlWebpackPlugin.options.headHtmlSnippet) { %>
+    <%= htmlWebpackPlugin.options.headHtmlSnippet %>
   <% } %>
-  <!-- // CSS LOGIC -->
 
 </head>
 <body>
@@ -105,11 +91,55 @@
     Incapable :(
   </div>
   <div class="app"> Loading... </div>
-  <script>
+
+  <script type="text/javascript">
     window.__TEMPLATE_DATA__ = {};
   </script>
-  <% for (let chunk in htmlWebpackPlugin.files.chunks) { %>
-    <script src="<%= htmlWebpackPlugin.files.chunks[chunk].entry %>"></script>
+
+  <% if (htmlWebpackPlugin.options.window) { %>
+    <script type="text/javascript">
+    <% for (key in htmlWebpackPlugin.options.window) { %>
+      window['<%= key %>'] = <%= JSON.stringify(htmlWebpackPlugin.options.window[key]) %>;
+    <% } %>
+    </script>
   <% } %>
+
+  <% if (htmlWebpackPlugin.options.bodyHtmlSnippet) { %>
+    <%= htmlWebpackPlugin.options.bodyHtmlSnippet %>
+  <% } %>
+
+  <% if (htmlWebpackPlugin.options.appMountId) { %>
+    <div id="<%= htmlWebpackPlugin.options.appMountId %>">
+      <% if (htmlWebpackPlugin.options.appMountHtmlSnippet) { %>
+        <%= htmlWebpackPlugin.options.appMountHtmlSnippet %>
+      <% } %>
+    </div>
+  <% } %>
+
+  <% for (item of htmlWebpackPlugin.options.appMountIds) { %>
+    <div id="<%= item %>"></div>
+  <% } %>
+
+  <% if (htmlWebpackPlugin.options.inlineManifestWebpackName) { %>
+    <%= htmlWebpackPlugin.files[htmlWebpackPlugin.options.inlineManifestWebpackName] %>
+  <% } %>
+
+  <% for (item of htmlWebpackPlugin.options.scripts) {
+      if (typeof item === 'string' || item instanceof String) { item = { src: item, type: 'text/javascript' } } %>
+      <script<% for (key in item) { %> <%= key %>="<%= item[key] %>"<% } %>></script>
+    <% } %>
+
+  <% for (key in htmlWebpackPlugin.files.chunks) {
+      if (htmlWebpackPlugin.files.jsIntegrity) { %>
+        <script
+          src="<%= htmlWebpackPlugin.files.chunks[key].entry %>"
+          type="text/javascript"
+          integrity="<%= htmlWebpackPlugin.files.jsIntegrity[htmlWebpackPlugin.files.js.indexOf(htmlWebpackPlugin.files.chunks[key].entry)] %>"
+          crossorigin="<%= webpackConfig.output.crossOriginLoading %>"></script>
+      <% } else { %>
+        <script src="<%= htmlWebpackPlugin.files.chunks[key].entry %>" type="text/javascript"></script>
+      <% } %>
+  <% } %>
+
 </body>
 </html>
