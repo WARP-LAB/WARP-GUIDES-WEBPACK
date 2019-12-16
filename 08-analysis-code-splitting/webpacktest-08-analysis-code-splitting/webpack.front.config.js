@@ -673,8 +673,8 @@ config.plugins.push(new HtmlWebpackHarddiskPlugin());
 // HtmlWebpackPlugin - HtmlWebpackScriptsPlugin
 if (!development) {
   config.plugins.push(new HtmlWebpackScriptsPlugin({
-    inline: /^runtime.*.js$/, // inline runtime
-    defer: /^(?!runtime).*.js$/ // defer everything else
+    inline: /^runtime.*.js$/ // inline runtime
+    // defer: /^(?!runtime).*.js$/ // add defer attribute to everything else
   }));
 }
 
