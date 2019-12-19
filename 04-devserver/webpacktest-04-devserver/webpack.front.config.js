@@ -70,6 +70,7 @@ let appPathUrlBaseNoPort; // app base URL without any port designation
 let appPathUrlBuildWithPort; // ULR to built assets
 let appPathUrlBuildNoPort; // ULR to built assets, but without any port designation
 
+let appPathUrlBasePublicPath; // will be constructed along the way and used in config
 let appPathUrlBuildPublicPath; // will be constructed along the way and used in webpack.config.output.publicPath a.o.
 
 // Definitions
@@ -86,6 +87,7 @@ appPathUrlBaseNoPort = `${appProtocolPrefix}//${appFqdn}/${appUrlPathAboveServer
 appPathUrlBuildWithPort = `${appPathUrlBaseWithPort}${appPathUrlBuildRelativeToApp}`;
 appPathUrlBuildNoPort = `${appPathUrlBaseNoPort}${appPathUrlBuildRelativeToApp}`;
 
+appPathUrlBasePublicPath = appPathUrlBaseWithPort;
 appPathUrlBuildPublicPath = appPathUrlBuildWithPort;
 
 // ----------------
@@ -105,9 +107,11 @@ if (!relativeUrlType && !appFqdn.trim()) {
 }
 
 if (relativeUrlType === 'server-root-relative') {
+  appPathUrlBasePublicPath = `/${appUrlPathAboveServerRoot}`;
   appPathUrlBuildPublicPath = `/${appUrlPathAboveServerRoot}${appPathUrlBuildRelativeToApp}`;
 }
 else if (relativeUrlType === 'app-index-relative') {
+  appPathUrlBasePublicPath = ''; // or './'
   appPathUrlBuildPublicPath = `${appPathUrlBuildRelativeToApp}`;
 }
 else {
@@ -136,10 +140,12 @@ if (!relativeUrlType) {
   console.log('\x1b[44m%s\x1b[0m -> \x1b[36m%s\x1b[0m', 'appPathUrlBaseNoPort', appPathUrlBaseNoPort);
   console.log('\x1b[44m%s\x1b[0m -> \x1b[36m%s\x1b[0m', 'appPathUrlBuildWithPort', appPathUrlBuildWithPort);
   console.log('\x1b[44m%s\x1b[0m -> \x1b[36m%s\x1b[0m', 'appPathUrlBuildNoPort', appPathUrlBuildNoPort);
+  console.log('\x1b[44m%s\x1b[0m -> \x1b[36m%s\x1b[0m', 'appPathUrlBasePublicPath', appPathUrlBasePublicPath);
   console.log('\x1b[44m%s\x1b[0m -> \x1b[36m%s\x1b[0m', 'appPathUrlBuildPublicPath', appPathUrlBuildPublicPath);
 }
 else {
   console.log('\x1b[45m%s\x1b[0m', 'Relative URL used, thus hostname, port a.o. does not apply.');
+  console.log('\x1b[44m%s\x1b[0m -> \x1b[36m%s\x1b[0m', 'appPathUrlBasePublicPath', appPathUrlBasePublicPath);
   console.log('\x1b[44m%s\x1b[0m -> \x1b[36m%s\x1b[0m', 'appPathUrlBuildPublicPath', appPathUrlBuildPublicPath);
 }
 console.log('\x1b[42m\x1b[30m                                                               \x1b[0m');
@@ -217,12 +223,19 @@ config.devServer = {
   ],
   historyApiFallback: true,
 
-  https: false,
-  // https: {
-  //   ca: fs.readFileSync(`${require('os').homedir()}/.valet/CA/LaravelValetCASelfSigned.pem`),
-  //   key: fs.readFileSync(`${require('os').homedir()}/.valet/Certificates/${appFqdn}.key`),
-  //   cert: fs.readFileSync(`${require('os').homedir()}/.valet/Certificates/${appFqdn}.crt`)
-  // },
+  https: development && currTierProps.tls
+    ? appFqdn === 'localhost'
+      ? { // if DevServer is run with TLS and localhost, use self signed certificates for locaholst
+        ca: fs.readFileSync(path.resolve(require('os').homedir(), '.localhost-dev-certs/CA/WARPLocalhostCASelfSigned.pem')),
+        key: fs.readFileSync(path.resolve(require('os').homedir(), '.localhost-dev-certs/Certificates/localhost.key')),
+        cert: fs.readFileSync(path.resolve(require('os').homedir(), '.localhost-dev-certs/Certificates/localhost.crt'))
+      }
+      : { // if DevServer is run with TLS and not localhost, assume that Valet is used and use those certificates
+        ca: fs.readFileSync(path.resolve(require('os').homedir(), '.config/valet/CA/LaravelValetCASelfSigned.pem')),
+        key: fs.readFileSync(path.resolve(require('os').homedir(), `.config/valet/Certificates/${appFqdn}.key`)),
+        cert: fs.readFileSync(path.resolve(require('os').homedir(), `.config/valet/Certificates/${appFqdn}.crt`))
+      }
+    : false,
 
   // pfx: '/path/to/file.pfx',
   // pfxPassphrase: 'passphrase',
@@ -356,7 +369,7 @@ config.module = {
       ]
     },
     {
-      test: /\.(woff2|woff|otf|ttf|eot|svg)$/,
+      test: /.-webfont\.(woff2|woff|otf|ttf|eot|svg)$/,
       use: [
         {
           loader: 'file-loader',
@@ -388,7 +401,9 @@ config.optimization = {
         // ecma: undefined,
         warnings: true,
         parse: {},
-        compress: {},
+        compress: {
+          drop_console: false // normally should be - drop_console: !development
+        },
         mangle: false,
         module: false,
         output: {
@@ -451,20 +466,22 @@ config.plugins.push(new webpack.DefinePlugin({
 
 // ----------------
 // Hot reloading
-if (development) {
+if (development && devServerRunning) {
   config.plugins.push(new webpack.HotModuleReplacementPlugin());
 }
 
 // ----------------
 // CopyPlugin
-config.plugins.push(new CopyPlugin([
-  {
-    from: path.join(__dirname, 'src/preflight/*.{js,css}'),
-    to: appPathFsBuild,
-    flatten: true,
-    toType: 'dir'
-  }
-]));
+config.plugins.push(new CopyPlugin(
+  [
+    {
+      from: path.join(__dirname, 'src/preflight/*.{js,css}'),
+      to: appPathFsBuild,
+      flatten: true,
+      toType: 'dir'
+    }
+  ]
+));
 
 // ----------------
 // MiniCssExtractPlugin

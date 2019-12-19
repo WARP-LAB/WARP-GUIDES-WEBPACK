@@ -1,79 +1,65 @@
-<% let item, key;
-htmlWebpackPlugin.options.appMountIds = htmlWebpackPlugin.options.appMountIds || [];
+<%
+htmlWebpackPlugin.options.title = htmlWebpackPlugin.options.title || 'My Title';
 htmlWebpackPlugin.options.lang = htmlWebpackPlugin.options.lang || 'en';
 htmlWebpackPlugin.options.links = htmlWebpackPlugin.options.links || [];
 htmlWebpackPlugin.options.meta = htmlWebpackPlugin.options.meta || [];
 htmlWebpackPlugin.options.scripts = htmlWebpackPlugin.options.scripts || [];
 %><!DOCTYPE html>
-<html lang="<%= htmlWebpackPlugin.options.lang %>" class="noscript incapable" <% if (htmlWebpackPlugin.files.manifest) { %>manifest="<%= htmlWebpackPlugin.files.manifest %>"<% } %>>
+<html lang="<%= htmlWebpackPlugin.options.lang %>" class="noscript incapable"<% if (htmlWebpackPlugin.files.manifest) { %> manifest="<%= htmlWebpackPlugin.files.manifest %>"<% } %>>
 <head>
 
-  <meta charset="utf-8">
+  <meta charset="utf-8"/>
 
-  <% if (htmlWebpackPlugin.options.baseHref) { %>
-    <base href="<%= htmlWebpackPlugin.options.baseHref %>">
-  <% } %>
+  <title><%= htmlWebpackPlugin.options.title %></title>
 
-  <title><%= htmlWebpackPlugin.options.title || 'My Title' %></title>
+  <meta name="description" content="Webpack Guide"/>
+  <meta name="keywords" content="webpack,guide"/>
 
-  <meta name="description" content="Webpack Guide">
-  <meta name="keywords" content="webpack,guide">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0"/>
 
-  <% if (Array.isArray(htmlWebpackPlugin.options.meta)) {
-      for (item of htmlWebpackPlugin.options.meta) { %>
-        <meta<% for (key in item) { %> <%= key %>="<%= item[key] %>"<% } %>>
-      <% } %>
+  <% for (let fileName in compilation.assets) { %>
+    <% const passes = /\.(png|jpe?g|gif)$/.test(fileName); %>
+    <% if (passes) { %>
+      <link rel="preload" href="<%= webpackConfig.output.publicPath %><%= fileName %>" as="image">
+    <% } %>
   <% } %>
 
   <% if (htmlWebpackPlugin.files.favicon) { %>
-      <link href="<%= htmlWebpackPlugin.files.favicon %>" rel="shortcut icon" />
+    <link href="<%= htmlWebpackPlugin.files.favicon %>" rel="shortcut icon"/>
+  <% } %>
+
+  <% if (Array.isArray(htmlWebpackPlugin.options.meta)) { %>
+    <% for (let item of htmlWebpackPlugin.options.meta) { %>
+      <meta<% for (let key in item) { %> <%= key %>="<%= item[key] %>"<% } %>/>
+    <% } %>
   <% } %>
 
   <!--
-  <script src="<%= htmlWebpackPlugin.options.props.appPathUrlBuildPublicPath %>preflight.js"></script>
-  <link href="<%= htmlWebpackPlugin.options.props.appPathUrlBuildPublicPath %>preflight.css" rel="stylesheet" type="text/css">
+  <script src="<%= webpackConfig.output.publicPath %>preflight.js"></script>
+  <link href="<%= webpackConfig.output.publicPath %>preflight.css" rel="stylesheet" type="text/css"/>
   -->
-  <script><%= htmlWebpackPlugin.options.props.inlineContents['preflight.js'] %></script>
-  <style><%= htmlWebpackPlugin.options.props.inlineContents['preflight.css'] %></style>
+  <script><%= htmlWebpackPlugin.options.warp.preflightInline['preflight.js'] %></script>
+  <style><%= htmlWebpackPlugin.options.warp.preflightInline['preflight.css'] %></style>
 
-  <% for (item of htmlWebpackPlugin.options.links) {
-      if (typeof item === 'string' || item instanceof String) { item = { href: item, rel: 'stylesheet' } } %>
-        <link<% for (key in item) { %> <%= key %>="<%= item[key] %>"<% } %> />
+  <% for (let item of htmlWebpackPlugin.options.links) { %>
+    <% if (typeof item === 'string' || item instanceof String) { item = { href: item, rel: 'stylesheet' } } %>
+      <link<% for (let key in item) { %> <%= key %>="<%= item[key] %>"<% } %>/>
   <% } %>
 
-  <%
-    for (let fileName in compilation.assets) {
-      const passes = /\.(woff2)$/.test(fileName);
-      if (passes) {
-  %>
-      <link rel="preload" href="<%= webpackConfig.output.publicPath %><%= fileName %>" as="font" type="font/woff2" crossorigin="anonymous" />
-  <%
-      }
-    }
-  %>
+  <% if (htmlWebpackPlugin.files.runtime) { %>
+    <%= htmlWebpackPlugin.files.runtime %>
+  <% } %>
 
-  <%
-    for (let fileName in compilation.assets) {
-      const passes = /\.(png|jpe?g|gif)$/.test(fileName);
-      if (passes) {
-  %>
-      <link rel="preload" href="<%= webpackConfig.output.publicPath %><%= fileName %>" as="image" />
-  <%
-      }
-    }
-  %>
-
-  <% for (key in htmlWebpackPlugin.files.css) {
-      if (htmlWebpackPlugin.files.cssIntegrity) { %>
-        <link
-          href="<%= htmlWebpackPlugin.files.css[key] %>"
-          rel="stylesheet"
-          integrity="<%= htmlWebpackPlugin.files.cssIntegrity[key] %>"
-          crossorigin="<%= webpackConfig.output.crossOriginLoading %>" />
-      <% } else { %>
-        <link href="<%= htmlWebpackPlugin.files.css[key] %>" rel="stylesheet" type="text/css" />
-      <% } %>
+  <% for (let key in htmlWebpackPlugin.files.css) { %>
+    <% if (htmlWebpackPlugin.files.cssIntegrity) { %>
+      <link
+        href="<%= htmlWebpackPlugin.files.css[key] %>"
+        rel="stylesheet"
+        integrity="<%= htmlWebpackPlugin.files.cssIntegrity[key] %>"
+        crossorigin="<%= webpackConfig.output.crossOriginLoading %>"/>
+    <% } else { %>
+      <link href="<%= htmlWebpackPlugin.files.css[key] %>" rel="stylesheet" type="text/css"/>
+    <% } %>
   <% } %>
 
   <% if (htmlWebpackPlugin.options.headHtmlSnippet) { %>
@@ -82,63 +68,49 @@ htmlWebpackPlugin.options.scripts = htmlWebpackPlugin.options.scripts || [];
 
 </head>
 <body>
+
   <noscript>
     <div class="noscript">
       Lynx FTW!
     </div>
   </noscript>
+
   <div class="incapable">
     Incapable :(
   </div>
+
   <div class="app"> Loading... </div>
-
-  <script type="text/javascript">
-    window.__TEMPLATE_DATA__ = {};
-  </script>
-
-  <% if (htmlWebpackPlugin.options.window) { %>
-    <script type="text/javascript">
-    <% for (key in htmlWebpackPlugin.options.window) { %>
-      window['<%= key %>'] = <%= JSON.stringify(htmlWebpackPlugin.options.window[key]) %>;
-    <% } %>
-    </script>
-  <% } %>
 
   <% if (htmlWebpackPlugin.options.bodyHtmlSnippet) { %>
     <%= htmlWebpackPlugin.options.bodyHtmlSnippet %>
   <% } %>
 
-  <% if (htmlWebpackPlugin.options.appMountId) { %>
-    <div id="<%= htmlWebpackPlugin.options.appMountId %>">
-      <% if (htmlWebpackPlugin.options.appMountHtmlSnippet) { %>
-        <%= htmlWebpackPlugin.options.appMountHtmlSnippet %>
-      <% } %>
-    </div>
-  <% } %>
+  <script>
+    window.__TEMPLATE_DATA__ = {};
+  </script>
 
-  <% for (item of htmlWebpackPlugin.options.appMountIds) { %>
-    <div id="<%= item %>"></div>
-  <% } %>
-
-  <% if (htmlWebpackPlugin.options.inlineManifestWebpackName) { %>
-    <%= htmlWebpackPlugin.files[htmlWebpackPlugin.options.inlineManifestWebpackName] %>
-  <% } %>
-
-  <% for (item of htmlWebpackPlugin.options.scripts) {
-      if (typeof item === 'string' || item instanceof String) { item = { src: item, type: 'text/javascript' } } %>
-      <script<% for (key in item) { %> <%= key %>="<%= item[key] %>"<% } %>></script>
+  <% if (htmlWebpackPlugin.options.window) { %>
+    <script>
+    <% for (let key in htmlWebpackPlugin.options.window) { %>
+      window['<%= key %>'] = <%= JSON.stringify(htmlWebpackPlugin.options.window[key]) %>;
     <% } %>
+    </script>
+  <% } %>
 
-  <% for (key in htmlWebpackPlugin.files.chunks) {
-      if (htmlWebpackPlugin.files.jsIntegrity) { %>
-        <script
-          src="<%= htmlWebpackPlugin.files.chunks[key].entry %>"
-          type="text/javascript"
-          integrity="<%= htmlWebpackPlugin.files.jsIntegrity[htmlWebpackPlugin.files.js.indexOf(htmlWebpackPlugin.files.chunks[key].entry)] %>"
-          crossorigin="<%= webpackConfig.output.crossOriginLoading %>"></script>
-      <% } else { %>
-        <script src="<%= htmlWebpackPlugin.files.chunks[key].entry %>" type="text/javascript"></script>
-      <% } %>
+  <% for (let item of htmlWebpackPlugin.options.scripts) { %>
+    <% if (typeof item === 'string' || item instanceof String) { item = { src: item } } %>
+    <script<% for (let key in item) { %> <%= key %>="<%= item[key] %>"<% } %>></script>
+  <% } %>
+
+  <% for (let key in htmlWebpackPlugin.files.chunks) { %>
+    <% if (htmlWebpackPlugin.files.jsIntegrity) { %>
+      <script
+        src="<%= htmlWebpackPlugin.files.chunks[key].entry %>"
+        integrity="<%= htmlWebpackPlugin.files.jsIntegrity[htmlWebpackPlugin.files.js.indexOf(htmlWebpackPlugin.files.chunks[key].entry)] %>"
+        crossorigin="<%= webpackConfig.output.crossOriginLoading %>"></script>
+    <% } else { %>
+      <script src="<%= htmlWebpackPlugin.files.chunks[key].entry %>"></script>
+    <% } %>
   <% } %>
 
 </body>

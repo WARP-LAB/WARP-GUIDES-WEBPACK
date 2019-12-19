@@ -1,4 +1,4 @@
-# Analysis and Code Splitting
+# Analysis, Code Splitting and Webpack Runtime
 
 ---
 # In this section
@@ -8,9 +8,9 @@
 * Code splitting setup
 * Different approaches - common, vendor a.o. chunks
 * Chunk naming
-* Runtime and Manifest
-* Inlining Runtime
 * Lazy loading
+* Runtime (webpack Manifest)
+* Inlining Runtime
 
 ---
 # Preflight
@@ -19,7 +19,7 @@ Use existing code base from previous guide stage (`webpacktest-07-lint`). Either
 The directory now is called `webpacktest-08-analysis-code-splitting`.  
 Make changes in `package.json` name field.  
 Don't forget `npm install`.  
-Images and fonts have to be copied to `src/..` from `media/..`.
+Images and fonts have to be copied to `src/..` from `media/..`, otherwise build fill fail.
 
 ```sh
 cd webpacktest-08-analysis-code-splitting
@@ -50,14 +50,30 @@ const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPl
 
 // ----------------
 // BundleAnalyzerPlugin
-if (testing) {
-  config.plugins.push(new BundleAnalyzerPlugin({
-    analyzerHost: '127.0.0.1',
-    analyzerPort: 4001
-  }));
+if (appProps.analyse && appProps.analyse.enable) {
+  if (development) {
+    console.log('\x1b[41m%s\x1b[0m', 'BundleAnalyzerPlugin should not be run when building for development / DevServer, aborting!');
+    process.exit(1);
+  }
+  else {
+    config.plugins.push(new BundleAnalyzerPlugin({
+      analyzerHost: appProps.analyse.host,
+      analyzerPort: appProps.analyse.port
+    }));
+  }
 }
 
 // ...
+```
+
+_properties.json_
+
+```json
+  "analyse": {
+    "enable": true,
+    "host": "127.0.0.1",
+    "port": 4001
+  },
 ```
 
 ### Run analysis
@@ -75,6 +91,7 @@ Use Ctrl+C to close it
 
 Opening [http://127.0.0.1:4001](http://127.0.0.1:4001) shows analysis. One should get familiar with using this tool, module searching in the built products.
 
+*Webpack Bundle Analyzer* reports that all JavaScript code is built into *index.contenthash.js*.
 
 ---
 # The Issue?
@@ -98,10 +115,10 @@ console.log(_join(['Lodash', 'says', 'hi!'], ' '));
 
 **In real life one should not import *loadash* as it will be done further below!** This tutorial will import all *loadash* although only one function is used. Importing all *lodash* will help visualise code splitting as it will take up hundreds of KBs in webpack bundle(s).
 
-Installing loadash version that is not tree shakeable.
+Installing loadash version that is not *tree shakeable*.
 
 ```sh
-npm install lodash --save-dev
+npm install lodash --save-optional
 ```
 
 Adding loadash to *src/helpers/helpers.simple.js*
@@ -111,7 +128,7 @@ _src/helpers/helpers.simple.js_
 ```javascript
 // helpers.simple.js
 
-import {join as _join} from 'lodash';
+import {join as _join} from 'lodash'; // normally 'lodash-es' should be used
 
 export function helperA () {
   console.log('I am simple helper A');
@@ -134,7 +151,7 @@ _src/index.js_
 ```javascript
 // ...
 
-import {join as _join} from 'lodash';
+import {join as _join} from 'lodash'; // normally 'lodash-es' should be used
 
 // ...
 
@@ -146,7 +163,6 @@ const myArrowFunction = () => {
   
 ```
 
-
 Building for testing and analysing.
 
 ```sh
@@ -155,7 +171,7 @@ npm run front:build:test
 
 [http://127.0.0.1:4001](http://127.0.0.1:4001)
 
-Everything, including all *lodash* is emitted in *index.chunkhash.js* as shown by *Webpack Bundle Analyzer*.
+Everything, including all *lodash* is emitted in *index.contenthash.js* as shown by *Webpack Bundle Analyzer*.
 
 ## Introducing new entry point
 
@@ -188,7 +204,7 @@ _src/section.js_
 // section.js
 
 import {join as _join} from 'lodash';
-import {helperA} from './helpers/helpers.simple.js';
+import {helperA} from 'extras/helpers.simple.js';
 import 'section.global.scss';
 
 // Vendor test
@@ -197,12 +213,12 @@ console.log(_join(['Lodash', 'says', 'hi', 'from', 'section.js!'], ' '));
 // Module test
 helperA();
 
-// Test Array.find polyfill
+// Test Array.prototype.find polyfill
 const arr = [666, 11];
 const found = arr.find(function (el) {
   return el > 10;
 });
-console.log('Array.find found elements', found);
+console.log('Array.prototype.find found elements in section', found);
 
 // Test String.prototype.endsWith polyfill
 const question = 'Can you dig it?';
@@ -228,8 +244,9 @@ npm run front:build:test
 
 [http://127.0.0.1:4001](http://127.0.0.1:4001)
 
+*lodash* is built in both *index.contenthash.js* as well as *section.contenthash.js* as shown by *Webpack Bundle Analyzer*. 
 
-*lodash* is built in both *index.chunkhash.js* as well as *section.chunkhash.js* as shown by *Webpack Bundle Analyzer*. The issue!
+**That's an issue!**
 
 ---
 # Code splitting
@@ -238,11 +255,11 @@ npm run front:build:test
 
 [Code Splitting](https://webpack.js.org/guides/code-splitting/)
 
-As of now both *index.chunkhash.js* and *section.chunkhash.js* includes app code as well as dependency *loadash* (which in this example is few hundreds KB).
+As of now both *index.contenthash.js* and *section.contenthash.js* includes app code as well as dependency *loadash* (which in this example is few hundreds of KBs to make the point more clearly).
 
-Firstly. In real world app would be updated as time goes. Whenever app code is updated a new *index.chunkhash.js* and *section.chunkhash.js* will be built. After such app update user would have to download the new files (cache busting) which are few hundreds KB and includes app code and vendor code (*lodash*). But why make user redownload code part that hasn't changed across app versions?
+Firstly. In real world app would be updated as time goes. Whenever app code is updated a new *index.contenthash.js* and *section.contenthash.js* will be built. After such app update (a small change in actual app code) user would have to download the new files (cache busting) which are few hundreds KB and includes app code and vendor code (*lodash*). But why make user redownload code part that hasn't changed across app versions (*lodash*)?
 
-Secondly. Why not separating vendor code in another *chunk* (physical file) that app code can consume? If the monolithic output was spilt into vendor (*loadash* in this case) code i.e.  *vendor.chunkhash.js* and app code into *index.chunkhash.js* and *section.chunkhash.js* then on new app version user would only have to download the new app part (assuming that vendor code has really stayed the same and does not need update).
+Secondly. Why not separating vendor code in another *chunk* (physical file) that all app entries can consume? If the monolithic output was spilt into vendor (*loadash* in this case) code i.e. *vendor.contenthash.js* and app code into *index.contenthash.js* and *section.contenthash.js* then on new app version user would only have to download the new app part (assuming that vendor code has really stayed the same and does not need update).
 
 Thirdly. Where does vendor code end and app code start? One can imagine that there are cases where *helperA* as used in this tutorial also can be assumed to be *unchanging reference code*. Some inhouse *helper libraries/functions* that practically do not change and are consumed by app code. *helperA* is potentially a *common dependency* as it is used by both entry points (*index* and *section*).
 
@@ -294,19 +311,17 @@ npm run front:build:test
 
 *Webpack Bundle Analyzer* reports that
 
-* *sharedcode.chunkhash.js* includes *loadash*, *core-js/internals*, *eligrey-classlist-js-polyfill*, *helpers.simple.js* and *Array.find*
-* *index.chunkhash.js* includes *core-js/modules (polyfills)* and app code
-* *section.chunkhash.js* includes *core-js/modules (polyfills)* and app code
+* *sharedcode.contenthash.js* includes *loadash*, *core-js (inc. polyfills that appear >=2 times)*, *eligrey-classlist-js-polyfill*, *helpers.simple.js*
+* *index.contenthash.js* includes *core-js (inc. polyfills that appear <2 times)* and app code
+* *section.contenthash.js* includes *core-js (inc. polyfills that appear <2 times)* and app code
 
-*sharedcode* holds everything that is found at least 2 times.  
-
-* What if 2 of the entry points start using yet another polyfill?
-* Does polyfill really needs to be in vendor or should it be consider to be app code, not separated?
+* What if `src/index.js` also started using `String.prototype.endsWith` (`es.string.ends-with`)? What would happen to *sharedcode.contenthash.js*, *index.contenthash.js* and *section.contenthash.js* contents? 
+* Does polyfill really needs to be in vendor or should it be consider to be app code, not separated? What if *section* was never *opened* by end user?
 * What if one of the entry points drops *helperA* and switched to *helperB*? 
 * What if *helpers* changed? 
 * In case where *helpers* consist of two functions it is not worth chunking them (overall size vs load time)?
 
-And here comes that all theses settings *depend*.
+Simple summary - splitting strategy depends on project, per project.
 
 ## Approach 2. Vendors only chunk (`node_modules` regex)
 
@@ -341,9 +356,9 @@ _webpack.front.config.js_
 
 *Webpack Bundle Analyzer* reports that
 
-* *vendors.chunkhash.js* includes *loadash*, *core-js/internals*, *core-js/modules (polyfills)*, *eligrey-classlist-js-polyfill*
-* *index.chunkhash.js* includes *helpers.simple.js* and app
-* *section.chunkhash.js* includes *helpers.simple.js* and app code
+* *vendors.contenthash.js* includes *loadash*, *core-js*, *eligrey-classlist-js-polyfill*
+* *index.contenthash.js* includes *helpers.simple.js* and app
+* *section.contenthash.js* includes *helpers.simple.js* and app code
 
 *sharedcode* holds everything that is found in *node_modules*, meanwhile *entry points* are stripped from *vendor code*.
 
@@ -380,9 +395,9 @@ _webpack.front.config.js_
 // ...
 ```
 
-*Webpack Bundle Analyzer* reports that *helpers.simple.js* is now in *vendors.chunkhash.js*, *index.chunkhash.js* and *section.chunkhash.js* includes app code.
+*Webpack Bundle Analyzer* reports that *helpers.simple.js* is now in *vendors.contenthash.js*, *index.contenthash.js* and *section.contenthash.js* includes app code.
 
-A sidenote and reminder is that inhouse *helper function/libaries* can be made as modules that are added to the project via *dependencies*. There is no need to publish them to npm registry - option of *npm install* from git or local directory exists. [npm package can be lot of things](https://docs.npmjs.com/cli/install).
+A sidenote and reminder is that inhouse *helper function/libaries* can be made as modules that are added to the project via *package dependencies*. There is no need to publish them to npm registry - option of *npm install* from git or local directory exists. [npm package can be lot of things](https://docs.npmjs.com/cli/install).
 
 ## Approach 3. Explicit vendors and shared chunks
 
@@ -426,14 +441,14 @@ _webpack.front.config.js_
 
 *Webpack Bundle Analyzer* reports that
 
-* *vendors.chunkhash.js* includes *loadash*, *core-js/internals*, *core-js/modules (polyfills)*, *eligrey-classlist-js-polyfill*
-* *sharedcode.chunkhash.js* includes *helpers.simple.js*
-* *index.chunkhash.js* includes app code
-* *section.chunkhash.js* includes app code
+* *vendors.contenthash.js* includes *loadash*, *core-js*, *eligrey-classlist-js-polyfill*
+* *sharedcode.contenthash.js* includes *helpers.simple.js*
+* *index.contenthash.js* includes app code
+* *section.contenthash.js* includes app code
 
-Note that change in Babel usage in app code can cange the huge *vendors* bundle.
+Note that change in ES2015+ (thus Babel and thus core-js polyfill) usage in app code can cange the huge *vendors* bundle.
 
-## Approach 4. Explicit vendors, Babel and shared chunks
+## Approach 4. Explicit vendors, core-js polyfill and shared chunks
 
 ### Configuration
 
@@ -454,8 +469,8 @@ _webpack.front.config.js_
         maxInitialRequests: Infinity,
         minSize: 0
       },
-      babel: {
-        name: 'babel',
+      corepoly: {
+        name: 'corepoly',
         test: (module) => {
           return (
             module.resource &&
@@ -492,21 +507,23 @@ _webpack.front.config.js_
 
 ### Observations
 
-
 *Webpack Bundle Analyzer* reports that
 
-* *vendors.chunkhash.js* includes *loadash*, *core-js/internals* and *eligrey-classlist-js-polyfill*
-* *babel.chunkhash.js* includes *core-js/modules (polyfills)*
-* *sharedcode.chunkhash.js* includes *helpers.simple.js*
-* *index.chunkhash.js* includes app code
-* *section.chunkhash.js* includes app code
+* *vendors.contenthash.js* includes *loadash*, *core-js (except polyfills)* and *eligrey-classlist-js-polyfill*
+* *corepoly.contenthash.js* includes *core-js (polyfills)*
+* *sharedcode.contenthash.js* includes *helpers.simple.js*
+* *index.contenthash.js* includes app code
+* *section.contenthash.js* includes app code
 
-This splitting is probaby the most atomic one for the codebase used in this turorial.
+This splitting is probably the most atomic (and extreme) for the codebase used in this tutorial.
 
-## Approach 5. It depends.
+## Approach N. It depends.
 
-Splitting has to be considered per app.  
-And not every even needs code splitting.
+Again, splitting has to be considered per app. And not every project needs it.
+
+## Other approach examples
+
+[webpack examples](https://github.com/webpack/webpack/tree/master/examples)
 
 ---
 # Chunk naming
@@ -518,11 +535,11 @@ _webpack.front.config.js_
 ```javascript
 // ...
 
-chunkFilename: (development) ? '[id].js' : '[id].[chunkhash].js'
+chunkFilename: (development) ? '[id].js' : '[id].[contenthash].js'
 
 // ...
 
-chunkFilename: (development) ? '[id].css' : '[id].[chunkhash].css'
+chunkFilename: (development) ? '[id].css' : '[id].[contenthash].css'
 
 // ...
 ```
@@ -533,130 +550,14 @@ A quote from Tobias Koppers himself from [here](https://medium.com/webpack/webpa
 
 > There are a bunch of weird options optimization.namedModules optimization.hashedModuleIds optimization.namedChunks and optimization.occurrenceOrder. Actually they all affect how module and chunk ids are assigned and can’t be used together correctly. We now merged all these options into optimization.moduleIds and optimization.chunkIds with enum values. The old options will be removed in the next major version. We plan to add another way to assign module/chunk ids for long term caching, but this is not ready to be told yet.
 
-# Runtime and Manifest
-
-Building the app using *Approach 4* gives a set of chunk names.
-
-```
-vendors.21859e435ccfcf320170.js (160.67 KB)
-babel.77480ff73a17ea40a0c2.js (13.6 KB)
-index.a21522544ad4fc1cbff2.js (5.25 KB)
-section.7ee27e961b165410207d.js (3.73 KB)
-sharedcode.e50ca1054983c7d9d1b9.js (466 B)
-```
-
-Making a change in *helpers.simple.js*
-
-_helpers.simple.js_
-
-```javascript
-// helpers.simple.js
-
-import {join as _join} from 'lodash';
-
-export function helperA () {
-  console.log('I am simple helper A');
-  // Vendor test
-  console.log(_join(['Lodash', 'says', 'hi', 'from', 'helpers.simple.js', 'A', '!'], ' '));
-  console.log(_join(['Lodash', 'says', 'hi', 'again', 'from', 'helpers.simple.js', 'A', '!'], ' '));
-}
-
-export function helperB () {
-  console.log('I am simple helper B');
-  // Vendor test
-  console.log(_join(['Lodash', 'says', 'hi', 'from', 'helpers.simple.js', 'B', '!'], ' '));
-}
-```
-
-Building the app again gives new a set of chunk names.
-
-```
-vendors.8da9e1f272271a19863f.js (160.67 KB)
-babel.b3e6110a3ceadb8b734d.js (13.6 KB)
-index.4a19db783d83b02038cc.js (5.25 KB)
-section.98370bde559abc22e5f3.js (3.73 KB)
-sharedcode.d85cca8c4194be6b7fd3.js (598 B)
-```
-
-Although only *helpers.simple.js* was changed all chunks have new names. This is an issue as it forces end user to redownload app code which actually has not changed! It can be solved by extracting [Runtime and Manifest](https://webpack.js.org/concepts/manifest/) along with using [namedModules](https://webpack.js.org/configuration/optimization/#optimizationnamedmodules). 
-
-_webpack.front.config.js_
-
-```javascript
-// ...
-
-// ----------------
-// OPTIMISATION
-config.optimization = {
-
-  // ----------------
-  // SplitChunksPlugin
-
-  namedModules: true,
-  runtimeChunk: {
-    name: 'runtime'
-  },
-
-  // -----
-  // Approach 4
-
-  // ...
-```
-
-Now, after adding/deleting line in *helpers.simple.js*
-
-```javascript
-console.log(_join(['Lodash', 'says', 'hi', 'again', 'from', 'helpers.simple.js', 'A', '!'], ' '));
-```
-
-only *helpers.chunkhash.js* changes.
-
-
-## Other approach examples
-
-* [webpack examples](https://github.com/webpack/webpack/tree/master/examples)
-
----
-# Inlining Runtime
-
-Hot replacement of inlined scripts will only work if caching is switched off for `html-webpack-plugin`. However when `!development` caching can be kept on as well as inlining enabled.
-
-Inline *runtime.chunkhash.js* which contents is few KB when gzipped. There are [multiple plugins for html-weback-plugin](https://github.com/jantimon/html-webpack-plugin#plugins) for doing so.
-
-[script-ext-html-webpack-plugin](https://github.com/numical/script-ext-html-webpack-plugin) cannot be used due to [this issue](https://github.com/numical/script-ext-html-webpack-plugin/issues/29).
-
-[html-webpack-scripts-plugin](https://github.com/hypotenuse/html-webpack-scripts-plugin)
-
-```sh
-npm install html-webpack-scripts-plugin --save-dev
-```
-
-_webpack.front.config.js_
-
-```javascript
-// ...
-
-const HtmlWebpackScriptsPlugin = require('html-webpack-scripts-plugin'); // eslint-disable-line no-unused-vars
-
-// ...
-
-// HtmlWebpackPlugin - HtmlWebpackScriptsPlugin
-if (!development) {
-  config.plugins.push(new HtmlWebpackScriptsPlugin({
-    'inline': /^runtime.*.js$/ // inline runtime
-    // 'defer': /^(?!runtime).*.js$/ // add defer attribute to everything else
-  }));
-}
-
-// ...
-```
-
 ---
 # Lazy loading
 
-It is out of scope for this tut to discuss benefits of lazy loading (in context of sataged loading, meaningful paints, on demand (user interaction) application feature loading). This example is to show how to set up basic Babel plugin for it to be possible.
+It is out of scope for this tut to discuss benefits of lazy loading (in context of sataged loading, meaningful paints, on demand (user interaction) application feature loading). This tutorial application also does not have any user interaction, to make the point. This example is to show how to set up basic Babel plugin for it to be possible as well as if (how) it can affect output cachenames.
 
-[webpack documentation](https://webpack.js.org/guides/lazy-loading/).
+[webpack documentation on lazy loading](https://webpack.js.org/guides/lazy-loading/).
+
+[magic comments for `<link rel=”prefetch/preload”>`](https://medium.com/webpack/link-rel-prefetch-preload-in-webpack-51a52358f84c).
 
 ### Configure Babel for dynamic-import support
 
@@ -675,25 +576,25 @@ _.babelrc_
   ],
 ```
 
-### Configure helpers.lazy
+### Configure helpers.lazy.one
 
-_src/helpers/helpers.lazy.js_
+_src/helpers/helpers.lazy.one.js_
 
 ```javascript
-// helpers.lazy.js
+// helpers.lazy.one.js
 
-import './helpers.lazy.scss';
+import {join as _join} from 'lodash'; // normally 'lodash-es' should be used
+import './helpers.lazy.one.scss';
 
-export function helperLazyA () {
-  console.log('I am helper lazy A!');
+export function helperLazyOne () {
+  console.log('I am helper lazy One!');
+  console.log(_join(['Lodash', 'says', 'hi', 'from', 'helpers.lazy.one.js', '!'], ' '));
+  // console.log(_join(['Lazy', 'one', 'extra', '!'], ' '));
 }
 
-export function helperLazyB () {
-  console.log('I am helper lazy B!');
-}
 ```
 
-_src/helpers/helpers.lazy.scss_
+_src/helpers/helpers.lazy.one.scss_
 
 ```scss
 @charset 'UTF-8';
@@ -705,7 +606,52 @@ body {
 
 ```
 
-Within *src/section.js* dynamically `import()`ing *src/helpers/helpers.lazy.scss*
+Within *src/index.js* dynamically `import()`ing *src/helpers/helpers.lazy.one.js*
+
+_src/index.js_
+
+```javascript
+// ...
+
+// Lazy load something
+import(/* webpackChunkName: "helpers.lazy.one" */ 'extras/helpers.lazy.one.js').then((module) => {
+  module.helperLazyOne();
+}).catch((error) => {
+  console.log('An error occurred while loading helperLazyOne', error);
+});
+
+```
+
+### Configure helpers.lazy.two
+
+_src/helpers/helpers.lazy.two.js_
+
+```javascript
+// helpers.lazy.two.js
+
+import {join as _join} from 'lodash'; // normally 'lodash-es' should be used
+import './helpers.lazy.two.scss';
+
+export function helperLazyTwo () {
+  console.log('I am helper lazy Two!');
+  console.log(_join(['Lodash', 'says', 'hi', 'from', 'helpers.lazy.two.js', '!'], ' '));
+  // console.log(_join(['Lazy', 'two', 'extra', '!'], ' '));
+}
+
+```
+
+_src/helpers/helpers.lazy.two.scss_
+
+```scss
+@charset 'UTF-8';
+
+h1 {
+  border: 2px dotted magenta;
+}
+
+```
+
+Within *src/section.js* dynamically `import()`ing *src/helpers/helpers.lazy.two.js*
 
 _src/section.js_
 
@@ -713,45 +659,153 @@ _src/section.js_
 // ...
 
 // Lazy load something
-import(/* webpackChunkName: "helpers.lazy" */ './helpers/helpers.lazy.js').then((module) => {
-  module.helperLazyB();
+import(/* webpackChunkName: "helpers.lazy.two" */ 'extras/helpers.lazy.two.js').then((module) => {
+  module.helperLazyTwo();
 }).catch((error) => {
-  console.log('An error occurred while loading helperLazyB', error);
+  console.log('An error occurred while loading helperLazyTwo', error);
 });
-```
 
+```
 
 ### Building for analysis
 
-Building the project for testing tier
-
 ```sh
 npm run front:build:test
 ```
 
-*Webpack Bundle Analyzer* reports a new chunk
+*Webpack Bundle Analyzer* reports following set of chunks (using *Approach 4*)
 
 ```
-vendors.093e667898b7d5c01d32.js (169.82 KB)
-babel.24e0077964b9789c386a.js (22.45 KB)
-runtime.0783d75dbcb41bbf6a12.js (5.61 KB)
-index.00d2cdc57ef689fb0ff7.js (2.46 KB)
-section.1461acae0f4cb449a2ad.js (1.2 KB)
-sharedcode.f531f119058c78027d42.js (595 B)
-helpers.lazy.4c0657b53b51eed697ed.js (564 B)
+vendors.f75150c0ea744a30e3e2.js (169.82 KB)
+corepoly.d74ebc616801f5f1a1b3.js (20.61 KB)
+index.8a3652def41f7c6b899f.js (8.95 KB)
+section.0044c32c88151568d454.js (6.79 KB)
+helpers.lazy.one.2e4393c2d39807fcbbb6.js (615 B)
+helpers.lazy.two.d3047cf2d3ced1a71891.js (615 B)
+sharedcode.0ee865a086f35eee220c.js (466 B)
 ```
 
-### Building
+# Runtime (webpack Manifest)
 
-Disable *BundleAnalyzerPlugin*
+Rebuilding (using *Approach 4*) without changing anything in app code keeps the hashes and thus chunk names *constant* as expected.
 
-Building the project for testing tier
+Making some changes in *lazy helpers*.
+
+_src/helpers/helpers.lazy.one.js_
+
+```javascript
+// ...
+
+  console.log(_join(['Lazy', 'one', 'extra', '!'], ' '));
+  
+// ...
+
+```
+
+_src/helpers/helpers.lazy.two.js_
+
+```javascript
+// ...
+
+  console.log(_join(['Lazy', 'two', 'extra', '!'], ' '));
+  
+// ...
+
+```
+
+Building the app again gives new a set of chunk names.
+
+
+```
+vendors.f75150c0ea744a30e3e2.js (169.82 KB)
+corepoly.d74ebc616801f5f1a1b3.js (20.61 KB)
+index.ae0764b21480cb86f296.js (8.95 KB)
+section.1374fc3f0f93f637b795.js (6.79 KB)
+helpers.lazy.one.cc6cba39bae507869f7b.js (709 B)
+helpers.lazy.two.52e78888b8af90c96381.js (709 B)
+sharedcode.0ee865a086f35eee220c.js (466 B)
+```
+
+*index*, *section*, *helpers.lazy.one*, *helpers.lazy.two* all have changed hashes. Why are *index* and *section* changed, why make user redownload them if only the separate *lazy helpers* have changed?
+
+It can be solved by extracting [Webpack Runtime](https://webpack.js.org/concepts/manifest/) in separate chunk. 
+
+_webpack.front.config.js_
+
+```javascript
+// ...
+
+// ----------------
+// OPTIMISATION
+config.optimization = {
+
+  // ----------------
+  // SplitChunksPlugin
+
+  runtimeChunk: {
+    name: 'runtime'
+  },
+
+  // -----
+  // Approach 4
+
+  // ...
+```
+
+Now, after toggling changes in both *lazy helpers* only
+
+* *helpers.lazy.one.contenthash.js* changes 
+* *helpers.lazy.two.contenthash.js* changes
+* *runtime.contenthash.js* changes
+
+In case of one lazy (and not only, that depends on `optimization.splitChunks` other options not discussed here) loaded chunk reasons to extract *runtime* may not be apparent, but if there are more, then it should be obvious, that there may be benefits.
+
+---
+# Inlining Runtime
+
+Hot replacement of inlined scripts will only work if caching is switched off for `html-webpack-plugin`. However when `!development` caching can be kept on as well as inlining enabled.
+
+Inline *runtime.contenthash.js* which contents is few KB when gzipped. There are [multiple plugins for html-weback-plugin](https://github.com/jantimon/html-webpack-plugin#plugins) for doing so.
+
+[script-ext-html-webpack-plugin](https://github.com/numical/script-ext-html-webpack-plugin) cannot be used due to [this issue](https://github.com/numical/script-ext-html-webpack-plugin/issues/29).
+
+[html-webpack-scripts-plugin](https://github.com/hypotenuse/html-webpack-scripts-plugin) is one that can be used not only for `'inline': /^runtime.*.js$/` inlining, but also to set attributes.
+
+[inline-chunk-manifest-html-webpack-plugin](https://github.com/jouni-kantola/inline-chunk-manifest-html-webpack-plugin)
+
+[inline-manifest-webpack-plugin](https://github.com/szrenwei/inline-manifest-webpack-plugin)
+
 
 ```sh
-npm run front:build:test
+npm install inline-manifest-webpack-plugin --save-dev
 ```
 
-`helpers.lazy.js` is loaded, outputs to browser console and CSS to body backround is applied.
+_webpack.front.config.js_
+
+```javascript
+// ...
+
+const InlineManifestWebpackPlugin = require('inline-manifest-webpack-plugin'); // eslint-disable-line no-unused-vars
+
+// ...
+
+// HtmlWebpackPlugin - InlineManifestWebpackPlugin
+if (!development) {
+  config.plugins.push(new InlineManifestWebpackPlugin('runtime'));
+}
+
+// ...
+```
+
+_src/html/index.template.ejs_
+
+```ejs
+
+  <% if (htmlWebpackPlugin.files.runtime) { %>
+    <%= htmlWebpackPlugin.files.runtime %>
+  <% } %>
+
+```
 
 ---
 # What about TTFMP and splitting / inlining?
@@ -764,9 +818,9 @@ Sroll down for [**The big plan**](https://medium.com/webpack/the-new-css-workflo
 # Result
 
 See `webpacktest-08-analysis-code-splitting` directory.  
-Images and fonts have to be copied to `src/..` from `media/..`.
+Images and fonts have to be copied to `src/..` from `media/..`, otherwise build fill fail.
 
 ---
 # Next
 
-We will look about some webpack plugins for getting started with PWA.
+webpack plugins for getting started with PWA

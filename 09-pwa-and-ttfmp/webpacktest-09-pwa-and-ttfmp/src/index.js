@@ -4,14 +4,32 @@
 
 'use strict';
 
-import {join as _join} from 'lodash';
-import 'index.global.scss';
+import {join as _join} from 'lodash'; // normally 'lodash-es' should be used
 import {helperA} from 'extras/helpers.simple.js';
-import myImagePath from 'images/my-js-image.jpg';
-import * as OfflinePluginRuntime from 'offline-plugin/runtime'; // eslint-disable-line
-if (!__DEVELOPMENT__) {
-  OfflinePluginRuntime.install();
-}
+import 'index.global.scss';
+import myImage from 'images/my-js-image.jpg';
+
+import * as OfflinePluginRuntime from 'offline-plugin/runtime';
+// OfflinePluginRuntime.install({
+//   onInstalled: () => {
+//     console.log('SW Event:', 'onInstalled');
+//   },
+//   onUpdating: () => {
+//     console.log('SW Event:', 'onUpdating');
+//   },
+//   onUpdateReady: () => {
+//     console.log('SW Event:', 'onUpdateReady');
+//     OfflinePluginRuntime.applyUpdate();
+//   },
+//   onUpdated: () => {
+//     console.log('SW Event:', 'onUpdated');
+//     // window.location.reload(false);
+//   },
+//   onUpdateFailed: () => {
+//     console.log('SW Event:', 'onUpdateFailed');
+//   }
+// });
+OfflinePluginRuntime.install();
 
 if (__DEVELOPMENT__) {
   console.log('I\'m in development!');
@@ -26,28 +44,40 @@ const myArrowFunction = () => {
   // Vendor test
   console.log(_join(['Lodash', 'says', 'hi', 'from', 'index.js!'], ' '));
 
-  // Spread test
+  // Rest/Spread test
   const someObject = {x: 11, y: 12};
-  const {x} = someObject;
-  console.log('x value', x);
+  const {x, ...rest} = someObject;
+  console.log('rest value', rest);
   const objectCloneTestViaSpread = {...someObject};
   console.log('objectCloneTestViaSpread', objectCloneTestViaSpread);
 
-  // Test Array.find polyfill
+  // Test Array.prototype.find polyfill
   const arr = [5, 12, 8, 130, 44];
   const found = arr.find(function (el) {
     return el > 10;
   });
-  console.log('Array.find found elements', found);
+  console.log('Array.prototype.find found elements', found);
 
   const div = document.querySelector('.app');
   const {today} = greetings;
-  div.innerHTML = `<h1>${today}</h1><p>Lorem ipsum.</p><img src="${myImagePath}" alt="My Image">`;
-  div.innerHTML += '<label for="textfield">Enter your text</label>';
-  div.innerHTML += '<input id="textfield" type="text" name="testtext" placeholder="Text Here">';
+  div.innerHTML = `<h1>${today}</h1><p>Lorem ipsum.</p>`;
+  div.innerHTML += `<p><img src="${myImage}" alt="My Image"></p>`;
+  div.innerHTML += '<p><label for="textfield">Enter your text</label></p>';
+  div.innerHTML += '<p><input id="textfield" type="text" name="testtext" placeholder="Text Here"/></p>';
   div.classList.add('some-class');
-  console.log('Hello JS!');
+  console.log('Hello new JS!');
   helperA();
 };
 
 myArrowFunction();
+
+// Lazy load something
+import(
+  /* webpackChunkName: "helpers.lazy.one" */
+  /* webpackPreload: true */
+  'extras/helpers.lazy.one.js'
+).then((module) => {
+  module.helperLazyOne();
+}).catch((error) => {
+  console.log('An error occurred while loading helperLazyOne', error);
+});

@@ -13,7 +13,7 @@ if (__DEVELOPMENT__) {
 
 var div = document.querySelector('.app');
 div.innerHTML = '<h1>Hello JS</h1><p>Lorem ipsum.</p>';
-div.innerHTML += '<label for="textfield">Enter your text</label>';
-div.innerHTML += '<input id="textfield" type="text" name="testtext" placeholder="Text Here">';
+div.innerHTML += '<p><label for="textfield">Enter your text</label></p>';
+div.innerHTML += '<p><input id="textfield" type="text" name="testtext" placeholder="Text Here"/></p>';
 console.log('Hello JS!');
 helpers.helperA();

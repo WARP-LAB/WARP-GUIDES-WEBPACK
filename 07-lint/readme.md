@@ -14,7 +14,7 @@ Use existing code base from previous guide stage (`webpacktest-06-babel`). Eithe
 The directory now is called `webpacktest-07-lint`.  
 Make changes in `package.json` name field.  
 Don't forget `npm install`.  
-Images and fonts have to be copied to `src/..` from `media/..`.
+Images and fonts have to be copied to `src/..` from `media/..`, otherwise build fill fail.
 
 ```sh
 cd webpacktest-07-lint
@@ -57,7 +57,7 @@ npm install eslint-plugin-babel --save-dev
 
 This tutorial will use [**JavaScript Standard Style**](https://github.com/feross/standard#who-uses-javascript-standard-style), but with a catch - enforcing semicolons.  
 
-There is [JavaScript Semi-Standard Style](https://www.npmjs.com/package/semistandard) already, which is *All the goodness of standard/standard with semicolons sprinkled on top.* This tutorial will create such standard from scratch - will take *JavaScript Standard Style*, enforce semicolons and ass some *sprinkles on top*.
+There is [JavaScript Semi-Standard Style](https://www.npmjs.com/package/semistandard) already, which is *All the goodness of standard/standard with semicolons sprinkled on top.* This tutorial will create such standard from scratch - will take *JavaScript Standard Style*, enforce semicolons and add some *sprinkles on top*.
 
 Not using AirBnB, Google.
 
@@ -161,7 +161,7 @@ For base ESLint (ES2015/ES6)
 * Other plugin rules are defined in plugin docs.
 
 
-Creating [eslintignore](https://eslint.org/docs/user-guide/configuring#eslintignore) configuration under master directory. Setting up ESLint so that it lints only what necessary.
+Creating [eslintignore](https://eslint.org/docs/user-guide/configuring#eslintignore) configuration under master directory.
 
 _.eslintignore_
 
@@ -204,7 +204,7 @@ config.module = {
   rules: [
     {
       enforce: 'pre',
-      test: /\.js$/,
+      test: /\.(js|mjs|ts)x?$/,
       exclude: [/node_modules/, /bower_components/, /preflight\.js$/],
       use: [
         {
@@ -227,6 +227,10 @@ config.module = {
 
 In _src/index.js_ removing a semicolon.
 
+```javascript
+  const someObject = {x: 11, y: 12}
+```
+
 Run webpack DevServer
 
 ```sh
@@ -234,7 +238,6 @@ npm run front:dev:static
 ```
 
 Error is outputted in terminal and built HTML in [http://localhost:4000/](http://localhost:4000/) also shows the error. After adding back the semicolon and saving file webpack DevServer auto reloads without error.
-
 
 Build for testing
 
@@ -258,7 +261,7 @@ There are many plugins for the editor-of-choice that deal with adding ESLint sup
 ---
 # Stylelint
 
-Add linting to your (S)CSS.
+Add linting to (S)CSS.
 
 Stylelint is tricky, so Stylelint warning or errors are not normally allowed to abort building process. In real world scenario it is even disabled in webpack config and used only in editor as *guidance*.
 
@@ -383,7 +386,7 @@ const StylelintPlugin = require('stylelint-webpack-plugin'); // eslint-disable-l
 // ----------------
 // StyleLint
 config.plugins.push(new StylelintPlugin({
-  configFile: '.stylelintrc.js',
+  configFile: path.resolve(__dirname, '.stylelintrc.js'),
   files: ['**/*.s?(a|c)ss'],
   fix: false,
   lintDirtyModulesOnly: false,
@@ -424,10 +427,42 @@ Console outputs
 ```
 ERROR in
 src/index.global.scss
- 35:1  ✖  Expected empty line before rule        rule-empty-line-before
- 35:8  ✖  Unexpected empty block                 block-no-empty
- 36:2  ✖  Unexpected whitespace at end of line   no-eol-whitespace
+ 39:1   ✖  Unexpected unknown type selector "yolo"   selector-type-no-unknown
+ 40:3   ✖  Unexpected unknown property "colooor"     property-no-unknown
+ 40:16  ✖  Expected a trailing semicolon             declaration-block-trailing-semicolon
 ```
+
+In order to terminal still show (S)CSS issues, but only (no overlay in rendered HTML), *StylelintPlugin* can be set to emit everything as warnings.
+
+_webpack.config.js_
+
+```javascript
+// ...
+
+// ----------------
+// StyleLint
+config.plugins.push(new StylelintPlugin({
+  configFile: path.resolve(__dirname, '.stylelintrc.js'),
+  files: ['**/*.s?(a|c)ss'],
+  fix: false,
+  lintDirtyModulesOnly: false,
+  emitError: false,
+  emitWarning: true,
+  failOnError: false,
+  failOnWarning: false,
+  quiet: false
+}));
+
+// ...
+```
+
+Run webpack DevServer
+
+```sh
+npm run front:dev:static
+```
+
+Terminal notes the issue, but one can keep on developing.
 
 Building the project for testing.
 
@@ -435,7 +470,7 @@ Building the project for testing.
 npm run front:built:test
 ```
 
-Console outputs notes about error, but continues to build.
+Console outputs notes about error (or warning, based on `emitWarning` flag), but continues to build.
 
 Normally *StylelintPlugin* can be disabled in webpack config and run just time to time. One can use Stylelint within source-code editor as a hinting tool.
 
@@ -447,7 +482,7 @@ Same principles as for ESLint applies (noted above). Alternative is Prettier wit
 # Result
 
 See `webpacktest-07-lint` directory.  
-Images and fonts have to be copied to `src/..` from `media/..`.
+Images and fonts have to be copied to `src/..` from `media/..`, otherwise build fill fail.
 
 ---
 # Next

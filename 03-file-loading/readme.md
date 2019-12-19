@@ -23,11 +23,11 @@ npm install
 ---
 # Loading files
 
-Now let us add some images to source.  
+Add some images to source.  
 Have `my-small-image.jpg` below 20 KB. [helper](https://picsum.photos/200/200/)  
 Have `my-large-image.jpg` at about 50 KB. [helper](https://picsum.photos/600/600/)   
 Have `my-js-image.jpg`. [helper](https://picsum.photos/200/200/)  
-See `media/images` dir in this repo where images are already prepared. Copy `images` directory contents to `src/images`.
+See `media/images` dir in this repo where images are already prepared. Copy `media/images` directory contents to `src/images`.
 
 Loaders  
 [file-loader](https://github.com/webpack-contrib/file-loader)  
@@ -72,9 +72,12 @@ body {
 
 .app {
   background-color: $mycolor;
-  display: flex;
   transform: translateY(50px);
   height: 200px;
+
+  h1 {
+    display: flex;
+  }
 
   p {
     color: $paragarphColor;
@@ -82,9 +85,10 @@ body {
 
   background-image: url('images/my-small-image.jpg');
 }
+
 ```
 
-Assing images to JavaScript
+Adding images to JavaScript
 
 _src/index.js_
 
@@ -96,19 +100,21 @@ _src/index.js_
 'use strict';
 
 var helpers = require('extras/helpers.simple.js');
-var myImagePath = require('images/my-js-image.jpg').default;
 require('index.global.scss');
+var myImage = require('images/my-js-image.jpg').default;
 
 if (__DEVELOPMENT__) {
   console.log('I\'m in development!');
 }
 
 var div = document.querySelector('.app');
-div.innerHTML = '<h1>Hello JS</h1><p>Lorem ipsum.</p><img src="' + myImagePath + '" alt="My Image">';
-div.innerHTML += '<label for="textfield">Enter your text</label>';
-div.innerHTML += '<input id="textfield" type="text" name="testtext" placeholder="Text Here">';
+div.innerHTML = '<h1>Hello JS</h1><p>Lorem ipsum.</p>';
+div.innerHTML += '<p><img src="' + myImage + '" alt="My Image"></p>';
+div.innerHTML += '<p><label for="textfield">Enter your text</label></p>';
+div.innerHTML += '<p><input id="textfield" type="text" name="testtext" placeholder="Text Here"/></p>';
 console.log('Hello JS!');
 helpers.helperA();
+
 ```
 
 
@@ -228,20 +234,20 @@ npm run front:build:dev
 npm run front:build:test
 ```
 
-One can observe that images are outputted to `public/assets` as expected in both cases.  
+One can observe that images are outputted to filesystem `public/assets` as expected in both cases.  
 
 Note that later there might be discussion that path to assets actually could be FQDN, which would solve the issue expanded below, but for now stick with *relative-to-index paths*, which is a bit painful to set up.
 
-There is an issue with loading images in browser.
+**There is an issue with loading images in browser.**
 
-Image that is required in JS source is displated bith when being in `development` tier as well as `testing` tier.
+Image that is required in JS source is displayed both when being in `development` tier as well as `testing` tier.
 Compiled javaScript code that generates HTML references the image as 
 
 ```html
-<img src="assets/dilename.ext" alt="My Image">
+<img src="assets/<imagename>.<ext>" alt="My Image">
 ```
 
-and that is correct relative path to `public/index.html`
+and that is correct relative path from `public/index.html`
 
 
 Images that are required in CSS source when being in `development` tier are displayed. But when in `testing` tier (or more precisely, when in *non-development*) tier *404*s are thrown and browser fails to display images.  
@@ -288,92 +294,39 @@ config.module = {
     {
       test: /\.(css)$/,
       use: [
-        development
-          ? {
-            loader: 'style-loader',
-            options: {}
-          }
+
+          // ...
+
           : {
             loader: MiniCssExtractPlugin.loader,
             options: {
               publicPath: miniCssExtractPublicPath
             }
           },
-        {
-          loader: 'css-loader',
-          options: {
-            importLoaders: 2,
-            sourceMap: true
-          }
-        },
-        {
-          loader: 'postcss-loader',
-          options: {
-            sourceMap: true
-          }
-        },
-        {
-          loader: 'resolve-url-loader',
-          options: {
-            sourceMap: true,
-            keepQuery: true
-          }
-        }
+
+          // ...
+
       ]
     },
     {
       test: /\.(scss)$/,
       use: [
-        development
-          ? {
-            loader: 'style-loader',
-            options: {}
-          }
+
+          // ...
+          
           : {
             loader: MiniCssExtractPlugin.loader,
             options: {
               publicPath: miniCssExtractPublicPath
             }
           },
-        {
-          loader: 'css-loader',
-          options: {
-            importLoaders: 3,
-            sourceMap: true
-          }
-        },
-        {
-          loader: 'postcss-loader',
-          options: {
-            sourceMap: true
-          }
-        },
-        {
-          loader: 'resolve-url-loader',
-          options: {
-            sourceMap: true,
-            keepQuery: true
-          }
-        },
-        {
-          loader: 'sass-loader',
-          options: {
-            sourceMap: true,
-            prependData: `$env: ${tierName};`
-          }
-        }
+          
+          // ...
       ]
     },
-    {
-      test: /\.(png|jpe?g|gif|svg)$/,
-      exclude: /.-webfont\.svg$/,
-      use: [
-        {
-          loader: 'file-loader',
-          options: {}
-        }
-      ]
-    }
+
+    // ...
+
   ]
 };
     
@@ -402,6 +355,16 @@ _webpack.front.config.js_
 ```javascript
 // ...
 
+    // {
+    //   test: /\.(png|jpe?g|gif|svg)$/,
+    //   exclude: /.-webfont\.svg$/,
+    //   use: [
+    //     {
+    //       loader: 'file-loader',
+    //       options: {}
+    //     }
+    //   ]
+    // }
     {
       test: /\.(png|jpe?g|gif|svg)$/,
       exclude: /.-webfont\.svg$/,
@@ -421,7 +384,7 @@ _webpack.front.config.js_
 Running webpack for *testing tier*, inspecting `public/assets/` directory and inspectting `body` and `.app` CSS.  
 Larger image (`body`) is outputted as file in `public/assets/` while smaller image (`.app`) is inlined as base64 in CSS (assuming that one is below and other is above the size limit as set for `url loader` - `limit: 20000`). Just as intended.
 
-Further using `file-loader` though as HTTP/2-ready serverside *at the end* is assumed.
+Further using `file-loader` though.
 
 ---
 # Compressing images using `image-webpack-loader`
@@ -438,7 +401,7 @@ npm install image-webpack-loader --save-dev
 ```
 
 See [imagemin](https://github.com/imagemin/imagemin) docs, default minification options are kept in this tut.  
-This process is expensive. In development osne should not care about file size, so it is enabled only for nondevelopment
+This process is expensive. In development one should not care about file size, so it is enabled only for nondevelopment
 
 _webpack.front.config.js_
 
@@ -450,9 +413,7 @@ _webpack.front.config.js_
       use: [
         {
           loader: 'file-loader',
-          options: {
-            publicPath: fileLoaderPublicPath
-          }
+          options: {}
         },
         {
           loader: 'image-webpack-loader',
@@ -476,7 +437,7 @@ npm run front:build:test
 
 ## Building
 
-This example uses *bulletproof syntax* although [it can be retired for years and for good reasons](https://www.zachleat.com/web/retire-bulletproof-syntax/).
+This example uses *bulletproof syntax* although [it can be retired for good reasons](https://www.zachleat.com/web/retire-bulletproof-syntax/).
 
 All webfonts should end with `*-webfont.ext` in their filename for following examples.
 
@@ -579,7 +540,7 @@ _webpack.front.config.js_
 ```javascript
 // ...
     {
-      test: /\.(woff2|woff|otf|ttf|eot|svg)$/,
+      test: /.-webfont\.(woff2|woff|otf|ttf|eot|svg)$/,
       use: [
         {
           loader: 'file-loader',
@@ -594,22 +555,13 @@ Running webpack for both tiers yields *Space Mono* applied to the rendered HTML.
 
 ## Webpack SVG images vs SVG fonts
 
-As *bulletproof syntax* is assumed there is distinguish between webfonts and images in case os SVG. It is done by naming convention. All SVG webfonts are assumed to have suffix `-webfont`. If the *bulletproof syntax* is dropped then this can be ignored. This is already adressed using `exclude` rule.
-
-_webpack.front.config.js_
-
-```javascript
-// ...
-      test: /\.(png|jpe?g|gif|svg)$/,
-      exclude: /.-webfont\.svg$/,
-//...
-```
+As *bulletproof syntax* is assumed there is distinguish between webfonts and images in case of SVG. It is done by naming convention. All SVG webfonts are assumed to have suffix `-webfont`. If the *bulletproof syntax* is dropped then this can be ignored. This is already adressed using `exclude` rule.
 
 ---
 # Result
 
 See `webpacktest-03-file-loading` directory.  
-Images and fonts have to be copied to `src/..` from `media/..`.
+Images and fonts have to be copied to `src/..` from `media/..`, otherwise build fill fail.
 
 ---
 # Next

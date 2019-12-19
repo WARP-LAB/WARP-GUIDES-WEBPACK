@@ -54,7 +54,7 @@ _While doing edits I realised that notes should be made for some basic npm stuff
 * Inline manually managed files into HTML
 * Minify HTML including inlined code
 
-### 5. Babel
+### 6. Babel
 
 * Short explanation what Babel does
 * Installing Babel
@@ -68,31 +68,32 @@ _While doing edits I realised that notes should be made for some basic npm stuff
 * Other polyfills
 * Shims
 
-### 6. Linting JavaScript and CSS/SCSS
+### 7. Linting JavaScript and CSS/SCSS
 
 * ESLint
 * JavaScript Standard Style with ;
 * Stylelint
 
-### 7. Analysing bundle and code chunk splitting
+### 8. Analysing bundle and code chunk splitting
 
 * Analysing the built products
 * The issue that code splitting solves
 * Code splitting setup
 * Different approaches - common, vendor a.o. chunks
 * Chunk naming
-* Runtime and Manifest
-* Inlining Runtime
 * Lazy loading
+* Runtime (webpack Manifest)
+* Inlining Runtime
 
-### 8. PWA and TTFMP
+### 9. PWA and TTFMP
 
-* Enable TLS
-* Setting up basic structure for PWA
-* *manifest.json*
-* Service Worker and offline caching
-* preload fonts and images
-* preload async chunks
+* Serverside and TLS
+* Valet or warp-serve-localhost
+* Web App Manifest
+* Service worker
+* Test offline and Audit
+* Preload links
+* Preload async chunks
 
 ### Assumptions
 
@@ -100,8 +101,8 @@ _While doing edits I realised that notes should be made for some basic npm stuff
 
 ### Node.js / npm version
 
-Latest LTS, at least `node` version 8.x+, `npm` version 5.7.1+  (note that webpack 5 will drop support for `node` 8 and will support 10.13+)
 This tut has been tested on node 12.13.1 / npm 6.13.2.
+Latest LTS, at least `node` version 8.x+, `npm` version 5.7.1+  (note that webpack 5 will drop support for `node` 8 and will support 10.13+)
 
 ### Todo / notes to self
 

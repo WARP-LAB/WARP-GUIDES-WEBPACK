@@ -22,7 +22,7 @@ Use existing code base from previous guide stage (`webpacktest-05-html-and-cache
 The directory now is called `webpacktest-06-babel`.  
 Make changes in `package.json` name field.  
 Don't forget `npm install`.  
-Images and fonts have to be copied to `src/..` from `media/..`.
+Images and fonts have to be copied to `src/..` from `media/..`, otherwise build fill fail.
 
 ```sh
 cd webpacktest-06-babel
@@ -99,14 +99,13 @@ _webpack.front.config.js_
 config.module = {
   rules: [
     {
-      test: /\.js$/,
+      test: /\.(js|mjs|ts)x?$/,
       exclude: [/node_modules/, /bower_components/, /preflight\.js$/],
       use: [
         {
           loader: 'babel-loader',
           options: {
-            cacheDirectory: false,
-            babelrc: true
+            cacheDirectory: false
           }
         }
       ]
@@ -117,7 +116,7 @@ config.module = {
 
 ## Build
 
-Make changes in `index.js`. For test using some bits and pieces such as arrow function, `const`/`let`, template literals, stuff that is ES2015+. And switching everywhere to ES2015 module syntax.
+For test using some bits and pieces such as arrow function, `const`/`let`, template literals, stuff that is ES2015+. And switching everywhere to ES2015 module syntax.
 
 _src/index.js_
 
@@ -128,9 +127,9 @@ _src/index.js_
 
 'use strict';
 
-import 'index.global.scss';
 import {helperA} from 'extras/helpers.simple.js';
-import myImagePath from 'images/my-js-image.jpg';
+import 'index.global.scss';
+import myImage from 'images/my-js-image.jpg';
 
 if (__DEVELOPMENT__) {
   console.log('I\'m in development!');
@@ -144,15 +143,17 @@ const greetings = {
 const myArrowFunction = () => {
   const div = document.querySelector('.app');
   const {today} = greetings;
-  div.innerHTML = `<h1>${today}</h1><p>Lorem ipsum.</p><img src="${myImagePath}" alt="My Image">`;
-  div.innerHTML += `<label for="textfield">Enter your text</label>`;
-  div.innerHTML += `<input id="textfield" type="text" name="testtext" placeholder="Text Here">`;
+  div.innerHTML = `<h1>${today}</h1><p>Lorem ipsum.</p>`;
+  div.innerHTML += `<p><img src="${myImage}" alt="My Image"></p>`;
+  div.innerHTML += '<p><label for="textfield">Enter your text</label></p>';
+  div.innerHTML += '<p><input id="textfield" type="text" name="testtext" placeholder="Text Here"/></p>';
   div.classList.add('some-class');
-  console.log('Hello JS!');
+  console.log('Hello new JS!');
   helperA();
 };
 
 myArrowFunction();
+
 ```
 
 _helpers.simple.js_
@@ -167,6 +168,7 @@ export function helperA () {
 export function helperB () {
   console.log('I am simple helper B');
 }
+
 ```
 
 For a moment disabling minimising by forcing `minimize: false` in `optimization` object. 
@@ -190,22 +192,30 @@ Building for testing tier.
 npm run front:build:test
 ``` 
 
-Within `public/assets/index.<hash>.js` array function, `const` and template string got compiled to ES5 so that browsers can pick them up.
+Within `public/assets/index.<contenthash>.js` array function, `const` and template string got compiled to ES5 so that browsers can pick them up.
 
 ```javascript
+var greetings = {
+  yesterday: 'Hello World!',
+  today: 'Hello new JS!'
+};
+
 var src_myArrowFunction = function myArrowFunction() {
   var div = document.querySelector('.app');
   var today = greetings.today;
-  div.innerHTML = "<h1>".concat(today, "</h1><p>Lorem ipsum.</p><img src=\"").concat(my_js_image, "\" alt=\"My Image\">");
-  div.innerHTML += "<label for=\"textfield\">Enter your text</label>";
-  div.innerHTML += "<input id=\"textfield\" type=\"text\" name=\"testtext\" placeholder=\"Text Here\">";
+  div.innerHTML = "<h1>".concat(today, "</h1><p>Lorem ipsum.</p>");
+  div.innerHTML += "<p><img src=\"".concat(my_js_image, "\" alt=\"My Image\"></p>");
+  div.innerHTML += '<p><label for="textfield">Enter your text</label></p>';
+  div.innerHTML += '<p><input id="textfield" type="text" name="testtext" placeholder="Text Here"/></p>';
   div.classList.add('some-class');
-  console.log('Hello JS!');
+  console.log('Hello new JS!');
   helperA();
 };
 ```
 
 *Use next generation JavaScript, today.*
+
+Reenable optimisation.
 
 ---
 # Module system and Tree Shaking
@@ -225,8 +235,7 @@ config.optimization = {
   
 ```
 
-
-Build project for development tier.
+Build project for development tier
 
 ```sh
 npm run front:build:dev
@@ -240,7 +249,7 @@ Build project for testing tier.
 npm run front:build:test
 ```
 
-`I am simple helper B` can't be found in `public/assets/index.<hash>.js`.
+`I am simple helper B` can't be found in `public/assets/index.<contenthash>.js`.
 
 Observation is related to webpack [tree shaking](https://webpack.js.org/guides/tree-shaking/) being in effect.
 
@@ -262,10 +271,10 @@ _.babelrc_
 
 ```
 
-[Documentation](https://babeljs.io/docs/en/next/babel-preset-env.html#modules).
+[modules option documentation](https://babeljs.io/docs/en/next/babel-preset-env.html#modules).
 
 By explicitly setting `{ "modules": false }` Babel is told not to compile ES2015 modules found in app source to to some other module type.  
-Some time ago default value for `modules` was `commonjs` (and setting to *false* was mandatory), now it is `auto` (and setting to *false* gives safety).
+Some time ago default value for `modules` was `commonjs` (and setting to *false* was mandatory), now it is `auto` (and setting to *false* gives confidence).
 
 wbpack understands ES2015 modules syntax (static structure) which is what allows it to do tree shaking. And optimisation is needed in the end to remove the dead/unused code.
 
@@ -280,9 +289,7 @@ The one used before was [@babel/polyfill](https://babeljs.io/docs/usage/polyfill
 
 *browserslist* is used in this tutorial since 2nd chapter.
 
-
 ## Install dependencies
-
 
 ```sh
 npm install core-js --save-dev
@@ -319,23 +326,32 @@ There has been confusion regarding these settings and docs, see [issue created b
 
 It can be assumed now that this statement holds true
 
-> When "useBuiltIns": "usage" is set then then all polyfills are stripped and only ones found by union of feature usage within the JavaScript code and specified browserlist are left.
+> When "useBuiltIns": "usage" is set then then only those polyfills are compiled into bundle that are demanded by specified browserlist, based on actual features that app JavaScript code uses.
 
 Setting *.browserslistrc* to hold support for IE10.
 
 _.browserslistrc_
 
 ```
+# [production staging testing]
+# > 0.0001%
+#
+# [development]
+# last 1 version
+
 [production staging testing]
-last 1 version
+last 1 chrome version
+last 1 firefox version
 Explorer 10
 
 [development]
-last 1 version
+last 1 chrome version
+last 1 firefox version
 Explorer 10
+
 ```
 
-Adding something that needs polyfill on older browsers in *src/index.js*, such as `Array.prototype.find`
+Adding something that needs polyfill on older browsers (IE10) in *src/index.js*, such as `Array.prototype.find`
 
 _src/index.js_
 
@@ -343,12 +359,12 @@ _src/index.js_
 // ...
 
 const myArrowFunction = () => {
-  // Test Array.find polyfill
+  // Test Array.prototype.find polyfill
   const arr = [5, 12, 8, 130, 44];
   const found = arr.find(function (el) {
     return el > 10;
   });
-  console.log('Array.find found elements', found);
+  console.log('Array.prototype.find found elements', found);
   
 // ...
 ```
@@ -375,15 +391,9 @@ A shortened output stripping out nonsignificant parts.
 
 Using targets:
 {
-  "android": "78",
   "chrome": "78",
-  "edge": "18",
   "firefox": "70",
-  "ie": "10",
-  "ios": "13.2",
-  "opera": "64",
-  "safari": "13",
-  "samsung": "10.1"
+  "ie": "10"
 }
 
 Using modules transform: false
@@ -393,28 +403,21 @@ Using plugins:
   // ... and many others
   
 Using polyfills with `usage` option:
+
 [..../webpacktest-06-babel/src/index.js] Added following core-js polyfills:
-  es.array.concat { "android":"78", "ie":"10" }
-  es.array.find { "android":"78", "ie":"10" }
+	es.array.find { "ie":"10" }
   
 [..../webpacktest-06-babel/src/helpers/helpers.simple.js] Based on your code and targets, core-js polyfills were not added.
 ```
 
-Babel informs us about `es6.array.find` as expected - [comapt table](https://kangax.github.io/compat-table/es6/#test-Array.prototype_methods_Array.prototype.find_a_href=_https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/find_title=_MDN_documentation_img_src=_../mdn.png_alt=_MDN_(Mozilla_Development_Network)_logo_width=_15_height=_13_/_/a_nbsp;) shows that *Array.prototype.find* is not present in IE10 and AN 4.4.3 (one has to check obsolete platforms).
+Babel informs us about `es6.array.find` as expected - [comapt table](https://kangax.github.io/compat-table/es6/#test-Array.prototype_methods_Array.prototype.find_a_href=_https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/find_title=_MDN_documentation_img_src=_../mdn.png_alt=_MDN_(Mozilla_Development_Network)_logo_width=_15_height=_13_/_/a_nbsp;) shows that *Array.prototype.find* is not present in IE10 (one has to check obsolete platforms).
 
-The two polyfills can be found in *public/assets/index.js*
-
+The polyfill can be found in *public/assets/index.js*
 
 _public/assets/index.js_
 
 ```javascript
 // ...
-
-/*!*********************************************************!*\
-  !*** ./node_modules/core-js/modules/es.array.concat.js ***!
-  \*********************************************************/
-  
-// ...  
 
 /*!*******************************************************!*\
   !*** ./node_modules/core-js/modules/es.array.find.js ***!
@@ -426,16 +429,26 @@ _public/assets/index.js_
 ### Second
 
 
-Setting *.browserslistrc* to hold support/target last Chrome version only. It is expected that nearly no plugins and no polyfills will be compiled within the product.
+Setting *.browserslistrc* to hold support/target last chrome version only. It is expected that nearly no plugins and no polyfills will be compiled within the product.
 
 _.browserslistrc_
 
 ```
+# [production staging testing]
+# > 0.0001%
+#
+# [development]
+# last 1 version
+
 [production staging testing]
-last 1 Chrome version
+last 1 chrome version
+# last 1 firefox version
+# Explorer 10
 
 [development]
-last 1 Chrome version
+last 1 chrome version
+# last 1 firefox version
+# Explorer 10
 ```
 
 Rebuilding
@@ -466,6 +479,7 @@ Using plugins:
 Using polyfills with `usage` option:
 
 [..../webpacktest-06-babel/src/index.js] Based on your code and targets, core-js polyfills were not added.
+
 [..../webpacktest-06-babel/src/helpers/helpers.simple.js] Based on your code and targets, core-js polyfills were not added.
 ```
 
@@ -474,15 +488,15 @@ Result is as expected.
 ---
 # Babel plugins
 
-There are many plugins and *umbrella* presets such as [babel-preset-es2015](https://babeljs.io/docs/plugins/preset-es2015/) that automatically installs a collection of transform plugins can also be used.
+There are *umbrella* presets that automatically install a collection of plugins. Hor example historically a popular preset was [@babel/preset-es2015](https://github.com/babel/babel-archive/tree/master/packages/babel-preset-es2015).
 
-For this tutorial only few will be explicitly installed an used (except for *Hello React*, where dependencies may come via preset).
+For this tutorial only few plugins will be explicitly installed an used (except for *Hello React*, where dependencies may come via preset).
 
-At this point introducing one for a test - a stage 4 proposal for ECMAScript *Object Rest/Spread*. 
+At this point introducing one for a test - a stage 4 proposal for ECMAScript [*Object Rest/Spread Properties for ECMAScript*](https://github.com/tc39/proposal-object-rest-spread).
+
 Others such as *Class properties transform*, *Function bind transform*, *Syntax Dynamic Import* will be used later.
 
-[Object rest spread transform](https://babeljs.io/docs/en/babel-plugin-proposal-object-rest-spread) 
-
+[@babel/plugin-proposal-object-rest-spread](https://babeljs.io/docs/en/babel-plugin-proposal-object-rest-spread) 
 
 Install
 
@@ -521,6 +535,7 @@ _.babelrc_
     }
   }
 }
+
 ```
 
 env option documentation can be found [here](https://babeljs.io/docs/en/6.26.3/babelrc#env-option).
@@ -533,17 +548,17 @@ _src/index.js_
 // ...
 
 const myArrowFunction = () => {
-  // Spread test
+  // Rest/Spread test
   const someObject = {x: 11, y: 12};
-  const {x} = someObject;
-  console.log('x value', x);
+  const {x, ...rest} = someObject;
+  console.log('rest value', rest);
   const objectCloneTestViaSpread = {...someObject};
   console.log('objectCloneTestViaSpread', objectCloneTestViaSpread);
   
   //...
 ```
 
-Building while having `last 1 Chrome version` in *.browserslistrc*
+Building while still having `last 1 chrome version` only in *.browserslistrc*
 
 ```sh
 npm run front:build:dev
@@ -568,24 +583,10 @@ Using plugins:
 ---
 # Other polyfills
 
-There are polyfills that are not within *core-js*. For example [window.fetch polyfill](https://github.com/github/fetch)).
+There are polyfills that are not within *core-js*. For example [window.fetch (whatwg-fetch) polyfill](https://github.com/github/fetch)).
 
 *core-js* also does not care about DOM polyfills.  
 As an example this tut will add one extra polyfill to deal with `classList` as it is not [fully implemented even in IE10/IE11](http://caniuse.com/#search=classList).  
-
-Setting *.browserslistrc* to hold support for IE10.
-
-_.browserslistrc_
-
-```
-[production staging testing]
-last 1 version
-Explorer 10
-
-[development]
-last 1 version
-Explorer 10
-```
 
 Installing polyfill
 
@@ -595,7 +596,7 @@ npm install eligrey-classlist-js-polyfill --save-dev
 
 Importing it within app entry point (alternative would be to import *eligrey-classlist-js-polyfill* within `src/index.js`).
 
-_src/webpack.front.config.js_
+_webpack.front.config.js_
 
 ```javascript
 // ..
@@ -603,7 +604,7 @@ _src/webpack.front.config.js_
   entry: {
     index: [
       'eligrey-classlist-js-polyfill',
-      path.join(__dirname, 'src/index.js')
+      path.resolve(__dirname, 'src/index.js')
     ]
   },
 
@@ -617,6 +618,30 @@ npm run front:build:dev
 ```
 
 gives polyfill built into *public/assets/index.js*.
+
+Such manual polifill addition has to be coder managed, as it does not uses feature detection, browserlistrc.
+
+Setting *.browserslistrc* back to hold support for IE10.
+
+_.browserslistrc_
+
+```
+# [production staging testing]
+# > 0.0001%
+#
+# [development]
+# last 1 version
+
+[production staging testing]
+last 1 chrome version
+last 1 firefox version
+Explorer 10
+
+[development]
+last 1 chrome version
+last 1 firefox version
+Explorer 10
+```
 
 ---
 # Shims
@@ -635,7 +660,7 @@ Deploying for browsers that may need shims is a rarity. However good looking fal
 # Result
 
 See `webpacktest-06-babel` directory.  
-Images and fonts have to be copied to `src/..` from `media/..`.
+Images and fonts have to be copied to `src/..` from `media/..`, otherwise build fill fail.
 
 ---
 # Next

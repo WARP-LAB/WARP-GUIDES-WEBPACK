@@ -17,7 +17,7 @@ Use existing code base from previous guide stage (`webpacktest-03-file-loading`)
 The directory now is called `webpacktest-04-devserver`.  
 Make changes in `package.json` name field.  
 Don't forget `npm install`.  
-Images and fonts have to be copied to `src/..` from `media/..`.
+Images and fonts have to be copied to `src/..` from `media/..`, otherwise build fill fail.
 
 ```sh
 cd webpacktest-04-devserver
@@ -34,6 +34,12 @@ _properties.json_
 
 ```json
 {
+  "analyse": {
+    "enable": false,
+    "host": "127.0.0.1",
+    "port": 4001
+  },
+  "pwa": false,
   "useProtocolRelativeUrls": false,
   "tiers": {
     "development": {
@@ -95,7 +101,7 @@ Currently built assets are JS, CSS, image files and webfont files.
 
 ### Development tier
 
-From now on development tier will be run using *webpack-dev-server*.
+From now on development tier will be mostly run using *webpack-dev-server*.
 
 There is still possibility to build for *previous type of development* though - the one as up until this chapter.
 
@@ -172,6 +178,7 @@ let appPathUrlBaseNoPort; // app base URL without any port designation
 let appPathUrlBuildWithPort; // ULR to built assets
 let appPathUrlBuildNoPort; // ULR to built assets, but without any port designation
 
+let appPathUrlBasePublicPath; // will be constructed along the way and used in config
 let appPathUrlBuildPublicPath; // will be constructed along the way and used in webpack.config.output.publicPath a.o.
 
 // Definitions
@@ -188,6 +195,7 @@ appPathUrlBaseNoPort = `${appProtocolPrefix}//${appFqdn}/${appUrlPathAboveServer
 appPathUrlBuildWithPort = `${appPathUrlBaseWithPort}${appPathUrlBuildRelativeToApp}`;
 appPathUrlBuildNoPort = `${appPathUrlBaseNoPort}${appPathUrlBuildRelativeToApp}`;
 
+appPathUrlBasePublicPath = appPathUrlBaseWithPort;
 appPathUrlBuildPublicPath = appPathUrlBuildWithPort;
 
 // ----------------
@@ -207,9 +215,11 @@ if (!relativeUrlType && !appFqdn.trim()) {
 }
 
 if (relativeUrlType === 'server-root-relative') {
+  appPathUrlBasePublicPath = `/${appUrlPathAboveServerRoot}`;
   appPathUrlBuildPublicPath = `/${appUrlPathAboveServerRoot}${appPathUrlBuildRelativeToApp}`;
 }
 else if (relativeUrlType === 'app-index-relative') {
+  appPathUrlBasePublicPath = ''; // or './'
   appPathUrlBuildPublicPath = `${appPathUrlBuildRelativeToApp}`;
 }
 else {
@@ -238,10 +248,12 @@ if (!relativeUrlType) {
   console.log('\x1b[44m%s\x1b[0m -> \x1b[36m%s\x1b[0m', 'appPathUrlBaseNoPort', appPathUrlBaseNoPort);
   console.log('\x1b[44m%s\x1b[0m -> \x1b[36m%s\x1b[0m', 'appPathUrlBuildWithPort', appPathUrlBuildWithPort);
   console.log('\x1b[44m%s\x1b[0m -> \x1b[36m%s\x1b[0m', 'appPathUrlBuildNoPort', appPathUrlBuildNoPort);
+  console.log('\x1b[44m%s\x1b[0m -> \x1b[36m%s\x1b[0m', 'appPathUrlBasePublicPath', appPathUrlBasePublicPath);
   console.log('\x1b[44m%s\x1b[0m -> \x1b[36m%s\x1b[0m', 'appPathUrlBuildPublicPath', appPathUrlBuildPublicPath);
 }
 else {
   console.log('\x1b[45m%s\x1b[0m', 'Relative URL used, thus hostname, port a.o. does not apply.');
+  console.log('\x1b[44m%s\x1b[0m -> \x1b[36m%s\x1b[0m', 'appPathUrlBasePublicPath', appPathUrlBasePublicPath);
   console.log('\x1b[44m%s\x1b[0m -> \x1b[36m%s\x1b[0m', 'appPathUrlBuildPublicPath', appPathUrlBuildPublicPath);
 }
 console.log('\x1b[42m\x1b[30m                                                               \x1b[0m');
@@ -267,15 +279,15 @@ But for all things that webpack is *compiling* absolute path is set that reflect
 <!DOCTYPE html>
 <html lang="en" class="noscript incapable">
 <head>
-  <meta charset="utf-8">
+  <meta charset="utf-8"/>
   <title>My Title</title>
-  <meta name="description" content="Webpack Guide">
-  <meta name="keywords" content="webpack,guide">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+  <meta name="description" content="Webpack Guide"/>
+  <meta name="keywords" content="webpack,guide"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0"/>
   <script src="assets/preflight.js"></script>
-  <link href="assets/preflight.css" rel="stylesheet" type="text/css">
-  <!-- <link href="assets/index.css" rel="stylesheet" type="text/css"> -->
-  <link href="http://localhost:4000/assets/index.css" rel="stylesheet" type="text/css">
+  <link href="assets/preflight.css" rel="stylesheet" type="text/css"/>
+  <!-- <link href="assets/index.css" rel="stylesheet" type="text/css"/> -->
+  <link href="http://localhost:4000/assets/index.css" rel="stylesheet" type="text/css"/>
 </head>
 <body>
   <noscript>
@@ -309,11 +321,10 @@ npx webpack-dev-server --config=$(pwd)/webpack.front.config.js \
 
 Open `public/index.html` directly from local filesystem in browser as up until now (unless you have gone Valet route) in your browser.
 
-Page opens and we have two issues.
+Page opens and there are two issues.
 
 * First one is that webfonts are not loaded and console spits `Access to font (..) has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource`.
-* Second is that `prefligt.(js|css)` are not output in assets directory and thus are not loaded (browsser console yields 404's).
-
+* Second is that `prefligt.(js|css)` are not output in assets directory and thus are not loaded (browser console yields *404*'s).
 
 #### CORS policy webpack-dev-server configuration 
 
@@ -323,7 +334,7 @@ To fix that move webpack-dev-server configuration from command line inline optio
 
 [Configuration options](https://webpack.js.org/configuration/dev-server/#devserver) are quite extensive, let us fill in some.
 
-*webpack.front.config.js*
+_webpack.front.config.js_
 
 ```javascript
 // ...
@@ -339,7 +350,7 @@ config.devServer = {
 
   // pass content base if using webpack-dev-server to serve static files
   contentBase: false,
-  // contentBase: path.resolve(__dirname, 'public/'),
+  // contentBase: (devServerServeStatic) ? appPathFsBase : false,
   // staticOptions: {},
 
   watchContentBase: false,
@@ -372,12 +383,13 @@ config.devServer = {
   ],
   historyApiFallback: true,
 
-  https: false,
-  // https: {
-  //   ca: fs.readFileSync(`${require('os').homedir()}/.valet/CA/LaravelValetCASelfSigned.pem`),
-  //   key: fs.readFileSync(`${require('os').homedir()}/.valet/Certificates/${appFqdn}.key`),
-  //   cert: fs.readFileSync(`${require('os').homedir()}/.valet/Certificates/${appFqdn}.crt`)
-  // },
+  https: development && currTierProps.tls
+    ? {
+      ca: fs.readFileSync(`${require('os').homedir()}/.config/valet/CA/LaravelValetCASelfSigned.pem`),
+      key: fs.readFileSync(`${require('os').homedir()}/.config/valet/Certificates/${appFqdn}.key`),
+      cert: fs.readFileSync(`${require('os').homedir()}/.config/valet/Certificates/${appFqdn}.crt`)
+    }
+    : false,
 
   // pfx: '/path/to/file.pfx',
   // pfxPassphrase: 'passphrase',
@@ -415,8 +427,7 @@ config.devServer = {
 ```
 
 Previous DevServer instance should be killed (`ctr+c`).
-Rerun it without all those command line arguments.
-
+Rerun DevServer without all those command line arguments.
 
 ```sh
 rm -rf $(pwd)/public/assets/** && \
@@ -426,7 +437,7 @@ npx webpack-dev-server \
 ```
 
 * Fonts are loading because `Access-Control-Allow-Origin` is set.
-* `preflight` files are copied over to assets, because `writeToDisk` is set. Only allowing preflight files *through* for now.
+* `preflight` files are copied over to assets, because `writeToDisk` is set. Only allowing preflight files through for now.
 
 At this point task of being able to run DevServer and to open `index.html` from local filesystem in browser that renders content correctly should be solved.
 
@@ -434,7 +445,7 @@ At this point task of being able to run DevServer and to open `index.html` from 
 * CSS content (embedded in JavaScript file) is served by `webpack-dev-server`
 * Assets that are piped through loaders (in this case images and webfonts) is served by `webpack-dev-server` 
 * `preflight.(js|css)` are outputted to local filesystem, HTML references them relatively
-* `index.html` is opened directly from local filesystem
+* `index.html` is opened directly from local filesystem (opening [http://localhost:4000/](http://localhost:4000/) will yield *Cannot GET /*)
 
 #### Run DevServer, `index.html` and static files served by webpack-dev-server
 
@@ -462,7 +473,7 @@ config.devServer = {
 
 ```
 
-Secondly  *properties.json* that is consumed by webpack config script needs change - setting `relativeUrlType` to false. It *can* be skipped due to the fact that webpack config script checks if DevServer is running and if yes, forces `relativeUrlType` to false automatically, thus setting everything to use FQDN.
+Secondly *properties.json* that is consumed by webpack config script needs change - setting `relativeUrlType` to false. It *can* be skipped due to the fact that webpack config script checks if DevServer is running and if yes, forces `relativeUrlType` to false automatically, thus setting everything to use FQDN.
 
 *properties.json*
 
@@ -476,7 +487,7 @@ Secondly  *properties.json* that is consumed by webpack config script needs chan
     }
 ```
 
-Introduce a new self-declared ENV variable `DEV_SERVE_STATIC` (it could be any other name). It serves as mechanism to pass to webpack config script whether *webpack-dev-server* should serve static files - it is used to set `devServerServeStatic` flag.
+Introducing a new self-declared ENV variable `DEV_SERVE_STATIC` (it could be any other name). It serves as mechanism to pass to webpack config script whether *webpack-dev-server* should serve static files - it is used to set `devServerServeStatic` flag.
 
 Run DevServer
 
@@ -494,27 +505,26 @@ Firing up [http://localhost:4000/](http://localhost:4000/) in the browser.
 * CSS content (embedded in JavaScript file) is served by `webpack-dev-server`
 * assets that are piped through loaders (in this case images and webfonts) is served by `webpack-dev-server` 
 * `preflight.(js|css)` are outputted to filesystem, and are served by `webpack-dev-server` 
-* `index.html` is served by `webpack-dev-server`
+* `index.html` is served by `webpack-dev-server` (opening [http://localhost:4000/](http://localhost:4000/) will render the app)
+* opening `index.html` directly from filesystem works still, too.
 
-Opening `index.html` directly from filesystem works too.
-
-Note that as all static assets are served by *webpack-dev-server* one could also set absolute FQDNs for preflight resources in `index.html` denoting the intent for the app to be consumed visa `localhost` now.
+Note that as all static assets are served by *webpack-dev-server* one could also set absolute FQDNs for preflight resources in `index.html` denoting the intent for the app to be consumed via `localhost` now.
 
 ```html
 <!DOCTYPE html>
 <html lang="en" class="noscript incapable">
 <head>
-  <meta charset="utf-8">
+  <meta charset="utf-8"/>
   <title>My Title</title>
-  <meta name="description" content="Webpack Guide">
-  <meta name="keywords" content="webpack,guide">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+  <meta name="description" content="Webpack Guide"/>
+  <meta name="keywords" content="webpack,guide"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0"/>
   <!-- <script src="assets/preflight.js"></script> -->
   <script src="http://localhost:4000/assets/preflight.js"></script>
-  <!-- <link href="assets/preflight.css" rel="stylesheet" type="text/css"> -->
-  <link href="http://localhost:4000/assets/preflight.css" rel="stylesheet" type="text/css">
-  <!-- <link href="assets/index.css" rel="stylesheet" type="text/css"> -->
-  <link href="http://localhost:4000/assets/index.css" rel="stylesheet" type="text/css">
+  <!-- <link href="assets/preflight.css" rel="stylesheet" type="text/css"/> -->
+  <link href="http://localhost:4000/assets/preflight.css" rel="stylesheet" type="text/css"/>
+  <!-- <link href="assets/index.css" rel="stylesheet" type="text/css"/> -->
+  <link href="http://localhost:4000/assets/index.css" rel="stylesheet" type="text/css"/>
 </head>
 <body>
   <noscript>
@@ -555,44 +565,7 @@ If the *semantically correct* way is chosen when using Valet props should be cha
     },
 ```
 
-And FQDN should be changed also in `index.html` accordingly.
-
-*index.html*
-
-```html
-<!DOCTYPE html>
-<html lang="en" class="noscript incapable">
-<head>
-  <meta charset="utf-8">
-  <title>My Title</title>
-  <meta name="description" content="Webpack Guide">
-  <meta name="keywords" content="webpack,guide">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
-  <!-- <script src="assets/preflight.js"></script> -->
-  <script src="http://webpacktest-04-devserver.test/assets/preflight.js"></script>
-  <!-- <link href="assets/preflight.css" rel="stylesheet" type="text/css"> -->
-  <link href="http://webpacktest-04-devserver.test/assets/preflight.css" rel="stylesheet" type="text/css">
-  <!-- <link href="assets/index.css" rel="stylesheet" type="text/css"> -->
-  <link href="http://webpacktest-04-devserver.test:4000/assets/index.css" rel="stylesheet" type="text/css">
-</head>
-<body>
-  <noscript>
-    <div class="noscript">
-      Lynx FTW!
-    </div>
-  </noscript>
-  <div class="incapable">
-    Incapable :(
-  </div>
-  <div class="app"> Loading... </div>
-  <script>
-    window.__TEMPLATE_DATA__ = {};
-  </script>
-  <!-- <script src="assets/index.js"></script> -->
-  <script src="http://webpacktest-04-devserver.test:4000/assets/index.js"></script>
-</body>
-</html>
-```
+And FQDN should be changed also in `index.html` accordingly relpacing all instances of `http://localhost` to `http://webpacktest-04-devserver.test` in *public/index.html*
 
 Run DevServer without static file serving
 
@@ -605,7 +578,7 @@ npx webpack-dev-server \
 
 Open [http://webpacktest-04-devserver.test/](http://webpacktest-04-devserver.test/). It also should work by opening `public/index.html` file from file system (as CORS is set).
 
-Note that `preflight.(js|css)` has no port attached to it in HTML, as these resources are served by nginx on port 80. If port `4000` was to be specified in HTML, then DevServer has to be served with static file serving enabled.
+Note that `preflight.(js|css)` can have no port attached to it in HTML *href/scr*, as these resources are served by nginx on port 80. If port `4000` was to be specified in HTML, then DevServer has to be served with static file serving enabled.
 
 ## npm scripting the additional build options
 
@@ -619,7 +592,10 @@ Note that `preflight.(js|css)` has no port attached to it in HTML, as these reso
     "front:build:test": "npm run clean:assets && NODE_ENV=testing webpack --config=$(pwd)/webpack.front.config.js --progress",
     "front:build:stage": "npm run clean:assets && NODE_ENV=staging webpack --config=$(pwd)/webpack.front.config.js --progress",
     "front:build:prod": "npm run clean:assets && NODE_ENV=production webpack --config=$(pwd)/webpack.front.config.js --progress",
-    "clean:assets": "rm -rf $(pwd)/public/assets/**"
+    "clean:assets": "rm -rf $(pwd)/public/assets/**",
+    "front:screen:start": "npm run front:screen:stop && screen -S $npm_package_name -d -m npm run front:dev:static && npm run front:screen:enter",
+    "front:screen:enter": "screen -r $npm_package_name",
+    "front:screen:stop": "screen -S $npm_package_name -X stuff $'\\003' && screen -S $npm_package_name -X quit 2>/dev/null || :"
   },
 ```
 
@@ -634,7 +610,7 @@ _properties.json_
       "port": "4000",
       "appPathUrlAboveServerRoot": "",
       "relativeUrlType": "app-index-relative"
-    }
+    },
 ```
 
 _public/index.html_
@@ -646,7 +622,7 @@ Run with DevServer
 ```sh
 npm run front:dev:serve
 ```
-App can be run by run:
+App can be run
 
 * by opening `index.html` from local filesystem in browser
 * by opening [http://webpacktest-04-devserver.test](http://webpacktest-04-devserver.test) if Valet used.
@@ -734,7 +710,7 @@ config.devServer = {
 
 // ----------------
 // Hot reloading
-if (development) {
+if (development && devServerRunning) {
   config.plugins.push(new webpack.HotModuleReplacementPlugin());
 }
 
@@ -757,7 +733,7 @@ Make changes again in SCSS
 _src/index.global.scss_
 
 ```scss
-  transform: translateY(70px);
+  transform: translateY(10px);
 ```
 
 and save file.
@@ -774,7 +750,7 @@ When running DevServer CSS has be inlined within JavaScript so that hot reloadin
 # Result
 
 See `webpacktest-04-devserver` directory.  
-Images and fonts have to be copied to `src/..` from `media/..`.
+Images and fonts have to be copied to `src/..` from `media/..`, otherwise build fill fail.
 
 ---
 # Next

@@ -22,9 +22,12 @@ body {
 
 .app {
   background-color: $mycolor;
-  display: flex;
-  transform: translateY(70px);
+  transform: translateY(10px);
   height: 200px;
+
+  h1 {
+    display: flex;
+  }
 
   p {
     color: $paragarphColor;

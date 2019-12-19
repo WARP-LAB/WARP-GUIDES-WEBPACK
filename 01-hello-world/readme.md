@@ -44,8 +44,7 @@ webpacktest-01-hello-world
 ├── src
 │   ├── fonts
 │   ├── helpers
-│   │   ├── helpers.lazy.js
-│   │   ├── helpers.lazy.scss
+│   │   ├── helpers.lazy.one.js│   │   ├── helpers.lazy.one.scss│   │   ├── helpers.lazy.two.js│   │   ├── helpers.lazy.two.scss
 │   │   └── helpers.simple.js
 │   ├── html
 │   │   └── index.template.ejs
@@ -126,6 +125,8 @@ _webpack.front.config.js_
 ```javascript
 // webpack config file
 
+/* eslint-disable prefer-const, brace-style */
+
 'use strict';
 
 const path = require('path');
@@ -151,7 +152,6 @@ appPathUrlBuildPublicPath = appPathUrlBuildRelativeToApp;
 // ----------------
 // Setup log
 console.log('\x1b[42m\x1b[30m                                                               \x1b[0m');
-console.log('\x1b[44m%s\x1b[0m -> \x1b[36m%s\x1b[0m', 'TIER', tierName);
 console.log('\x1b[44m%s\x1b[0m -> \x1b[36m%s\x1b[0m', 'appPathUrlBuildRelativeToApp', appPathUrlBuildRelativeToApp);
 console.log('\x1b[44m%s\x1b[0m -> \x1b[36m%s\x1b[0m', 'appPathUrlBuildRelativeToServerRoot', appPathUrlBuildRelativeToServerRoot);
 console.log('\x1b[44m%s\x1b[0m -> \x1b[36m%s\x1b[0m', 'appPathUrlBuildPublicPath', appPathUrlBuildPublicPath);
@@ -199,14 +199,14 @@ _public/index.html_
 <!DOCTYPE html>
 <html lang="en" class="noscript incapable">
 <head>
-  <meta charset="utf-8">
+  <meta charset="utf-8"/>
   <title>My Title</title>
-  <meta name="description" content="Webpack Guide">
-  <meta name="keywords" content="webpack,guide">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+  <meta name="description" content="Webpack Guide"/>
+  <meta name="keywords" content="webpack,guide"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0"/>
   <script src="assets/preflight.js"></script>
-  <link href="assets/preflight.css" rel="stylesheet" type="text/css">
-  <link href="assets/index.css" rel="stylesheet" type="text/css">
+  <link href="assets/preflight.css" rel="stylesheet" type="text/css"/>
+  <link href="assets/index.css" rel="stylesheet" type="text/css"/>
 </head>
 <body>
   <noscript>
@@ -228,7 +228,7 @@ _public/index.html_
 
 ### JavaScript
 
-Setting up *Hello World* JavaScript that selects `app` div in DOM and puts some text in it. Note that ES5 is used here and will be until [Babel](https://babeljs.io) is attached to the pipe, except for `require()`.
+Setting up *Hello World* JavaScript that selects `app` div in DOM and puts some text in it. Note that ES5 is used here and will be until [Babel](https://babeljs.io) is attached to the pipe (`require()` being exception as that is handled by webpack).
 
 _src/index.js_
 
@@ -239,9 +239,10 @@ _src/index.js_
 
 var div = document.querySelector('.app');
 div.innerHTML = '<h1>Hello JS</h1><p>Lorem ipsum.</p>';
-div.innerHTML += '<label for="textfield">Enter your text</label>';
-div.innerHTML += '<input id="textfield" type="text" name="testtext" placeholder="Text Here">';
+div.innerHTML += '<p><label for="textfield">Enter your text</label></p>';
+div.innerHTML += '<p><input id="textfield" type="text" name="testtext" placeholder="Text Here"/></p>';
 console.log('Hello JS!');
+
 ```
 
 ### Building
@@ -335,7 +336,7 @@ let config = {
 
 ```
 
-In this guide we will put webpack in *development mode* when in development tier and in *production mode* when in any other (non-development) tiers. *Testing* tier throughout this guide can be considered as production tier.
+In this guide webpack will be put in *development mode* when in development tier and in *production mode* when in any other (non-development) tiers. *Testing* tier throughout this guide can be considered as production tier.
 
 Run webpack, specify `NODE_ENV` value
 
@@ -392,10 +393,11 @@ var helpers = require('extras/helpers.simple.js');
 
 var div = document.querySelector('.app');
 div.innerHTML = '<h1>Hello JS</h1><p>Lorem ipsum.</p>';
-div.innerHTML += '<label for="textfield">Enter your text</label>';
-div.innerHTML += '<input id="textfield" type="text" name="testtext" placeholder="Text Here">';
+div.innerHTML += '<p><label for="textfield">Enter your text</label></p>';
+div.innerHTML += '<p><input id="textfield" type="text" name="testtext" placeholder="Text Here"/></p>';
 console.log('Hello JS!');
 helpers.helperA();
+
 ```
 
 Build
@@ -435,7 +437,7 @@ When building webpack for testing tier then minimisation in action can be seen O
 
 In other words, on *production* mode webpack sets `optimization.minimize: true` and `optimization.minimizer: new TerserPlugin({})` with some defaults.
 
-But what if those defaults needs some overrides? Just pass custom constructed object to `optimization.minimizer`.
+But what if those defaults needs some overrides? Passing custom constructed object to `optimization.minimizer` is the solution.
 
 `TerserPlugin` keys can be found [here](https://webpack.js.org/plugins/terser-webpack-plugin/).  
 `terserOptions` key can be found [here](https://github.com/terser/terser#minify-options) and it holds also links to options for `terserOptions.parse`, `terserOptions.compress`, `terserOptions.mangle`, `terserOptions.output`, and `terserOptions.sourceMap` objects.
@@ -445,6 +447,8 @@ Install plugin
 ```sh
 npm install terser-webpack-plugin --save-dev
 ```
+
+Configure the plugin to minimise when `!development`.
 
 _webpack.front.config.js_
 
@@ -458,7 +462,7 @@ const TerserPlugin = require('terser-webpack-plugin');
 // ----------------
 // OPTIMISATION
 config.optimization = {
-  minimize: true, // can override
+  minimize: !development, // can override
   minimizer: [
     new TerserPlugin({
       test: /\.js(\?.*)?$/i,
@@ -476,7 +480,9 @@ config.optimization = {
         // ecma: undefined,
         warnings: true,
         parse: {},
-        compress: {},
+        compress: {
+          drop_console: false // normally should be - drop_console: !development
+        },
         mangle: false,
         module: false,
         output: {
@@ -515,8 +521,6 @@ _webpack.front.config.js_
 // ...
 config.optimization = {
   
-  minimize: true, // can override
-  
   // ...  
       terserOptions: {
         // ...
@@ -534,28 +538,12 @@ config.optimization = {
 
 Build again for testing tier and observe.
 
-Set [`config.optimization.minimize`](https://webpack.js.org/configuration/optimization/#optimizationminimize) to be true on non-development tiers.
-
-_webpack.front.config.js_
-
-```javascript
-// ...
-config.optimization = {
-  
-  minimize: !development, // can override
-
-  // ...
- };
-
-// ...
-```
-
 ---
 # Copy files to destination without compiling
 
 `index.html` file has `preflight.js` and `preflight.css` referenced in the head. But they are not present in output directory after building webpack, thus while rendering `index.html` console will probably yield `404` for *preflight* assets (and also *index.css*, but more on that later as currently there is no CSS at all).
 
-Consider *preflight* assets as a special case - webpack should not attached *webpack stuff* to it. Webpack *stuff*? Build the project for development (thus no minimising) and inspect `public/assets/index.js`. How does it differ from user code in *src/index.js*? *That webpack stuff.* Later there will be also other *stuff*, i.e., runtime and manifest.
+Consider *preflight* assets as a special case - webpack should not attached *webpack stuff* to it. Webpack *stuff*? Build the project for development (thus no minimising) and inspect `public/assets/index.js`. How does it differ from user code in *src/index.js*? *That webpack stuff.* Later there will be more on *webpack stuff*, i.e., runtime and manifest.
 
 From the current tools that are available one approach would be to use [`copy-webpack-plugin`](https://github.com/webpack-contrib/copy-webpack-plugin) which is the popular one. We have used [`filemanager-webpack-plugin`](https://github.com/gregnb/filemanager-webpack-plugin) as *filemanager* allows specifying actions that are executed both before and/or after webpack begins the bundling process, but it has stalled in it's development.
 
@@ -598,14 +586,18 @@ config.plugins = [];
 
 // ----------------
 // CopyPlugin
-config.plugins.push(new CopyPlugin([
-  {
-    from: path.join(__dirname, 'src/preflight/*.{js,css}'),
-    to: appPathFsBuild,
-    flatten: true,
-    toType: 'dir'
-  }
-]));
+config.plugins.push(new CopyPlugin(
+  [
+    {
+      from: path.join(__dirname, 'src/preflight/*.{js,css}'),
+      to: appPathFsBuild,
+      flatten: true,
+      toType: 'dir'
+    }
+  ]
+));
+
+// ...
 
 ```
 
@@ -632,8 +624,10 @@ if ('visibilityState' in document) {
 }
 
 // ############################################################
-// Just say hello.
+// Just say hello
+// Normally there should not be any console in preflight, as not all browsers support it!
 console.log('I am Preflight');
+
 ```
 
 _src/preflight/preflight.css_
@@ -670,9 +664,9 @@ NODE_ENV=testing \
 npx webpack --config=$(pwd)/webpack.front.config.js --progress
 ```
 
-The *preflight* files are copied to `public/assets` directory. Open page in the browser, preflight JS does it's job of renaming classnames and preflight CSS does it's job of of hiding that `Incabable :(` message.
+The *preflight* files are copied to `public/assets` directory. Open `public/index.html` in the browser, preflight JS does it's job of renaming classnames and preflight CSS does it's job of of hiding that `Incabable :(` message.
 
-The sole reason for *preflight* is to use some ES3 code without any polyfills that can execute on *any* browser for detecting very very very basic browser features, including JavaScript support, in order to set if the webapp can be run at all. It is not about which features to enable, granular feature detection and fallbacks can be done in actual app code using tools such as [*Modernzr*](https://modernizr.com). *preflight* should not be touched by webpack *compiling* system!
+The sole reason for *preflight* is to use some ES3 (NOT even ES5!) code without any polyfills that can execute on *any* browser for detecting very very very basic browser features, including JavaScript support, in order to set if the webapp can be run at all. It is not about which features to enable, granular feature detection and fallbacks can be done in actual app code using tools such as [*Modernzr*](https://modernizr.com). *preflight* should not be touched by webpack *compiling* system.
 
 ---
 # First build of SCSS/CSS
@@ -709,8 +703,7 @@ A bunch of webpack loaders is needed to get compiled `index.css`.
 
 [mini-css-extract-plugin](https://github.com/webpack-contrib/mini-css-extract-plugin) extracts required CSS from within JavaScript into separate file(s). Thus CSS is not inlined into the JavaScript (`public/assets/index.js`), which would be kind of default webpack way without this plugin. Previously [extract-text-webpack-plugin](https://github.com/webpack/extract-text-webpack-plugin) ([webpack docs](https://webpack.js.org/plugins/extract-text-webpack-plugin/)) was used, but it is not *future proof*.
 
-
-Previously minification could be handled by `css-loader`, now a simple addition is [optimize-css-assets-webpack-plugin](https://github.com/NMFR/optimize-css-assets-webpack-plugin), which uses [cssnano](https://github.com/cssnano/cssnano). However in context in this tut it is a temporary solution as [PostCSS](https://postcss.org) will be used later where CSS optimisation will be solved through it.
+Previously minification could be handled by `css-loader`, now a simple addition is [optimize-css-assets-webpack-plugin](https://github.com/NMFR/optimize-css-assets-webpack-plugin), which uses [cssnano](https://github.com/cssnano/cssnano). However in context of this tut it is a temporary solution as [PostCSS](https://postcss.org) will be used later where CSS optimisation will be solved through it.
 
 #### Install and setup
 
@@ -722,12 +715,14 @@ npm install mini-css-extract-plugin --save-dev
 npm install optimize-css-assets-webpack-plugin --save-dev
 ```
 
-Set up loaders, set `mini-css-extract-plugin` to extract CSS if `!development` and set up temporary `optimize-css-assets-webpack-plugin`.
+Set up loaders, set `mini-css-extract-plugin` to extract CSS if `!development` (otherwise use `style-loader`) and set up temporary `optimize-css-assets-webpack-plugin`.
 
 _webpack.front.config.js_
 
 ```javascript
 // webpack config file
+
+/* eslint-disable prefer-const, brace-style */
 
 'use strict';
 
@@ -829,6 +824,7 @@ config.module = {
         {
           loader: 'css-loader',
           options: {
+            importLoaders: 0,
             sourceMap: true
           }
         }
@@ -849,6 +845,7 @@ config.module = {
         {
           loader: 'css-loader',
           options: {
+            importLoaders: 1,
             sourceMap: true
           }
         },
@@ -884,7 +881,9 @@ config.optimization = {
         // ecma: undefined,
         warnings: true,
         parse: {},
-        compress: {},
+        compress: {
+          drop_console: false // normally should be - drop_console: !development
+        },
         mangle: false,
         module: false,
         output: {
@@ -929,14 +928,16 @@ config.plugins = [];
 
 // ----------------
 // CopyPlugin
-config.plugins.push(new CopyPlugin([
-  {
-    from: path.join(__dirname, 'src/preflight/*.{js,css}'),
-    to: appPathFsBuild,
-    flatten: true,
-    toType: 'dir'
-  }
-]));
+config.plugins.push(new CopyPlugin(
+  [
+    {
+      from: path.join(__dirname, 'src/preflight/*.{js,css}'),
+      to: appPathFsBuild,
+      flatten: true,
+      toType: 'dir'
+    }
+  ]
+));
 
 // ----------------
 // MiniCssExtractPlugin
@@ -946,6 +947,7 @@ config.plugins.push(new MiniCssExtractPlugin({
 }));
 
 module.exports = config;
+
 ```
 
 Require CSS in the entry.
@@ -962,8 +964,8 @@ require('index.global.scss');
 
 var div = document.querySelector('.app');
 div.innerHTML = '<h1>Hello JS</h1><p>Lorem ipsum.</p>';
-div.innerHTML += '<label for="textfield">Enter your text</label>';
-div.innerHTML += '<input id="textfield" type="text" name="testtext" placeholder="Text Here">';
+div.innerHTML += '<p><label for="textfield">Enter your text</label></p>';
+div.innerHTML += '<p><input id="textfield" type="text" name="testtext" placeholder="Text Here"/></p>';
 console.log('Hello JS!');
 helpers.helperA();
 ```
@@ -993,10 +995,15 @@ $mycolor: red;
 
 .app {
   background-color: $mycolor;
-  display: flex;
   transform: translateY(50px);
   height: 200px;
+
+  h1 {
+    display: flex;
+  }
+
 }
+
 ```
 
 ### Building
@@ -1053,8 +1060,8 @@ if (__DEVELOPMENT__) {
 
 var div = document.querySelector('.app');
 div.innerHTML = '<h1>Hello JS</h1><p>Lorem ipsum.</p>';
-div.innerHTML += '<label for="textfield">Enter your text</label>';
-div.innerHTML += '<input id="textfield" type="text" name="testtext" placeholder="Text Here">';
+div.innerHTML += '<p><label for="textfield">Enter your text</label></p>';
+div.innerHTML += '<p><input id="textfield" type="text" name="testtext" placeholder="Text Here"/></p>';
 console.log('Hello JS!');
 helpers.helperA();
 ```
@@ -1112,7 +1119,7 @@ if (process.env.NODE_ENV === 'development') {
 
 or may use `__DEV__` and `__PROD__` constants.
 
-Meanwhile user code still can use all 4 tiers in the logic by targeting using `__TIER_NAME__` just as in the example above.
+Meanwhile user code still can use all 4 tiers which is set by *DefinePlugin* just as in the example above (`__DEVELOPMENT__`, `__TESTING__`, ...).
 
 Build for development and inspect console output as well as outputted file at `public/assets.index.js`
 

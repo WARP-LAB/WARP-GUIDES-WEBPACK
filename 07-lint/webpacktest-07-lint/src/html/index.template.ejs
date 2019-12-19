@@ -1,36 +1,106 @@
-<!DOCTYPE html>
-<html lang="en" class="noscript incapable">
+<%
+htmlWebpackPlugin.options.title = htmlWebpackPlugin.options.title || 'My Title';
+htmlWebpackPlugin.options.lang = htmlWebpackPlugin.options.lang || 'en';
+htmlWebpackPlugin.options.links = htmlWebpackPlugin.options.links || [];
+htmlWebpackPlugin.options.meta = htmlWebpackPlugin.options.meta || [];
+htmlWebpackPlugin.options.scripts = htmlWebpackPlugin.options.scripts || [];
+%><!DOCTYPE html>
+<html lang="<%= htmlWebpackPlugin.options.lang %>" class="noscript incapable"<% if (htmlWebpackPlugin.files.manifest) { %> manifest="<%= htmlWebpackPlugin.files.manifest %>"<% } %>>
 <head>
-  <meta charset="utf-8">
-  <title><%= htmlWebpackPlugin.options.title || 'My Title' %></title>
-  <meta name="description" content="Webpack Guide">
-  <meta name="keywords" content="webpack,guide">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
-  <!--
-  <script src="<%= htmlWebpackPlugin.options.props.appPathUrlBuildPublicPath %>preflight.js"></script>
-  <link href="<%= htmlWebpackPlugin.options.props.appPathUrlBuildPublicPath %>preflight.css" rel="stylesheet" type="text/css">
-  -->
-  <script><%= htmlWebpackPlugin.options.props.inlineContents['preflight.js'] %></script>
-  <style><%= htmlWebpackPlugin.options.props.inlineContents['preflight.css'] %></style>
-  <% for (let key in htmlWebpackPlugin.files.css) { %>
-    <link href="<%= htmlWebpackPlugin.files.css[key] %>" rel="stylesheet" type="text/css">
+
+  <meta charset="utf-8"/>
+
+  <title><%= htmlWebpackPlugin.options.title %></title>
+
+  <meta name="description" content="Webpack Guide"/>
+  <meta name="keywords" content="webpack,guide"/>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0"/>
+
+  <% if (htmlWebpackPlugin.files.favicon) { %>
+    <link href="<%= htmlWebpackPlugin.files.favicon %>" rel="shortcut icon"/>
   <% } %>
+
+  <% if (Array.isArray(htmlWebpackPlugin.options.meta)) { %>
+    <% for (let item of htmlWebpackPlugin.options.meta) { %>
+      <meta<% for (let key in item) { %> <%= key %>="<%= item[key] %>"<% } %>/>
+    <% } %>
+  <% } %>
+
+  <!--
+  <script src="<%= webpackConfig.output.publicPath %>preflight.js"></script>
+  <link href="<%= webpackConfig.output.publicPath %>preflight.css" rel="stylesheet" type="text/css"/>
+  -->
+  <script><%= htmlWebpackPlugin.options.warp.preflightInline['preflight.js'] %></script>
+  <style><%= htmlWebpackPlugin.options.warp.preflightInline['preflight.css'] %></style>
+
+  <% for (let item of htmlWebpackPlugin.options.links) { %>
+    <% if (typeof item === 'string' || item instanceof String) { item = { href: item, rel: 'stylesheet' } } %>
+      <link<% for (let key in item) { %> <%= key %>="<%= item[key] %>"<% } %>/>
+  <% } %>
+
+  <% for (let key in htmlWebpackPlugin.files.css) { %>
+    <% if (htmlWebpackPlugin.files.cssIntegrity) { %>
+      <link
+        href="<%= htmlWebpackPlugin.files.css[key] %>"
+        rel="stylesheet"
+        integrity="<%= htmlWebpackPlugin.files.cssIntegrity[key] %>"
+        crossorigin="<%= webpackConfig.output.crossOriginLoading %>"/>
+    <% } else { %>
+      <link href="<%= htmlWebpackPlugin.files.css[key] %>" rel="stylesheet" type="text/css"/>
+    <% } %>
+  <% } %>
+
+  <% if (htmlWebpackPlugin.options.headHtmlSnippet) { %>
+    <%= htmlWebpackPlugin.options.headHtmlSnippet %>
+  <% } %>
+
 </head>
 <body>
+
   <noscript>
     <div class="noscript">
       Lynx FTW!
     </div>
   </noscript>
+
   <div class="incapable">
     Incapable :(
   </div>
+
   <div class="app"> Loading... </div>
+
+  <% if (htmlWebpackPlugin.options.bodyHtmlSnippet) { %>
+    <%= htmlWebpackPlugin.options.bodyHtmlSnippet %>
+  <% } %>
+
   <script>
     window.__TEMPLATE_DATA__ = {};
   </script>
-  <% for (let key in htmlWebpackPlugin.files.chunks) { %>
-    <script src="<%= htmlWebpackPlugin.files.chunks[key].entry %>"></script>
+
+  <% if (htmlWebpackPlugin.options.window) { %>
+    <script>
+    <% for (let key in htmlWebpackPlugin.options.window) { %>
+      window['<%= key %>'] = <%= JSON.stringify(htmlWebpackPlugin.options.window[key]) %>;
+    <% } %>
+    </script>
   <% } %>
+
+  <% for (let item of htmlWebpackPlugin.options.scripts) { %>
+    <% if (typeof item === 'string' || item instanceof String) { item = { src: item } } %>
+    <script<% for (let key in item) { %> <%= key %>="<%= item[key] %>"<% } %>></script>
+  <% } %>
+
+  <% for (let key in htmlWebpackPlugin.files.chunks) { %>
+    <% if (htmlWebpackPlugin.files.jsIntegrity) { %>
+      <script
+        src="<%= htmlWebpackPlugin.files.chunks[key].entry %>"
+        integrity="<%= htmlWebpackPlugin.files.jsIntegrity[htmlWebpackPlugin.files.js.indexOf(htmlWebpackPlugin.files.chunks[key].entry)] %>"
+        crossorigin="<%= webpackConfig.output.crossOriginLoading %>"></script>
+    <% } else { %>
+      <script src="<%= htmlWebpackPlugin.files.chunks[key].entry %>"></script>
+    <% } %>
+  <% } %>
+
 </body>
 </html>

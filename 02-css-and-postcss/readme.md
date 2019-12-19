@@ -199,15 +199,15 @@ If one really wants to use `optimize-css-assets-webpack-plugin`, then nanocss op
 ```javascript
 // ...
 
+// const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin'); // Use while PostCSS is not introduced
+
 // ----------------
 // OPTIMISATION
 config.optimization = {
-  minimize: !development, // can override
+  // ...
   minimizer: [
     // ...
-    new OptimizeCSSAssetsPlugin({
-      // HERE
-    })
+    // new OptimizeCSSAssetsPlugin({}) // Use while PostCSS is not introduced
   ]
 };
 
@@ -216,26 +216,26 @@ config.optimization = {
 
 ## Test PostCSS pipe
 
-Run for development tier and inspect `.app` CSS in browser
+Run for development tier 
 
 ```sh
 npm run front:build:dev
 ```
 
-Prefixes for `transform`.
+Inspecting `.app` CSS in browser yields prefixes for `transform`.
 
-Run for testing tier and inspect `.app` CSS in browser (or `public/assets/index.css`)
+Run for testing tier
 
 ```sh
 npm run front:build:test
 ```
 
-Prefixes for `display: flex` and `transform` and CSS is minimised.
+Inspecting `.app` CSS in browser (or `public/assets/index.css`)  yields prefixes for `transform` and `display: flex` prefixing for `h1`. And `public/assets/index.css` CSS is minimised.
 
 ---
 # normalize.css
 
-Use [Normalize.css](https://necolas.github.io/normalize.css/). Although our usual *cut the mustard* at preflight enables fallback page for anything below IE11 *the fallback has to be readable*. There are alternatives such as [sanitize.css](https://github.com/csstools/sanitize.css) and [modern-normalize](https://github.com/sindresorhus/modern-normalize).
+Use [Normalize.css](https://necolas.github.io/normalize.css/). Although usual *cut the mustard* at preflight enables fallback page for anything depreciated *the fallback has to be readable*. There are alternatives such as [sanitize.css](https://github.com/csstools/sanitize.css) and [modern-normalize](https://github.com/sindresorhus/modern-normalize).
 
 ```sh
 npm install normalize.css --save-dev
@@ -304,7 +304,13 @@ let config = {
 // ...
 ```
 
-While running webpack for testing and inspecting `.app` class in browser's inspector one can see the original definitions in `index.global.scss`.  
+While running webpack for testing 
+
+```sh
+npm run front:build:test
+```
+
+and inspecting `.app` class in browser's inspector one can see the original definitions in `index.global.scss`.  
 Inspect where console logs in JavaScript console are coming from.  
 It all refers to original sources.  
 Compiled files `index.js` and `index.css` at `public/assets/` hold inlined sourcemaps.
@@ -326,6 +332,7 @@ _webpack.front.config.js_
 ```javascript
 const sourceMapType = (development) ? 'inline-source-map' : false;
 ```
+
 Build both for development and any other tier, observe the difference
 
 ```sh
@@ -338,7 +345,7 @@ npm run front:build:test
 
 Keep `inline-source-map` for now although it has slowest build & rebuild performance, read more on performance [here](https://webpack.js.org/configuration/devtool/).
 
-webpack build performance [entry](https://webpack.js.org/guides/build-performance/#source-maps) about source maps simply states *Source maps are really expensive. Do you really need them?*. For his tutorial - yes, in order to show how.
+webpack build performance [entry](https://webpack.js.org/guides/build-performance/#source-maps) about source maps simply states *Source maps are really expensive. Do you really need them?*. For this tutorial - yes, in order to show how.
 
 ---
 # Make SCSS build environment aware
@@ -383,15 +390,19 @@ $paragarphColor: black;
 
 .app {
   background-color: $mycolor;
-  display: flex;
   transform: translateY(50px);
   height: 200px;
+
+  h1 {
+    display: flex;
+  }
 
   p {
     color: $paragarphColor;
   }
 
 }
+
 ```
 
 Building for *development* and *testing* tiers yields different font colour for *Lorem ipsum* in rendered HTML as observed in browser.

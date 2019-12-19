@@ -1,17 +1,23 @@
 {
+  "analyse": {
+    "enable": false,
+    "host": "127.0.0.1",
+    "port": 4001
+  },
+  "pwa": true,
   "useProtocolRelativeUrls": false,
   "tiers": {
     "development": {
-      "fqdn": "webpacktest-09-pwa-and-ttfmp.test",
+      "fqdn": "localhost",
       "tls": true,
       "port": "4000",
       "appPathUrlAboveServerRoot": "",
       "relativeUrlType": false
     },
     "testing": {
-      "fqdn": "webpacktest-09-pwa-and-ttfmp.test",
+      "fqdn": "localhost",
       "tls": true,
-      "port": "",
+      "port": "3003",
       "appPathUrlAboveServerRoot": "",
       "relativeUrlType": false
     },

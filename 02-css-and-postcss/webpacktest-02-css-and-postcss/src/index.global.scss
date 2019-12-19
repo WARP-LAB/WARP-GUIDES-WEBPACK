@@ -17,9 +17,12 @@ $paragarphColor: black;
 
 .app {
   background-color: $mycolor;
-  display: flex;
   transform: translateY(50px);
   height: 200px;
+
+  h1 {
+    display: flex;
+  }
 
   p {
     color: $paragarphColor;

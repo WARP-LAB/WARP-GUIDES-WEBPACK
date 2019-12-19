@@ -1,7 +1,15 @@
+# [production staging testing]
+# > 0.0001%
+#
+# [development]
+# last 1 version
+
 [production staging testing]
-last 1 version
+last 1 chrome version
+last 1 firefox version
 Explorer 10
 
 [development]
-last 1 version
+last 1 chrome version
+last 1 firefox version
 Explorer 10

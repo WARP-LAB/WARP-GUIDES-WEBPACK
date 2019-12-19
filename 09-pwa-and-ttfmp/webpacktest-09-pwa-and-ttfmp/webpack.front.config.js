@@ -9,14 +9,14 @@ const path = require('path');
 const appProps = require(path.resolve(__dirname, 'properties.json'));
 const webpack = require('webpack');
 const TerserPlugin = require('terser-webpack-plugin');
-// const CopyPlugin = require('copy-webpack-plugin');
+const CopyPlugin = require('copy-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 // const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin'); // Use while PostCSS is not introduced
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const HtmlWebpackHarddiskPlugin = require('html-webpack-harddisk-plugin');
-// const StylelintPlugin = require('stylelint-webpack-plugin'); // eslint-disable-line no-unused-vars
+const InlineManifestWebpackPlugin = require('inline-manifest-webpack-plugin'); // eslint-disable-line no-unused-vars
+const StylelintPlugin = require('stylelint-webpack-plugin'); // eslint-disable-line no-unused-vars
 const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin; // eslint-disable-line no-unused-vars
-const HtmlWebpackScriptsPlugin = require('html-webpack-scripts-plugin'); // eslint-disable-line no-unused-vars
 const WebpackPwaManifest = require('webpack-pwa-manifest'); // eslint-disable-line no-unused-vars
 const OfflinePlugin = require('offline-plugin'); // eslint-disable-line no-unused-vars
 
@@ -78,6 +78,7 @@ let appPathUrlBaseNoPort; // app base URL without any port designation
 let appPathUrlBuildWithPort; // ULR to built assets
 let appPathUrlBuildNoPort; // ULR to built assets, but without any port designation
 
+let appPathUrlBasePublicPath; // will be constructed along the way and used in config
 let appPathUrlBuildPublicPath; // will be constructed along the way and used in webpack.config.output.publicPath a.o.
 
 // Definitions
@@ -94,6 +95,7 @@ appPathUrlBaseNoPort = `${appProtocolPrefix}//${appFqdn}/${appUrlPathAboveServer
 appPathUrlBuildWithPort = `${appPathUrlBaseWithPort}${appPathUrlBuildRelativeToApp}`;
 appPathUrlBuildNoPort = `${appPathUrlBaseNoPort}${appPathUrlBuildRelativeToApp}`;
 
+appPathUrlBasePublicPath = appPathUrlBaseWithPort;
 appPathUrlBuildPublicPath = appPathUrlBuildWithPort;
 
 // ----------------
@@ -113,9 +115,11 @@ if (!relativeUrlType && !appFqdn.trim()) {
 }
 
 if (relativeUrlType === 'server-root-relative') {
+  appPathUrlBasePublicPath = `/${appUrlPathAboveServerRoot}`;
   appPathUrlBuildPublicPath = `/${appUrlPathAboveServerRoot}${appPathUrlBuildRelativeToApp}`;
 }
 else if (relativeUrlType === 'app-index-relative') {
+  appPathUrlBasePublicPath = ''; // or './'
   appPathUrlBuildPublicPath = `${appPathUrlBuildRelativeToApp}`;
 }
 else {
@@ -144,10 +148,12 @@ if (!relativeUrlType) {
   console.log('\x1b[44m%s\x1b[0m -> \x1b[36m%s\x1b[0m', 'appPathUrlBaseNoPort', appPathUrlBaseNoPort);
   console.log('\x1b[44m%s\x1b[0m -> \x1b[36m%s\x1b[0m', 'appPathUrlBuildWithPort', appPathUrlBuildWithPort);
   console.log('\x1b[44m%s\x1b[0m -> \x1b[36m%s\x1b[0m', 'appPathUrlBuildNoPort', appPathUrlBuildNoPort);
+  console.log('\x1b[44m%s\x1b[0m -> \x1b[36m%s\x1b[0m', 'appPathUrlBasePublicPath', appPathUrlBasePublicPath);
   console.log('\x1b[44m%s\x1b[0m -> \x1b[36m%s\x1b[0m', 'appPathUrlBuildPublicPath', appPathUrlBuildPublicPath);
 }
 else {
   console.log('\x1b[45m%s\x1b[0m', 'Relative URL used, thus hostname, port a.o. does not apply.');
+  console.log('\x1b[44m%s\x1b[0m -> \x1b[36m%s\x1b[0m', 'appPathUrlBasePublicPath', appPathUrlBasePublicPath);
   console.log('\x1b[44m%s\x1b[0m -> \x1b[36m%s\x1b[0m', 'appPathUrlBuildPublicPath', appPathUrlBuildPublicPath);
 }
 console.log('\x1b[42m\x1b[30m                                                               \x1b[0m');
@@ -171,7 +177,8 @@ let config = {
   output: {
     path: appPathFsBuild,
     publicPath: appPathUrlBuildPublicPath,
-    filename: (development) ? '[name].js' : '[name].[chunkhash].js'
+    filename: (development) ? '[name].js' : '[name].[contenthash].js',
+    chunkFilename: (development) ? '[id].js' : '[id].[contenthash].js'
   },
   resolve: {
     modules: [
@@ -229,13 +236,18 @@ config.devServer = {
   ],
   historyApiFallback: true,
 
-  // https: false,
   https: development && currTierProps.tls
-    ? {
-      ca: fs.readFileSync(`${require('os').homedir()}/.config/valet/CA/LaravelValetCASelfSigned.pem`),
-      key: fs.readFileSync(`${require('os').homedir()}/.config/valet/Certificates/${appFqdn}.key`),
-      cert: fs.readFileSync(`${require('os').homedir()}/.config/valet/Certificates/${appFqdn}.crt`)
-    }
+    ? appFqdn === 'localhost'
+      ? { // if DevServer is run with TLS and localhost, use self signed certificates for locaholst
+        ca: fs.readFileSync(path.resolve(require('os').homedir(), '.localhost-dev-certs/CA/WARPLocalhostCASelfSigned.pem')),
+        key: fs.readFileSync(path.resolve(require('os').homedir(), '.localhost-dev-certs/Certificates/localhost.key')),
+        cert: fs.readFileSync(path.resolve(require('os').homedir(), '.localhost-dev-certs/Certificates/localhost.crt'))
+      }
+      : { // if DevServer is run with TLS and not localhost, assume that Valet is used and use those certificates
+        ca: fs.readFileSync(path.resolve(require('os').homedir(), '.config/valet/CA/LaravelValetCASelfSigned.pem')),
+        key: fs.readFileSync(path.resolve(require('os').homedir(), `.config/valet/Certificates/${appFqdn}.key`)),
+        cert: fs.readFileSync(path.resolve(require('os').homedir(), `.config/valet/Certificates/${appFqdn}.crt`))
+      }
     : false,
 
   // pfx: '/path/to/file.pfx',
@@ -276,7 +288,7 @@ config.module = {
   rules: [
     {
       enforce: 'pre',
-      test: /\.js$/,
+      test: /\.(js|mjs|ts)x?$/,
       exclude: [/node_modules/, /bower_components/, /preflight\.js$/],
       use: [
         {
@@ -293,14 +305,13 @@ config.module = {
       ]
     },
     {
-      test: /\.js$/,
+      test: /\.(js|mjs|ts)x?$/,
       exclude: [/node_modules/, /bower_components/, /preflight\.js$/],
       use: [
         {
           loader: 'babel-loader',
           options: {
-            cacheDirectory: false,
-            babelrc: true
+            cacheDirectory: false
           }
         }
       ]
@@ -401,7 +412,7 @@ config.module = {
       ]
     },
     {
-      test: /\.(woff2|woff|otf|ttf|eot|svg)$/,
+      test: /.-webfont\.(woff2|woff|otf|ttf|eot|svg)$/,
       use: [
         {
           loader: 'file-loader',
@@ -419,7 +430,6 @@ config.optimization = {
   // ----------------
   // SplitChunksPlugin
 
-  namedModules: true,
   runtimeChunk: {
     name: 'runtime'
   },
@@ -505,8 +515,8 @@ config.optimization = {
         maxInitialRequests: Infinity,
         minSize: 0
       },
-      babel: {
-        name: 'babel',
+      corepoly: {
+        name: 'corepoly',
         test: (module) => {
           return (
             module.resource &&
@@ -552,7 +562,9 @@ config.optimization = {
         // ecma: undefined,
         warnings: true,
         parse: {},
-        compress: {},
+        compress: {
+          drop_console: false // normally should be - drop_console: !development
+        },
         mangle: false,
         module: false,
         output: {
@@ -615,39 +627,40 @@ config.plugins.push(new webpack.DefinePlugin({
 
 // ----------------
 // Hot reloading
-if (development) {
+if (development && devServerRunning) {
   config.plugins.push(new webpack.HotModuleReplacementPlugin());
 }
 
-// // ----------------
-// // CopyPlugin
-// config.plugins.push(new CopyPlugin([
-//   {
-//     from: path.join(__dirname, 'src/preflight/*.{js,css}'),
-//     to: appPathFsBuild,
-//     flatten: true,
-//     toType: 'dir'
-//   }
-// ]));
+// ----------------
+// CopyPlugin
+config.plugins.push(new CopyPlugin(
+  [
+    // {
+    //   from: path.join(__dirname, 'src/preflight/*.{js,css}'),
+    //   to: appPathFsBuild,
+    //   flatten: true,
+    //   toType: 'dir'
+    // }
+  ]
+));
 
 // ----------------
 // HtmlWebpackPlugin
 config.plugins.push(new HtmlWebpackPlugin({
-  // add user defined object to hold extra values to pass to template
-  props: {
-    appPathUrlBuildPublicPath,
-    inlineContents: {
+  // Custom template variables
+  warp: {
+    preflightInline: {
       'preflight.js': fs.readFileSync(path.resolve(__dirname, 'src/preflight/preflight.js'), 'utf8'),
       'preflight.css': fs.readFileSync(path.resolve(__dirname, 'src/preflight/preflight.css'), 'utf8')
     }
   },
-  //
+  // html-webpack-plugin options https://github.com/jantimon/html-webpack-plugin#options
   title: `GUIDE - ${require(path.resolve(__dirname, 'package.json')).name}`,
   filename: path.join(__dirname, 'public/index.html'),
   template: path.resolve(__dirname, 'src/html/index.template.ejs'),
   // templateParameters: false,
   inject: false, // currently specify manually entry outputs in template
-  // favicon: favicon.ico,
+  favicon: path.resolve(__dirname, 'src/images/favicon.ico'),
   // meta: {},
   // base: false,
   hash: false, // done at global level
@@ -655,8 +668,8 @@ config.plugins.push(new HtmlWebpackPlugin({
   showErrors: true,
   // chunks: [],
   chunksSortMode: 'auto',
-  excludeChunks: [],
-  xhtml: false,
+  // excludeChunks: [],
+  xhtml: true,
   alwaysWriteToDisk: true, // HtmlWebpackHarddiskPlugin
   minify: (development)
     ? false
@@ -674,58 +687,42 @@ config.plugins.push(new HtmlWebpackPlugin({
 }));
 // HtmlWebpackPlugin - HtmlWebpackHarddiskPlugin
 config.plugins.push(new HtmlWebpackHarddiskPlugin());
-// HtmlWebpackPlugin - HtmlWebpackScriptsPlugin
+// HtmlWebpackPlugin - InlineManifestWebpackPlugin
 if (!development) {
-  config.plugins.push(new HtmlWebpackScriptsPlugin({
-    inline: /^runtime.*.js$/ // inline runtime
-    // defer: /^(?!runtime).*.js$/ // add defer attribute to everything else
-  }));
+  config.plugins.push(new InlineManifestWebpackPlugin('runtime'));
 }
-
-// ----------------
-// MiniCssExtractPlugin
-config.plugins.push(new MiniCssExtractPlugin({
-  filename: (development) ? '[name].css' : '[name].[chunkhash].css',
-  chunkFilename: (development) ? '[id].css' : '[id].[chunkhash].css'
-}));
-
-// // ----------------
-// // StyleLint
-// config.plugins.push(new StylelintPlugin({
-//   configFile: '.stylelintrc.js',
-//   files: ['**/*.s?(a|c)ss'],
-//   fix: false,
-//   lintDirtyModulesOnly: false,
-//   emitError: false,
-//   emitWarning: false,
-//   failOnError: false,
-//   failOnWarning: false,
-//   quiet: false
-// }));
-
-// // ----------------
-// // BundleAnalyzerPlugin
-// if (testing) {
-//   config.plugins.push(new BundleAnalyzerPlugin({
-//     analyzerHost: '127.0.0.1',
-//     analyzerPort: 4001
-//   }));
-// }
-
-// ----------------
-// WebpackPwaManifest
-if (!development) {
+// HtmlWebpackPlugin - WebpackPwaManifest
+if (appProps.pwa) {
   config.plugins.push(new WebpackPwaManifest({
+    // ----------------
+    // https://w3c.github.io/manifest/#webappmanifest-dictionary
+    lang: 'en',
+    dir: 'ltr',
     name: 'My Progressive Shiet',
     short_name: 'MyPWA',
     description: 'My awesome shiet!',
-    background_color: '#ffff00',
-    theme_color: '#ffff00',
-    start_url: `/${appUrlPathAboveServerRoot}`,
+    // scope: '',
+    // icons: [], // use plugin to generate
     display: 'standalone',
     orientation: 'portrait',
-    ios: true,
+    start_url: (!appPathUrlBasePublicPath) ? '.' : appPathUrlBasePublicPath,
+    theme_color: '#ffff00',
+    // related_applications: [],
+    // prefer_related_applications: false,
+    background_color: '#ffff00',
+    categories: ['entertainment'], // https://github.com/w3c/manifest/wiki/Categories
+    // screenshots: [],
+    // iarc_rating_id: '',
+    // shortcuts: [],
+    // ----------------
+    // WebpackPwaManifest specific
+    // filename: 'manifest.json', // use hashing
+    crossorigin: 'anonymous',
     inject: true,
+    fingerprints: true,
+    ios: true,
+    publicPath: appPathUrlBuildPublicPath,
+    includeDirectory: true,
     icons: [
       {
         src: path.resolve(__dirname, 'src/images/pwa-icon.png'),
@@ -738,15 +735,59 @@ if (!development) {
 
 // ----------------
 // OfflinePlugin
-if (!development) {
+if (appProps.pwa) {
   config.plugins.push(new OfflinePlugin({
     ServiceWorker: {
-      output: '../sw.js'
-      // output: `${appPathFsBase}sw.js`
-    }
+      output: '../sw.js', // move out from public/assets to public/
+      // publicPath: `/${appUrlPathAboveServerRoot}sw.js`,
+      scope: appPathUrlBasePublicPath,
+      entry: path.resolve(__dirname, 'src/sw.js'),
+      minify: !(development),
+      events: true
+    },
+    AppCache: false,
+    publicPath: appPathUrlBuildPublicPath,
+    responseStrategy: 'cache-first',
+    caches: 'all',
+    updateStrategy: 'changed'
   }));
 }
 
+// ----------------
+// MiniCssExtractPlugin
+config.plugins.push(new MiniCssExtractPlugin({
+  filename: (development) ? '[name].css' : '[name].[contenthash].css',
+  chunkFilename: (development) ? '[id].css' : '[id].[contenthash].css'
+}));
+
+// ----------------
+// StyleLint
+config.plugins.push(new StylelintPlugin({
+  configFile: path.resolve(__dirname, '.stylelintrc.js'),
+  files: ['**/*.s?(a|c)ss'],
+  fix: false,
+  lintDirtyModulesOnly: false,
+  emitError: false,
+  emitWarning: true,
+  failOnError: false,
+  failOnWarning: false,
+  quiet: false
+}));
+
+// ----------------
+// BundleAnalyzerPlugin
+if (appProps.analyse && appProps.analyse.enable) {
+  if (development) {
+    console.log('\x1b[41m%s\x1b[0m', 'BundleAnalyzerPlugin should not be run when building for development / DevServer, aborting!');
+    process.exit(1);
+  }
+  else {
+    config.plugins.push(new BundleAnalyzerPlugin({
+      analyzerHost: appProps.analyse.host,
+      analyzerPort: appProps.analyse.port
+    }));
+  }
+}
 // ----------------
 // POSTCSS LOADER CONFIG
 // defined in .postcssrc.js

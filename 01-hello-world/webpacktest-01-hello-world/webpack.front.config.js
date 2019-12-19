@@ -103,6 +103,7 @@ config.module = {
         {
           loader: 'css-loader',
           options: {
+            importLoaders: 0,
             sourceMap: true
           }
         }
@@ -123,6 +124,7 @@ config.module = {
         {
           loader: 'css-loader',
           options: {
+            importLoaders: 1,
             sourceMap: true
           }
         },
@@ -158,7 +160,9 @@ config.optimization = {
         // ecma: undefined,
         warnings: true,
         parse: {},
-        compress: {},
+        compress: {
+          drop_console: false // normally should be - drop_console: !development
+        },
         mangle: false,
         module: false,
         output: {
@@ -221,14 +225,16 @@ config.plugins.push(new webpack.DefinePlugin({
 
 // ----------------
 // CopyPlugin
-config.plugins.push(new CopyPlugin([
-  {
-    from: path.join(__dirname, 'src/preflight/*.{js,css}'),
-    to: appPathFsBuild,
-    flatten: true,
-    toType: 'dir'
-  }
-]));
+config.plugins.push(new CopyPlugin(
+  [
+    {
+      from: path.join(__dirname, 'src/preflight/*.{js,css}'),
+      to: appPathFsBuild,
+      flatten: true,
+      toType: 'dir'
+    }
+  ]
+));
 
 // ----------------
 // MiniCssExtractPlugin

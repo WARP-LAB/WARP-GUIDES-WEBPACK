@@ -18,5 +18,6 @@ if ('visibilityState' in document) {
 }
 
 // ############################################################
-// Just say hello.
+// Just say hello
+// Normally there should not be any console in preflight, as not all browsers support it!
 console.log('I am Preflight');

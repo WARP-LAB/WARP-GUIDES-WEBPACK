@@ -13,7 +13,13 @@
     "front:build:test": "npm run clean:assets && NODE_ENV=testing webpack --config=$(pwd)/webpack.front.config.js --progress",
     "front:build:stage": "npm run clean:assets && NODE_ENV=staging webpack --config=$(pwd)/webpack.front.config.js --progress",
     "front:build:prod": "npm run clean:assets && NODE_ENV=production webpack --config=$(pwd)/webpack.front.config.js --progress",
-    "clean:assets": "rm -rf $(pwd)/public/index.html && rm -rf $(pwd)/public/assets/**"
+    "front:serve:test": "node $(pwd)/warp-serve-localhost.js --tier=testing",
+    "front:serve:stage": "node $(pwd)/warp-serve-localhost.js --tier=staging",
+    "front:serve:prod": "node $(pwd)/warp-serve-localhost.js --tier=production",
+    "clean:assets": "rm -rf $(pwd)/public/**",
+    "front:screen:start": "npm run front:screen:stop && screen -S $npm_package_name -d -m npm run front:dev:static && npm run front:screen:enter",
+    "front:screen:enter": "screen -r $npm_package_name",
+    "front:screen:stop": "screen -S $npm_package_name -X stuff $'\\003' && screen -S $npm_package_name -X quit 2>/dev/null || :"
   },
   "devDependencies": {
     "@babel/core": "^7.7.5",
@@ -25,7 +31,7 @@
     "babel-loader": "^8.0.6",
     "copy-webpack-plugin": "^5.1.1",
     "core-js": "^3.5.0",
-    "css-loader": "^3.3.0",
+    "css-loader": "^3.4.0",
     "cssnano": "^4.1.10",
     "eligrey-classlist-js-polyfill": "^1.2.20180112",
     "eslint": "^6.7.2",
@@ -39,10 +45,9 @@
     "file-loader": "^5.0.2",
     "html-webpack-harddisk-plugin": "^1.0.1",
     "html-webpack-plugin": "^3.2.0",
-    "html-webpack-scripts-plugin": "^1.0.2",
     "image-webpack-loader": "^6.0.0",
-    "lodash": "^4.17.15",
-    "mini-css-extract-plugin": "^0.8.0",
+    "inline-manifest-webpack-plugin": "^4.0.2",
+    "mini-css-extract-plugin": "^0.8.1",
     "node-sass": "^4.13.0",
     "normalize.css": "^8.0.1",
     "offline-plugin": "^5.0.7",
@@ -51,17 +56,20 @@
     "regenerator-runtime": "^0.13.3",
     "resolve-url-loader": "^3.1.1",
     "sass-loader": "^8.0.0",
-    "style-loader": "^1.0.1",
+    "style-loader": "^1.0.2",
     "stylelint": "^12.0.0",
     "stylelint-config-standard": "^19.0.0",
     "stylelint-scss": "^3.13.0",
     "stylelint-webpack-plugin": "^1.1.2",
-    "terser-webpack-plugin": "^2.2.3",
+    "terser-webpack-plugin": "^2.3.1",
     "url-loader": "^3.0.0",
-    "webpack": "^4.41.2",
+    "webpack": "^4.41.3",
     "webpack-bundle-analyzer": "^3.6.0",
     "webpack-cli": "^3.3.10",
     "webpack-dev-server": "^3.9.0",
     "webpack-pwa-manifest": "^4.1.1"
+  },
+  "optionalDependencies": {
+    "lodash": "^4.17.15"
   }
 }
