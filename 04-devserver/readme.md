@@ -74,7 +74,7 @@ _properties.json_
 }
 ```
 
-Alternative would be to store this configuration within `package.json` under some user defined key or embed within *webpack.front.config.js*.
+Alternative would be to store this configuration within `package.json` under some user defined key or embed within *webpack.front.config.js* or use *dotenv*.
 
 ---
 # webpack DevServer
@@ -273,7 +273,7 @@ Preflight JS and CSS files are copied no matter what to assets directory, so rel
 
 But for all things that webpack is *compiling* absolute path is set that reflects development tier as set in *properties.json*.
 
-*index.html*
+*public/index.html*
 
 ```html
 <!DOCTYPE html>
@@ -484,7 +484,7 @@ Secondly *properties.json* that is consumed by webpack config script needs chang
       "port": "4000",
       "appPathUrlAboveServerRoot": "",
       "relativeUrlType": false
-    }
+    },
 ```
 
 Introducing a new self-declared ENV variable `DEV_SERVE_STATIC` (it could be any other name). It serves as mechanism to pass to webpack config script whether *webpack-dev-server* should serve static files - it is used to set `devServerServeStatic` flag.
