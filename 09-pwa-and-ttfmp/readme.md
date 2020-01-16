@@ -196,7 +196,7 @@ Run for testing
 
 ```sh
 npm run front:build:test
-npm run front:serve:test # if not running in backround
+npm run front:serve:test # if not running in background
 ```
 
 Opening [https://localhost:3003](https://localhost:3003) and inspecting *Manifest* section of *Application* tab in *Chrome* inspector yields *No manifest detected*.
@@ -299,7 +299,7 @@ Build
 
 ```sh
 npm run front:build:test
-npm run front:serve:test # if not running in backround
+npm run front:serve:test # if not running in background
 ```
 
 [https://localhost:3003/](https://localhost:3003/)
@@ -406,7 +406,7 @@ Build
 
 ```sh
 npm run front:build:test
-npm run front:serve:test # if not running in backround
+npm run front:serve:test # if not running in background
 ```
 
 [https://localhost:3003/](https://localhost:3003/)
@@ -420,7 +420,7 @@ Inspecting *Manifest* section of *Application* tab in *Chrome* inspector yields 
 Run server (if not Valet)
 
 ```sh
-npm run front:serve:test # if not running in backround
+npm run front:serve:test # if not running in background
 ```
 
 Load the page [https://localhost:3003/](https://localhost:3003/). 
