@@ -97,7 +97,7 @@ _While doing edits I realised that notes should be made for some basic npm stuff
 
 ### Assumptions
 
-* As of writing webpack version is 4.41.2.
+* As of writing webpack version is 4.41.5.
 
 ### Node.js / npm version
 
