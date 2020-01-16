@@ -313,7 +313,7 @@ But for all things that webpack is *compiling* absolute path is set that reflect
 Run DevServer
 
 ```sh
-rm -rf $(pwd)/public/assets/** && \
+rm -rf $(pwd)/public/assets/**; \
 NODE_ENV=development \
 npx webpack-dev-server --config=$(pwd)/webpack.front.config.js \
 --host=localhost --port=4000 --history-api-fallback -d --inline
@@ -430,7 +430,7 @@ Previous DevServer instance should be killed (`ctr+c`).
 Rerun DevServer without all those command line arguments.
 
 ```sh
-rm -rf $(pwd)/public/assets/** && \
+rm -rf $(pwd)/public/assets/**; \
 NODE_ENV=development \
 npx webpack-dev-server \
 --config=$(pwd)/webpack.front.config.js -d
@@ -492,7 +492,7 @@ Introducing a new self-declared ENV variable `DEV_SERVE_STATIC` (it could be any
 Run DevServer
 
 ```sh
-rm -rf $(pwd)/public/assets/** && \
+rm -rf $(pwd)/public/assets/**; \
 NODE_ENV=development \
 DEV_SERVE_STATIC=true \
 npx webpack-dev-server \
@@ -586,12 +586,12 @@ Note that `preflight.(js|css)` can have no port attached to it in HTML *href/scr
 
 ```json
   "scripts": {
-    "front:dev:serve": "npm run clean:assets && NODE_ENV=development webpack-dev-server --config=$(pwd)/webpack.front.config.js -d",
-    "front:dev:static": "npm run clean:assets && NODE_ENV=development DEV_SERVE_STATIC=true webpack-dev-server --config=$(pwd)/webpack.front.config.js -d",
-    "front:build:dev": "npm run clean:assets && NODE_ENV=development webpack --config=$(pwd)/webpack.front.config.js --progress",
-    "front:build:test": "npm run clean:assets && NODE_ENV=testing webpack --config=$(pwd)/webpack.front.config.js --progress",
-    "front:build:stage": "npm run clean:assets && NODE_ENV=staging webpack --config=$(pwd)/webpack.front.config.js --progress",
-    "front:build:prod": "npm run clean:assets && NODE_ENV=production webpack --config=$(pwd)/webpack.front.config.js --progress",
+    "front:dev:serve": "npm run clean:assets; NODE_ENV=development webpack-dev-server --config=$(pwd)/webpack.front.config.js -d",
+    "front:dev:static": "npm run clean:assets; NODE_ENV=development DEV_SERVE_STATIC=true webpack-dev-server --config=$(pwd)/webpack.front.config.js -d",
+    "front:build:dev": "npm run clean:assets; NODE_ENV=development webpack --config=$(pwd)/webpack.front.config.js --progress",
+    "front:build:test": "npm run clean:assets; NODE_ENV=testing webpack --config=$(pwd)/webpack.front.config.js --progress",
+    "front:build:stage": "npm run clean:assets; NODE_ENV=staging webpack --config=$(pwd)/webpack.front.config.js --progress",
+    "front:build:prod": "npm run clean:assets; NODE_ENV=production webpack --config=$(pwd)/webpack.front.config.js --progress",
     "clean:assets": "rm -rf $(pwd)/public/assets/**",
     "front:screen:start": "npm run front:screen:stop && screen -S $npm_package_name -d -m npm run front:dev:static && npm run front:screen:enter",
     "front:screen:enter": "screen -r $npm_package_name",

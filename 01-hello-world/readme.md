@@ -251,7 +251,7 @@ Running webpack (clean assets directory before).
 Note that further below instead of accessing local `node_modules` bin manually to call `webpack`, [`npx`](https://github.com/npm/npx) will be used (and bit later *npm scripts* will be introduced).
 
 ```sh
-rm -rf $(pwd)/public/assets/** && \
+rm -rf $(pwd)/public/assets/**; \
 $(pwd)/node_modules/webpack/bin/webpack.js --config=$(pwd)/webpack.front.config.js --progress
 ```
 After running webpack `public/assets` directory contains the product just built - `index.js`.
@@ -343,7 +343,7 @@ Run webpack, specify `NODE_ENV` value
 *development*
 
 ```sh
-rm -rf $(pwd)/public/assets/** && \
+rm -rf $(pwd)/public/assets/**; \
 NODE_ENV=development \
 npx webpack --config=$(pwd)/webpack.front.config.js --progress
 ```
@@ -351,7 +351,7 @@ npx webpack --config=$(pwd)/webpack.front.config.js --progress
 *testing*
 
 ```sh
-rm -rf $(pwd)/public/assets/** && \
+rm -rf $(pwd)/public/assets/**; \
 NODE_ENV=testing \
 npx webpack --config=$(pwd)/webpack.front.config.js --progress
 ```
@@ -403,7 +403,7 @@ helpers.helperA();
 Build
 
 ```sh
-rm -rf $(pwd)/public/assets/** && \
+rm -rf $(pwd)/public/assets/**; \
 NODE_ENV=development \
 npx webpack --config=$(pwd)/webpack.front.config.js --progress
 ```
@@ -506,7 +506,7 @@ config.optimization = {
 As an simple example of options taking effect build for testing tier
 
 ```sh
-rm -rf $(pwd)/public/assets/** && \
+rm -rf $(pwd)/public/assets/**; \
 NODE_ENV=testing \
 npx webpack --config=$(pwd)/webpack.front.config.js --progress
 ```
@@ -556,7 +556,7 @@ _webpack.front.config.js_
 ```javascript
 // ...
 
-const CopyPlugin = require('copy-webpack-plugin');
+const CopyPlugin = require('copy-webpack-plugin'); // eslint-disable-line no-unused-vars
 
 // ...
 
@@ -659,7 +659,7 @@ html.script .noscript { display: none; }
 Run webpack for testing tier
 
 ```sh
-rm -rf $(pwd)/public/assets/** && \
+rm -rf $(pwd)/public/assets/**; \
 NODE_ENV=testing \
 npx webpack --config=$(pwd)/webpack.front.config.js --progress
 ```
@@ -728,7 +728,7 @@ _webpack.front.config.js_
 
 const path = require('path');
 const TerserPlugin = require('terser-webpack-plugin');
-const CopyPlugin = require('copy-webpack-plugin');
+const CopyPlugin = require('copy-webpack-plugin'); // eslint-disable-line no-unused-vars
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin'); // Use while PostCSS is not introduced
 
@@ -1011,7 +1011,7 @@ $mycolor: red;
 Run webpack for testing tier and inspect `public/assets/index.css`
 
 ```sh
-rm -rf $(pwd)/public/assets/** && \
+rm -rf $(pwd)/public/assets/**; \
 NODE_ENV=testing \
 npx webpack --config=$(pwd)/webpack.front.config.js --progress
 ```
@@ -1025,7 +1025,7 @@ Remember that if webpack is run for development tier then CSS would be actually 
 Run webpack for development.
 
 ```sh
-rm -rf $(pwd)/public/assets/** && \
+rm -rf $(pwd)/public/assets/**; \
 NODE_ENV=develpment \
 npx webpack --config=$(pwd)/webpack.front.config.js --progress
 ```
@@ -1124,7 +1124,7 @@ Meanwhile user code still can use all 4 tiers which is set by *DefinePlugin* jus
 Build for development and inspect console output as well as outputted file at `public/assets.index.js`
 
 ```sh
-rm -rf $(pwd)/public/assets/** && \
+rm -rf $(pwd)/public/assets/**; \
 NODE_ENV=development \
 npx webpack --config=$(pwd)/webpack.front.config.js --progress
 ```
@@ -1139,7 +1139,7 @@ if (true) {
 Build for testing tier and inspect outputted file at `public/assets/index.js`
 
 ```sh
-rm -rf $(pwd)/public/assets/** && \
+rm -rf $(pwd)/public/assets/**; \
 NODE_ENV=testing \
 npx webpack --config=$(pwd)/webpack.front.config.js --progress
 ```
@@ -1152,7 +1152,7 @@ no `'I\'m in development!'` can be found as Terser removes unreachable code.
 For calling webpack `npx` was used.
 
 ```sh
-rm -rf $(pwd)/public/assets/** && \
+rm -rf $(pwd)/public/assets/**; \
 NODE_ENV=development \
 npx webpack --config=$(pwd)/webpack.front.config.js --progress
 ```
@@ -1163,10 +1163,10 @@ _package.json_
 
 ```json
   "scripts": {
-    "front:build:dev": "npm run clean:assets && NODE_ENV=development webpack --config=$(pwd)/webpack.front.config.js --progress",
-    "front:build:test": "npm run clean:assets && NODE_ENV=testing webpack --config=$(pwd)/webpack.front.config.js --progress",
-    "front:build:stage": "npm run clean:assets && NODE_ENV=staging webpack --config=$(pwd)/webpack.front.config.js --progress",
-    "front:build:prod": "npm run clean:assets && NODE_ENV=production webpack --config=$(pwd)/webpack.front.config.js --progress",
+    "front:build:dev": "npm run clean:assets; NODE_ENV=development webpack --config=$(pwd)/webpack.front.config.js --progress",
+    "front:build:test": "npm run clean:assets; NODE_ENV=testing webpack --config=$(pwd)/webpack.front.config.js --progress",
+    "front:build:stage": "npm run clean:assets; NODE_ENV=staging webpack --config=$(pwd)/webpack.front.config.js --progress",
+    "front:build:prod": "npm run clean:assets; NODE_ENV=production webpack --config=$(pwd)/webpack.front.config.js --progress",
     "clean:assets": "rm -rf $(pwd)/public/assets/**"
   },
 ```
