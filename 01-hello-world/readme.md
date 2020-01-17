@@ -44,7 +44,10 @@ webpacktest-01-hello-world
 ├── src
 │   ├── fonts
 │   ├── helpers
-│   │   ├── helpers.lazy.one.js│   │   ├── helpers.lazy.one.scss│   │   ├── helpers.lazy.two.js│   │   ├── helpers.lazy.two.scss
+│   │   ├── helpers.lazy.one.js
+│   │   ├── helpers.lazy.one.scss
+│   │   ├── helpers.lazy.two.js
+│   │   ├── helpers.lazy.two.scss
 │   │   └── helpers.simple.js
 │   ├── html
 │   │   └── index.template.ejs
@@ -1090,7 +1093,7 @@ config.plugins = [];
 // DefinePlugin
 config.plugins.push(new webpack.DefinePlugin({
   'process.env': {
-    NODE_ENV: (development) ? 'development' : 'production',
+    NODE_ENV: (development) ? JSON.stringify('development') : JSON.stringify('production'),
     BROWSER: true
   },
   __CLIENT__: true,
