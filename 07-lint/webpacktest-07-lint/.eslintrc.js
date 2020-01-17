@@ -3,6 +3,7 @@
 /* eslint-disable quotes, quote-props */
 
 module.exports = {
+  "root": true,
   "extends": [
     "eslint-config-standard"
   ],
