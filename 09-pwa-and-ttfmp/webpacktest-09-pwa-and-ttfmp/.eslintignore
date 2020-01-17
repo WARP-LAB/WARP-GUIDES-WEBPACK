@@ -3,5 +3,6 @@
 public/**
 static/**
 !.postcssrc.js
+!.babelrc.js
 !.eslintrc.js
 !.stylelintrc.js
