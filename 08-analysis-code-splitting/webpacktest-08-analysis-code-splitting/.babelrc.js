@@ -1,14 +1,18 @@
-{
+// keep json compatible key naming and comma trailing
+
+/* eslint-disable quotes, quote-props */
+
+module.exports = {
   "presets": [
-  	[
+    [
       "@babel/preset-env",
-    	{
+      {
         "modules": false,
         "useBuiltIns": "usage",
         "corejs": 3,
         "forceAllTransforms": false,
         "ignoreBrowserslistConfig": false,
-        "debug": false
+        "debug": true
       }
     ]
   ],
@@ -26,4 +30,4 @@
     "production": {
     }
   }
-}
+};
