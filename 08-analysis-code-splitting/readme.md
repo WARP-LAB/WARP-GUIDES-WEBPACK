@@ -567,7 +567,7 @@ It is out of scope for this tut to discuss benefits of lazy loading (in context 
 npm install @babel/plugin-syntax-dynamic-import --save-dev
 ```
 
-_.babelrc_
+_.babelrc.js_
 
 ```
   "plugins": [

@@ -62,16 +62,16 @@ npm install @babel/preset-env --save-dev
 
 ## Babel configuration file
 
-Creating a new file _.babelrc_ under master directory and filling it.
+Creating a new file _.babelrc.js_ under master directory and filling it.
 
 For clarity purposes [shorthand](https://babeljs.io/docs/en/plugins/#plugin-shorthand) will not be used, thus using `preset-*` and later `plugin-*` explicitly.
 
-_.babelrc_
+_.babelrc.js_
 
-```json
-{
+```javascript
+module.exports = {
   "presets": ["@babel/preset-env"]
-}
+};
 ```
 
 ## Babel loader
@@ -253,12 +253,12 @@ npm run front:build:test
 
 Observation is related to webpack [tree shaking](https://webpack.js.org/guides/tree-shaking/) being in effect.
 
-To keep this behaviour *permanent* (or if observation for someone differs probably because of different Babel version), edit *.babelrc*.
+To keep this behaviour *permanent* (or if observation for someone differs probably because of different Babel version), edit *.babelrc.js*.
 
-_.babelrc_
+_.babelrc.js_
 
-```json
-{
+```javascript
+module.exports = {
   "presets": [
   	[
       "@babel/preset-env",
@@ -267,7 +267,7 @@ _.babelrc_
       }
     ]
   ]
-}
+};
 
 ```
 
@@ -298,12 +298,12 @@ npm install regenerator-runtime --save-dev
 
 ## Configure
 
-Adding needed keys to *.babelrc*
+Adding needed keys to *.babelrc.js*
 
-_.babelrc_
+_.babelrc.js_
 
-```json
-{
+```javascript
+module.exports = {
   "presets": [
   	[
       "@babel/preset-env",
@@ -317,7 +317,7 @@ _.babelrc_
       }
     ]
   ]
-}
+};
 ```
 
 The key setting here is [useBuiltIns](https://babeljs.io/docs/en/next/babel-preset-env.html#usebuiltins).
@@ -504,10 +504,10 @@ Install
 npm install @babel/plugin-proposal-object-rest-spread --save-dev
 ```
 
-_.babelrc_
+_.babelrc.js_
 
-```json
-{
+```javascript
+module.exports = {
   "presets": [
   	[
       "@babel/preset-env",
@@ -534,7 +534,7 @@ _.babelrc_
     "production": {
     }
   }
-}
+};
 
 ```
 
