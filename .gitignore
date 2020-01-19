@@ -9,6 +9,7 @@ package-lock.json
 *.jpg
 *.png
 *.gif
+*.ico
 *.svg
 
 *.ttf
@@ -24,6 +25,7 @@ package-lock.json
 !media/**/*.jpg
 !media/**/*.png
 !media/**/*.gif
+!media/**/*.ico
 !media/**/*.svg
 !media/**/*.ttf
 !media/**/*.otf
