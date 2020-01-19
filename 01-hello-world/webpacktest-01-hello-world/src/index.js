@@ -5,7 +5,7 @@
 'use strict';
 
 var helpers = require('extras/helpers.simple.js');
-require('index.global.scss');
+require('index.scss');
 
 if (__DEVELOPMENT__) {
   console.log('I\'m in development!');

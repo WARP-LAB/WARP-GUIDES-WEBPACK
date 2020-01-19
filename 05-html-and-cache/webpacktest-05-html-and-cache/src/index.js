@@ -5,7 +5,7 @@
 'use strict';
 
 var helpers = require('extras/helpers.simple.js');
-require('index.global.scss');
+require('index.scss');
 var myImage = require('images/my-js-image.jpg').default;
 
 if (__DEVELOPMENT__) {

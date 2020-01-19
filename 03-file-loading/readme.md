@@ -46,7 +46,7 @@ npm install url-loader --save-dev
 
 Adding images to SCSS
 
-_src/index.global.scss_
+_src/index.scss_
 
 ```scss
 @charset 'UTF-8';
@@ -100,7 +100,7 @@ _src/index.js_
 'use strict';
 
 var helpers = require('extras/helpers.simple.js');
-require('index.global.scss');
+require('index.scss');
 var myImage = require('images/my-js-image.jpg').default;
 
 if (__DEVELOPMENT__) {
@@ -441,22 +441,22 @@ This example uses *bulletproof syntax* although [it can be retired for good reas
 
 All webfonts should end with `*-webfont.ext` in their filename for following examples.
 
-Copy contents (`spacemono` directory and `spacemono-definition.global.scss` file) of `media/fonts/` directory found in this repo to `src/fonts/`
+Copy contents (`spacemono` directory and `spacemono-definition.scss` file) of `media/fonts/` directory found in this repo to `src/fonts/`
 
 ## Packing & loading
 
 [Space Mono](https://www.fontsquirrel.com/fonts/space-mono) family is used as example font.
 
-After copying files `src/fonts/spacemono-definition.global.scss` holds `@font-face` definitions and refer to font files within `src/fonts/spacemono`.
+After copying files `src/fonts/spacemono-definition.scss` holds `@font-face` definitions and refer to font files within `src/fonts/spacemono`.
 
 Importing definitions into SCSS file for typography and setting other options.
 
-_src/typography.global.scss_
+_src/typography.scss_
 
 ```scss
 @charset 'UTF-8';
 
-@import 'fonts/spacemono-definition.global.scss';
+@import 'fonts/spacemono-definition.scss';
 
 body {
   font-family: 'spacemono-webpack', 'Comic Sans MS', monospace;
@@ -486,7 +486,7 @@ i b {
 
 Importing typography into app index SCSS
 
-_src/index.global.scss_
+_src/index.scss_
 
 ```scss
 @charset 'UTF-8';
@@ -494,7 +494,7 @@ _src/index.global.scss_
 // This is example of SCSS
 
 @import '~normalize.css';
-@import 'typography.global.scss';
+@import 'typography.scss';
 @import 'index.legacy.css';
 
 // ...

@@ -2,7 +2,7 @@
 
 import {join as _join} from 'lodash';
 import {helperA} from 'extras/helpers.simple.js';
-import 'section.global.scss';
+import 'section.scss';
 
 // Vendor test
 console.log(_join(['Lodash', 'says', 'hi', 'from', 'section.js!'], ' '));

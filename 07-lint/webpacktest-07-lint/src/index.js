@@ -5,7 +5,7 @@
 'use strict';
 
 import {helperA} from 'extras/helpers.simple.js';
-import 'index.global.scss';
+import 'index.scss';
 import myImage from 'images/my-js-image.jpg';
 
 if (__DEVELOPMENT__) {

@@ -1,0 +1,41 @@
+@charset 'UTF-8';
+
+// This is example of SCSS
+
+@import '~normalize.css';
+@import 'typography.scss';
+@import 'index.legacy.css';
+
+$mycolor: red;
+
+$paragarphColor: black;
+
+@if $env == 'development' {
+  $paragarphColor: green;
+} @else {
+  $paragarphColor: yellow;
+}
+
+body {
+  background-image: url('images/my-large-image.jpg');
+}
+
+.app {
+  background-color: $mycolor;
+  transform: translateY(10px);
+  height: 200px;
+
+  h1 {
+    display: flex;
+  }
+
+  p {
+    color: $paragarphColor;
+  }
+
+  background-image: url('images/my-small-image.jpg');
+}
+
+// yolo {
+//   colooor: bluez
+// }

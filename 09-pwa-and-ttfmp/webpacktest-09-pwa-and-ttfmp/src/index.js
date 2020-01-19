@@ -6,7 +6,7 @@
 
 import {join as _join} from 'lodash'; // normally 'lodash-es' should be used
 import {helperA} from 'extras/helpers.simple.js';
-import 'index.global.scss';
+import 'index.scss';
 import myImage from 'images/my-js-image.jpg';
 
 import * as OfflinePluginRuntime from 'offline-plugin/runtime';

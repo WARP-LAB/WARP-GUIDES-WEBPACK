@@ -243,7 +243,7 @@ npm install normalize.css --save-dev
 
 Importing in app source
 
-_src/index.global.scss_
+_src/index.scss_
 
 ```scss
 // ...
@@ -264,7 +264,7 @@ Compiled CSS at `public/assets/index.css` should hold *normalize.css* code.
 ---
 # Webpack CSS source maps
 
-As one can see `sourceMap` option is passed to (S)CSS related loaders in *webpack.front.config.js*. But where are the source maps? No inline or map files are present, when inspecting `.app` class in browser's devtools - it references to compiled `index.css`, not `index.global.scss` which is the actual *source*.
+As one can see `sourceMap` option is passed to (S)CSS related loaders in *webpack.front.config.js*. But where are the source maps? No inline or map files are present, when inspecting `.app` class in browser's devtools - it references to compiled `index.css`, not `index.scss` which is the actual *source*.
 
 Use webpack [devtool](https://webpack.js.org/configuration/devtool/) configuration.
 
@@ -310,7 +310,7 @@ While running webpack for testing
 npm run front:build:test
 ```
 
-and inspecting `.app` class in browser's inspector one can see the original definitions in `index.global.scss`.  
+and inspecting `.app` class in browser's inspector one can see the original definitions in `index.scss`.  
 Inspect where console logs in JavaScript console are coming from.  
 It all refers to original sources.  
 Compiled files `index.js` and `index.css` at `public/assets/` hold inlined sourcemaps.
@@ -368,7 +368,7 @@ _webpack.front.config.js_
 
 Usage example
 
-_index.global.scss_
+_index.scss_
 
 ```scss
 @charset 'UTF-8';

@@ -681,7 +681,7 @@ Enter something in text input field (the one that has placeholder *Text Here*) u
 
 Without stopping DevServer change something in SCSS
 
-_src/index.global.scss_
+_src/index.scss_
 
 ```scss
   transform: translateY(150px);
@@ -730,7 +730,7 @@ Refresh [http://localhost:4000/](http://localhost:4000/). Enter something in inp
 
 Make changes again in SCSS
 
-_src/index.global.scss_
+_src/index.scss_
 
 ```scss
   transform: translateY(10px);

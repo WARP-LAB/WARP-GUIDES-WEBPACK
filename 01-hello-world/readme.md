@@ -52,18 +52,18 @@ webpacktest-01-hello-world
 │   ├── html
 │   │   └── index.template.ejs
 │   ├── images
-│   ├── index.global.scss
+│   ├── index.scss
 │   ├── index.js
 │   ├── index.legacy.css
-│   ├── index.local.scss
+│   ├── index.module.scss
 │   ├── preflight
 │   │   ├── preflight.css
 │   │   └── preflight.js
-│   ├── section.global.scss
+│   ├── section.scss
 │   ├── section.js
-│   ├── section.local.scss
+│   ├── section.module.scss
 │   ├── sw.js
-│   └── typography.global.scss
+│   └── typography.scss
 └── webpack.front.config.js
 ```
 
@@ -963,7 +963,7 @@ _src/index.js_
 'use strict';
 
 var helpers = require('extras/helpers.simple.js');
-require('index.global.scss');
+require('index.scss');
 
 var div = document.querySelector('.app');
 div.innerHTML = '<h1>Hello JS</h1><p>Lorem ipsum.</p>';
@@ -985,7 +985,7 @@ h1 {
 }
 ```
 
-_src/index.global.scss_
+_src/index.scss_
 
 ```scss
 @charset 'UTF-8';
@@ -1055,7 +1055,7 @@ _src/index.js_
 'use strict';
 
 var helpers = require('extras/helpers.simple.js');
-require('index.global.scss');
+require('index.scss');
 
 if (__DEVELOPMENT__) {
   console.log('I\'m in development!');

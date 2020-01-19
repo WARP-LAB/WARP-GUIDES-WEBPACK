@@ -404,7 +404,7 @@ With this config build will not stop on S(C)SS errors.
 
 Adding some questionable code to SCSS.
 
-_src/index.global.scss_
+_src/index.scss_
 
 ```scss
 // ...
@@ -426,7 +426,7 @@ Console outputs
 
 ```
 ERROR in
-src/index.global.scss
+src/index.scss
  39:1   ✖  Unexpected unknown type selector "yolo"   selector-type-no-unknown
  40:3   ✖  Unexpected unknown property "colooor"     property-no-unknown
  40:16  ✖  Expected a trailing semicolon             declaration-block-trailing-semicolon

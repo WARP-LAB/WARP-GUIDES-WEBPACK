@@ -205,7 +205,7 @@ _src/section.js_
 
 import {join as _join} from 'lodash';
 import {helperA} from 'extras/helpers.simple.js';
-import 'section.global.scss';
+import 'section.scss';
 
 // Vendor test
 console.log(_join(['Lodash', 'says', 'hi', 'from', 'section.js!'], ' '));
@@ -226,7 +226,7 @@ console.log(`Can you dig ${question.endsWith('it?')}`);
 
 ```
 
-_src/section.global.scss_
+_src/section.scss_
 
 ```scss
 @charset 'UTF-8';
