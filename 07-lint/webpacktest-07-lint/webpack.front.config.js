@@ -506,19 +506,6 @@ if (development && devServerRunning) {
 }
 
 // ----------------
-// CopyPlugin
-config.plugins.push(new CopyPlugin(
-  [
-    // {
-    //   from: path.join(__dirname, 'src/preflight/*.{js,css}'),
-    //   to: appPathFsBuild,
-    //   flatten: true,
-    //   toType: 'dir'
-    // }
-  ]
-));
-
-// ----------------
 // HtmlWebpackPlugin
 config.plugins.push(new HtmlWebpackPlugin({
   // Custom template variables
@@ -561,6 +548,19 @@ config.plugins.push(new HtmlWebpackPlugin({
 }));
 // HtmlWebpackPlugin - HtmlWebpackHarddiskPlugin
 config.plugins.push(new HtmlWebpackHarddiskPlugin());
+
+// ----------------
+// CopyPlugin
+config.plugins.push(new CopyPlugin(
+  [
+    // {
+    //   from: path.join(__dirname, 'src/preflight/*.{js,css}'),
+    //   to: appPathFsBuild,
+    //   flatten: true,
+    //   toType: 'dir'
+    // }
+  ]
+));
 
 // ----------------
 // MiniCssExtractPlugin
