@@ -277,7 +277,7 @@ Install [Webpack plugin for stylelint](https://github.com/webpack-contrib/stylel
 npm install stylelint-webpack-plugin --save-dev
 ```
 
-Install Stylelint [configuration](https://github.com/stylelint/stylelint#extend-a-shared-configuration), choosing [stylelint-config-standard](https://github.com/stylelint/stylelint-config-standard) which apart for *possible error rules* turns on also ~60 [stylistic rules](https://github.com/stylelint/stylelint/blob/master/docs/user-guide/rules.md#stylistic-issues).
+Install Stylelint [configuration](https://github.com/stylelint/stylelint#extend-a-shared-configuration), choosing [stylelint-config-standard](https://github.com/stylelint/stylelint-config-standard) which apart for *possible error rules* turns on also ~60 [stylistic rules](https://github.com/stylelint/stylelint/blob/master/docs/user-guide/rules/list.md#stylistic-issues).
 
 ```sh
 npm install stylelint-config-standard --save-dev
