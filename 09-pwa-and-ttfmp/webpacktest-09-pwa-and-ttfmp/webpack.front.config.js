@@ -778,8 +778,7 @@ config.plugins.push(new StylelintPlugin({
 // BundleAnalyzerPlugin
 if (appProps.analyse && appProps.analyse.enable) {
   if (development) {
-    console.log('\x1b[41m%s\x1b[0m', 'BundleAnalyzerPlugin should not be run when building for development / DevServer, aborting!');
-    process.exit(1);
+    console.log('\x1b[41m%s\x1b[0m', 'BundleAnalyzerPlugin should not be run when building for development / DevServer. Will not enable analysis!');
   }
   else {
     config.plugins.push(new BundleAnalyzerPlugin({
